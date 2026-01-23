@@ -26,7 +26,22 @@ Use these references to understand:
 ## Tech Stack
 
 - **Backend:** Laravel (fresh install in this directory)
+- **Frontend:** Vue 3, Inertia.js, PrimeVue, Tailwind CSS
 - **Testing:** Pest
+
+## UI/UX Guidelines
+
+- **Use PrimeVue components first** - Always check if a PrimeVue component exists for the UI need before building custom components or using other libraries.
+- **Responsive design is required** - All UI must be fully responsive and work across all screen sizes (mobile, tablet, desktop).
+- **Mobile-first approach** - Design for small screens first, then enhance for larger screens.
+- **Small screen UX patterns:**
+  - Use collapsible menus and drawers instead of persistent sidebars
+  - Stack form fields vertically on mobile
+  - Use full-width buttons and touch-friendly tap targets (minimum 44px)
+  - Replace data tables with cards or lists on narrow screens
+  - Use bottom sheets or modals for actions instead of inline controls
+  - Prioritize essential content; hide secondary information behind expandable sections
+- **Use Tailwind responsive prefixes** (`sm:`, `md:`, `lg:`, `xl:`) consistently
 
 ## Development Approach
 
