@@ -1,0 +1,55 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Customer extends Model
+{
+    use HasFactory, SoftDeletes;
+
+    protected $fillable = [
+        'first_name',
+        'last_name',
+        'email',
+        'phone',
+        'mobile',
+        'date_of_birth',
+        'gender',
+        'race',
+        'company_name',
+        'discount_percentage',
+        'loyalty_points',
+        'customer_since',
+        'notes',
+        'image_url',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'date_of_birth' => 'date',
+            'customer_since' => 'date',
+            'discount_percentage' => 'decimal:2',
+            'loyalty_points' => 'integer',
+        ];
+    }
+
+    public function user(): HasOne
+    {
+        return $this->hasOne(User::class);
+    }
+
+    public function getFullNameAttribute(): string
+    {
+        return "{$this->first_name} {$this->last_name}";
+    }
+
+    public function hasUserAccount(): bool
+    {
+        return $this->user()->exists();
+    }
+}

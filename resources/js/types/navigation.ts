@@ -12,3 +12,9 @@ export type NavItem = {
     icon?: LucideIcon;
     isActive?: boolean;
 };
+
+export type ServerNavItem = {
+    title: string;
+    href: string;
+    icon?: string;
+};

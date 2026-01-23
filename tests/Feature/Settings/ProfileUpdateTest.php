@@ -44,5 +44,5 @@ test('user can delete their account', function () {
         ->assertRedirect('/');
 
     $this->assertGuest();
-    expect($user->fresh())->toBeNull();
+    expect($user->fresh()->trashed())->toBeTrue();
 });

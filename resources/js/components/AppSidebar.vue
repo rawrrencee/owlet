@@ -12,18 +12,35 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import { type NavItem } from '@/types';
+import { type AppPageProps, type NavItem } from '@/types';
+import { usePage } from '@inertiajs/vue3';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-vue-next';
+import {
+    BookOpen,
+    Folder,
+    LayoutGrid,
+    Users,
+    type LucideIcon,
+} from 'lucide-vue-next';
+import { computed } from 'vue';
 import AppLogo from './AppLogo.vue';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-];
+const iconMap: Record<string, LucideIcon> = {
+    LayoutGrid,
+    Users,
+    BookOpen,
+    Folder,
+};
+
+const page = usePage<AppPageProps>();
+
+const mainNavItems = computed<NavItem[]>(() => {
+    return page.props.navigation.map((item) => ({
+        title: item.title,
+        href: item.href,
+        icon: item.icon ? iconMap[item.icon] : undefined,
+    }));
+});
 
 const footerNavItems: NavItem[] = [
     {
