@@ -15,12 +15,17 @@ Route::middleware([
         return Inertia::render('Dashboard');
     })->name('dashboard');
 
+    // Profile picture serving route (needs auth but not admin)
+    Route::get('users/{employee}/profile-picture', [UserController::class, 'showProfilePicture'])->name('users.profile-picture');
+
     Route::middleware('admin')->group(function () {
         Route::get('users', [UserController::class, 'index'])->name('users.index');
         Route::get('users/create', [UserController::class, 'create'])->name('users.create');
         Route::post('users', [UserController::class, 'store'])->name('users.store');
         Route::get('users/{employee}/edit', [UserController::class, 'edit'])->name('users.edit');
         Route::put('users/{employee}', [UserController::class, 'update'])->name('users.update');
+        Route::post('users/{employee}/profile-picture', [UserController::class, 'uploadProfilePicture'])->name('users.upload-profile-picture');
+        Route::delete('users/{employee}/profile-picture', [UserController::class, 'deleteProfilePicture'])->name('users.delete-profile-picture');
         Route::delete('users/{employee}', [UserController::class, 'destroy'])->name('users.destroy');
 
         Route::get('customers/create', [UserController::class, 'createCustomer'])->name('customers.create');

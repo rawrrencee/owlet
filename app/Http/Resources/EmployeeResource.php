@@ -41,7 +41,9 @@ class EmployeeResource extends JsonResource
             'hire_date' => $this->hire_date?->toDateString(),
             'termination_date' => $this->termination_date?->toDateString(),
             'notes' => $this->notes,
-            'image_url' => $this->image_url,
+            'profile_picture_url' => $this->profile_picture
+                ? route('users.profile-picture', $this->id)
+                : null,
             'is_active' => $this->isActive(),
             'user' => $this->whenLoaded('user', fn () => new UserResource($this->user)),
             'created_at' => $this->created_at?->toIso8601String(),

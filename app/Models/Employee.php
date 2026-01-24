@@ -41,7 +41,7 @@ class Employee extends Model
         'hire_date',
         'termination_date',
         'notes',
-        'image_url',
+        'profile_picture',
     ];
 
     protected function casts(): array

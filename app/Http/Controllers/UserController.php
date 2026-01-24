@@ -13,8 +13,10 @@ use App\Services\WorkOSUserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
 class UserController extends Controller
@@ -79,8 +81,13 @@ class UserController extends Controller
             }
         }
 
+        // Transform through resources for Inertia as well
+        $transformedUsers = $type === 'customers'
+            ? CustomerResource::collection($users)->response()->getData(true)
+            : EmployeeResource::collection($users)->response()->getData(true);
+
         return Inertia::render('Users/Index', [
-            'users' => $users,
+            'users' => $transformedUsers,
             'type' => $type,
             'filters' => [
                 'search' => $search,
@@ -139,7 +146,7 @@ class UserController extends Controller
         }
 
         return Inertia::render('Users/Form', [
-            'employee' => $employee,
+            'employee' => (new EmployeeResource($employee))->resolve(),
             'workosUser' => $workosUser ? [
                 'id' => $workosUser->id,
                 'email' => $workosUser->email,
@@ -177,7 +184,7 @@ class UserController extends Controller
         }
 
         return Inertia::render('Users/Form', [
-            'employee' => $employee,
+            'employee' => (new EmployeeResource($employee))->resolve(),
             'workosUser' => $workosUser ? [
                 'id' => $workosUser->id,
                 'email' => $workosUser->email,
@@ -373,6 +380,59 @@ class UserController extends Controller
             'users.index',
             ['type' => 'customers'],
             'Customer deleted successfully.'
+        );
+    }
+
+    public function showProfilePicture(Employee $employee): StreamedResponse
+    {
+        if (! $employee->profile_picture || ! Storage::disk('private')->exists($employee->profile_picture)) {
+            abort(404);
+        }
+
+        return Storage::disk('private')->response($employee->profile_picture);
+    }
+
+    public function uploadProfilePicture(Employee $employee, Request $request): RedirectResponse|JsonResponse
+    {
+        $validated = $request->validate([
+            'profile_picture' => ['required', 'image', 'max:5120'], // 5MB max
+        ]);
+
+        // Delete old profile picture if exists
+        if ($employee->profile_picture) {
+            Storage::disk('private')->delete($employee->profile_picture);
+        }
+
+        // Store new profile picture
+        $path = $request->file('profile_picture')->store(
+            "profile-pictures/{$employee->id}",
+            'private'
+        );
+
+        $employee->update(['profile_picture' => $path]);
+
+        return $this->respondWithSuccess(
+            $request,
+            'users.edit',
+            ['employee' => $employee->id],
+            'Profile picture uploaded successfully.',
+            ['profile_picture_url' => route('users.profile-picture', $employee->id)]
+        );
+    }
+
+    public function deleteProfilePicture(Employee $employee, Request $request): RedirectResponse|JsonResponse
+    {
+        if ($employee->profile_picture) {
+            Storage::disk('private')->delete($employee->profile_picture);
+            $employee->update(['profile_picture' => null]);
+        }
+
+        return $this->respondWithSuccess(
+            $request,
+            'users.edit',
+            ['employee' => $employee->id],
+            'Profile picture removed successfully.',
+            ['profile_picture_url' => null]
         );
     }
 

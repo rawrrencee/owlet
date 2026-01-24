@@ -2,11 +2,13 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
+import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
 import Column from 'primevue/column';
 import ConfirmDialog from 'primevue/confirmdialog';
 import DataTable from 'primevue/datatable';
 import IconField from 'primevue/iconfield';
+import Image from 'primevue/image';
 import InputIcon from 'primevue/inputicon';
 import InputText from 'primevue/inputtext';
 import Select from 'primevue/select';
@@ -25,6 +27,7 @@ interface Employee {
     phone: string | null;
     hire_date: string | null;
     termination_date: string | null;
+    profile_picture_url: string | null;
 }
 
 interface Customer {
@@ -36,6 +39,7 @@ interface Customer {
     company_name: string | null;
     customer_since: string | null;
     loyalty_points: number;
+    image_url: string | null;
 }
 
 interface PaginatedData<T> {
@@ -149,6 +153,19 @@ function isEmployee(user: Employee | Customer): user is Employee {
 
 function getFullName(user: Employee | Customer): string {
     return `${user.last_name}, ${user.first_name}`;
+}
+
+function getInitials(user: Employee | Customer): string {
+    const first = user.first_name?.charAt(0)?.toUpperCase() ?? '';
+    const last = user.last_name?.charAt(0)?.toUpperCase() ?? '';
+    return `${first}${last}`;
+}
+
+function getProfilePictureUrl(user: Employee | Customer): string | null {
+    if (isEmployee(user)) {
+        return user.profile_picture_url;
+    }
+    return (user as Customer).image_url;
 }
 
 function navigateToCreate() {
@@ -313,8 +330,26 @@ function onPage(event: { page: number }) {
                         No employees found.
                     </div>
                 </template>
-                <Column expander class="w-12 md:hidden" />
-                <Column field="name" header="Name">
+                <Column expander class="w-12 !pr-0 md:hidden" />
+                <Column header="" class="w-12 !pl-4 !pr-0">
+                    <template #body="{ data }">
+                        <Image
+                            v-if="getProfilePictureUrl(data)"
+                            :src="getProfilePictureUrl(data)"
+                            :alt="getFullName(data)"
+                            image-class="!h-8 !w-8 rounded-full object-cover cursor-pointer"
+                            :pt="{ root: { class: 'rounded-full overflow-hidden' }, previewMask: { class: 'rounded-full' } }"
+                            preview
+                        />
+                        <Avatar
+                            v-else
+                            :label="getInitials(data)"
+                            shape="circle"
+                            class="!h-8 !w-8 bg-primary/10 text-primary"
+                        />
+                    </template>
+                </Column>
+                <Column field="name" header="Name" class="!pl-3">
                     <template #body="{ data }">
                         <span class="font-medium">{{ getFullName(data) }}</span>
                     </template>
@@ -342,9 +377,9 @@ function onPage(event: { page: number }) {
                         />
                     </template>
                 </Column>
-                <Column header="" class="w-24">
+                <Column header="" class="w-24 !pr-4">
                     <template #body="{ data }">
-                        <div class="flex gap-1">
+                        <div class="flex justify-end gap-1">
                             <Button
                                 icon="pi pi-pencil"
                                 severity="secondary"
@@ -421,8 +456,26 @@ function onPage(event: { page: number }) {
                         No customers found.
                     </div>
                 </template>
-                <Column expander class="w-12 md:hidden" />
-                <Column field="name" header="Name">
+                <Column expander class="w-12 !pr-0 md:hidden" />
+                <Column header="" class="w-12 !pl-4 !pr-0">
+                    <template #body="{ data }">
+                        <Image
+                            v-if="getProfilePictureUrl(data)"
+                            :src="getProfilePictureUrl(data)"
+                            :alt="getFullName(data)"
+                            image-class="!h-8 !w-8 rounded-full object-cover cursor-pointer"
+                            :pt="{ root: { class: 'rounded-full overflow-hidden' }, previewMask: { class: 'rounded-full' } }"
+                            preview
+                        />
+                        <Avatar
+                            v-else
+                            :label="getInitials(data)"
+                            shape="circle"
+                            class="!h-8 !w-8 bg-primary/10 text-primary"
+                        />
+                    </template>
+                </Column>
+                <Column field="name" header="Name" class="!pl-3">
                     <template #body="{ data }">
                         <span class="font-medium">{{ getFullName(data) }}</span>
                     </template>
@@ -452,9 +505,9 @@ function onPage(event: { page: number }) {
                         {{ data.loyalty_points?.toLocaleString() ?? 0 }}
                     </template>
                 </Column>
-                <Column header="" class="w-24">
+                <Column header="" class="w-24 !pr-4">
                     <template #body="{ data }">
-                        <div class="flex gap-1">
+                        <div class="flex justify-end gap-1">
                             <Button
                                 icon="pi pi-pencil"
                                 severity="secondary"
