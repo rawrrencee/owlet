@@ -8,6 +8,7 @@ use App\Http\Resources\CompanyResource;
 use App\Http\Resources\CustomerResource;
 use App\Http\Resources\DesignationResource;
 use App\Http\Resources\EmployeeCompanyResource;
+use App\Http\Resources\EmployeeContractResource;
 use App\Http\Resources\EmployeeResource;
 use App\Http\Traits\RespondsWithInertiaOrJson;
 use App\Models\Company;
@@ -129,7 +130,7 @@ class UserController extends Controller
 
     public function show(Request $request, Employee $employee, WorkOSUserService $workOSUserService): InertiaResponse|JsonResponse
     {
-        $employee->load(['user', 'employeeCompanies.company', 'employeeCompanies.designation']);
+        $employee->load(['user', 'employeeCompanies.company', 'employeeCompanies.designation', 'contracts.company']);
 
         $workosUser = null;
         $workosRole = null;
@@ -184,12 +185,15 @@ class UserController extends Controller
             'employeeCompanies' => EmployeeCompanyResource::collection(
                 $employee->employeeCompanies->sortByDesc('commencement_date')
             )->resolve(),
+            'contracts' => EmployeeContractResource::collection(
+                $employee->contracts->sortByDesc('start_date')
+            )->resolve(),
         ]);
     }
 
     public function edit(Employee $employee, WorkOSUserService $workOSUserService): InertiaResponse
     {
-        $employee->load(['user', 'employeeCompanies.company', 'employeeCompanies.designation']);
+        $employee->load(['user', 'employeeCompanies.company', 'employeeCompanies.designation', 'contracts.company']);
 
         $workosUser = null;
         $workosRole = null;
@@ -224,6 +228,9 @@ class UserController extends Controller
             'role' => $role,
             'employeeCompanies' => EmployeeCompanyResource::collection(
                 $employee->employeeCompanies->sortByDesc('commencement_date')
+            )->resolve(),
+            'contracts' => EmployeeContractResource::collection(
+                $employee->contracts->sortByDesc('start_date')
             )->resolve(),
             'companies' => CompanyResource::collection(Company::where('active', true)->orderBy('company_name')->get())->resolve(),
             'designations' => DesignationResource::collection(Designation::orderBy('designation_name')->get())->resolve(),

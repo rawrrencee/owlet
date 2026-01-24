@@ -2,10 +2,9 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import {
     type BreadcrumbItem,
-    type Company,
-    type Designation,
     type Employee,
     type EmployeeCompany,
+    type EmployeeContract,
     type WorkOSUser,
 } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
@@ -23,6 +22,7 @@ interface Props {
     workosUser: WorkOSUser | null;
     role?: string;
     employeeCompanies?: EmployeeCompany[];
+    contracts?: EmployeeContract[];
 }
 
 const props = defineProps<Props>();
@@ -52,6 +52,25 @@ function getStatusLabel(status: string): string {
         'CA': 'Casual',
     };
     return labels[status] ?? status;
+}
+
+function formatCurrency(value: string | number | null): string {
+    if (value === null || value === undefined) return '-';
+    const num = typeof value === 'string' ? parseFloat(value) : value;
+    return new Intl.NumberFormat('en-SG', { style: 'currency', currency: 'SGD' }).format(num);
+}
+
+function getLeaveDisplay(entitled: number, taken: number): string {
+    const remaining = Math.max(0, entitled - taken);
+    return `${remaining}/${entitled}`;
+}
+
+function viewContractDocument(contract: EmployeeContract) {
+    if (contract.external_document_url) {
+        window.open(contract.external_document_url, '_blank');
+    } else if (contract.document_url) {
+        window.open(contract.document_url, '_blank');
+    }
 }
 
 function navigateToEdit() {
@@ -256,6 +275,73 @@ function navigateBack() {
                                                 <Tag
                                                     :value="data.is_active ? 'Active' : 'Inactive'"
                                                     :severity="data.is_active ? 'success' : 'secondary'"
+                                                />
+                                            </template>
+                                        </Column>
+                                    </DataTable>
+                                </div>
+                            </template>
+
+                            <!-- Contracts -->
+                            <template v-if="contracts && contracts.length > 0">
+                                <Divider />
+                                <div>
+                                    <h3 class="mb-4 text-lg font-medium">Contracts</h3>
+                                    <DataTable
+                                        :value="contracts"
+                                        size="small"
+                                        stripedRows
+                                        class="rounded-lg border border-sidebar-border/70"
+                                    >
+                                        <Column field="company.company_name" header="Company">
+                                            <template #body="{ data }">
+                                                {{ data.company?.company_name ?? '-' }}
+                                            </template>
+                                        </Column>
+                                        <Column field="start_date" header="Start Date" class="hidden sm:table-cell">
+                                            <template #body="{ data }">
+                                                {{ formatDate(data.start_date) }}
+                                            </template>
+                                        </Column>
+                                        <Column field="end_date" header="End Date" class="hidden md:table-cell">
+                                            <template #body="{ data }">
+                                                {{ formatDate(data.end_date) }}
+                                            </template>
+                                        </Column>
+                                        <Column field="salary_amount" header="Salary" class="hidden lg:table-cell">
+                                            <template #body="{ data }">
+                                                {{ formatCurrency(data.salary_amount) }}
+                                            </template>
+                                        </Column>
+                                        <Column header="Annual Leave" class="hidden sm:table-cell">
+                                            <template #body="{ data }">
+                                                {{ getLeaveDisplay(data.annual_leave_entitled, data.annual_leave_taken) }}
+                                            </template>
+                                        </Column>
+                                        <Column header="Sick Leave" class="hidden sm:table-cell">
+                                            <template #body="{ data }">
+                                                {{ getLeaveDisplay(data.sick_leave_entitled, data.sick_leave_taken) }}
+                                            </template>
+                                        </Column>
+                                        <Column header="Status">
+                                            <template #body="{ data }">
+                                                <Tag
+                                                    :value="data.is_active ? 'Active' : 'Expired'"
+                                                    :severity="data.is_active ? 'success' : 'secondary'"
+                                                />
+                                            </template>
+                                        </Column>
+                                        <Column header="Doc" class="w-12">
+                                            <template #body="{ data }">
+                                                <Button
+                                                    v-if="data.has_document"
+                                                    icon="pi pi-file"
+                                                    severity="secondary"
+                                                    text
+                                                    rounded
+                                                    size="small"
+                                                    @click="viewContractDocument(data)"
+                                                    v-tooltip.top="'View Document'"
                                                 />
                                             </template>
                                         </Column>

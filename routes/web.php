@@ -3,6 +3,7 @@
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DesignationController;
 use App\Http\Controllers\EmployeeCompanyController;
+use App\Http\Controllers\EmployeeContractController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -20,6 +21,9 @@ Route::middleware([
 
     // Profile picture serving route (needs auth but not admin)
     Route::get('users/{employee}/profile-picture', [UserController::class, 'showProfilePicture'])->name('users.profile-picture');
+
+    // Contract document viewing route (needs auth but not admin)
+    Route::get('users/{employee}/contracts/{contract}/document', [EmployeeContractController::class, 'showDocument'])->name('users.contracts.document');
 
     Route::middleware('admin')->group(function () {
         Route::get('users', [UserController::class, 'index'])->name('users.index');
@@ -53,6 +57,14 @@ Route::middleware([
         Route::post('users/{employee}/companies', [EmployeeCompanyController::class, 'store'])->name('users.companies.store');
         Route::put('users/{employee}/companies/{employeeCompany}', [EmployeeCompanyController::class, 'update'])->name('users.companies.update');
         Route::delete('users/{employee}/companies/{employeeCompany}', [EmployeeCompanyController::class, 'destroy'])->name('users.companies.destroy');
+
+        // Employee Contracts
+        Route::get('users/{employee}/contracts', [EmployeeContractController::class, 'index'])->name('users.contracts.index');
+        Route::post('users/{employee}/contracts', [EmployeeContractController::class, 'store'])->name('users.contracts.store');
+        Route::put('users/{employee}/contracts/{contract}', [EmployeeContractController::class, 'update'])->name('users.contracts.update');
+        Route::delete('users/{employee}/contracts/{contract}', [EmployeeContractController::class, 'destroy'])->name('users.contracts.destroy');
+        Route::post('users/{employee}/contracts/{contract}/document', [EmployeeContractController::class, 'uploadDocument'])->name('users.contracts.upload-document');
+        Route::delete('users/{employee}/contracts/{contract}/document', [EmployeeContractController::class, 'deleteDocument'])->name('users.contracts.delete-document');
     });
 });
 

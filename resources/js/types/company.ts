@@ -41,3 +41,29 @@ export interface EmployeeCompany {
 }
 
 export type EmploymentStatus = 'FT' | 'PT' | 'CT' | 'CA';
+
+export interface EmployeeContract {
+    id: number;
+    employee_id: number;
+    company_id: number | null;
+    start_date: string;
+    end_date: string | null;
+    salary_amount: string | number;
+    annual_leave_entitled: number;
+    annual_leave_taken: number;
+    annual_leave_remaining: number;
+    sick_leave_entitled: number;
+    sick_leave_taken: number;
+    sick_leave_remaining: number;
+    external_document_url: string | null;
+    document_url: string | null;
+    document_filename: string | null;
+    document_mime_type: string | null;
+    has_document: boolean;
+    is_document_viewable_inline: boolean;
+    comments: string | null;
+    is_active: boolean;
+    company?: Company;
+    created_at: string | null;
+    updated_at: string | null;
+}

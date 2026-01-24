@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import EmployeeCompaniesSection from '@/components/employees/EmployeeCompaniesSection.vue';
+import EmployeeContractsSection from '@/components/employees/EmployeeContractsSection.vue';
 import ImageUpload from '@/components/ImageUpload.vue';
 import {
     countries,
@@ -16,6 +17,7 @@ import {
     type Designation,
     type Employee,
     type EmployeeCompany,
+    type EmployeeContract,
     type WorkOSUser,
 } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
@@ -37,6 +39,7 @@ interface Props {
     workosUser: WorkOSUser | null;
     role?: string;
     employeeCompanies?: EmployeeCompany[];
+    contracts?: EmployeeContract[];
     companies?: Company[];
     designations?: Designation[];
 }
@@ -737,6 +740,13 @@ function cancel() {
                                     :employee-companies="employeeCompanies ?? []"
                                     :companies="companies ?? []"
                                     :designations="designations ?? []"
+                                />
+
+                                <Divider />
+                                <EmployeeContractsSection
+                                    :employee-id="employee.id"
+                                    :contracts="contracts ?? []"
+                                    :companies="companies ?? []"
                                 />
                             </template>
 

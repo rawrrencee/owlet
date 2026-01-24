@@ -78,6 +78,21 @@ class Employee extends Model
         return $this->hasMany(EmployeeCompany::class);
     }
 
+    public function contracts(): HasMany
+    {
+        return $this->hasMany(EmployeeContract::class);
+    }
+
+    public function activeContracts(): HasMany
+    {
+        return $this->contracts()
+            ->where('start_date', '<=', now())
+            ->where(function ($query) {
+                $query->whereNull('end_date')
+                    ->orWhere('end_date', '>=', now());
+            });
+    }
+
     public function activeCompanies(): BelongsToMany
     {
         return $this->companies()->whereNull('employee_companies.left_date');
