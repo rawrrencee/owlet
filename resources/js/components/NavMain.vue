@@ -7,21 +7,21 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
-import { type NavItem } from '@/types';
+import { type NavSection } from '@/types';
 import { Link } from '@inertiajs/vue3';
 
 defineProps<{
-    items: NavItem[];
+    sections: NavSection[];
 }>();
 
 const { isCurrentUrl } = useCurrentUrl();
 </script>
 
 <template>
-    <SidebarGroup class="px-2 py-0">
-        <SidebarGroupLabel>Platform</SidebarGroupLabel>
+    <SidebarGroup v-for="section in sections" :key="section.title" class="px-2 py-0">
+        <SidebarGroupLabel>{{ section.title }}</SidebarGroupLabel>
         <SidebarMenu>
-            <SidebarMenuItem v-for="item in items" :key="item.title">
+            <SidebarMenuItem v-for="item in section.items" :key="item.title">
                 <SidebarMenuButton
                     as-child
                     :is-active="isCurrentUrl(item.href)"

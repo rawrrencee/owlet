@@ -8,14 +8,33 @@ class NavigationService
 {
     public function getMainNavItems(User $user): array
     {
-        $items = [
-            ['title' => 'Dashboard', 'href' => '/dashboard', 'icon' => 'LayoutGrid'],
+        $sections = [];
+
+        // Platform section - always visible
+        $sections[] = [
+            'title' => 'Platform',
+            'items' => [
+                ['title' => 'Dashboard', 'href' => '/dashboard', 'icon' => 'LayoutGrid'],
+            ],
         ];
 
+        // Management section - only visible for admins
+        $managementItems = [];
+
         if ($user->isAdmin()) {
-            $items[] = ['title' => 'Users', 'href' => '/users', 'icon' => 'Users'];
+            $managementItems[] = ['title' => 'Users', 'href' => '/users', 'icon' => 'Users'];
+            $managementItems[] = ['title' => 'Companies', 'href' => '/companies', 'icon' => 'Building2'];
+            $managementItems[] = ['title' => 'Designations', 'href' => '/designations', 'icon' => 'BadgeCheck'];
         }
 
-        return $items;
+        // Only add the Management section if there are items
+        if (! empty($managementItems)) {
+            $sections[] = [
+                'title' => 'Management',
+                'items' => $managementItems,
+            ];
+        }
+
+        return $sections;
     }
 }

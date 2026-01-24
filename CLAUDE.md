@@ -22,22 +22,27 @@ Use these references to understand:
 - **New models and UI are permitted** - This is not a 1:1 port. Improve upon the original design where appropriate.
 - **Read-only legacy data access** - The system must connect to and display data from the old database in a read-only webpage format.
 - **Incremental development** - Features will be prompted and built one at a time.
-- **API-first backend design** - The Laravel backend must support both the Vue/Inertia frontend and external API clients (mobile apps, integrations).
+- **Inertia-first frontend design** - The primary interface is the Vue/Inertia frontend. API support for external clients (mobile apps, integrations) is a secondary requirement for future extensibility.
 
-## API Design Guidelines
+## Frontend Request Guidelines
 
-The backend should be structured to serve both Inertia.js requests and standard JSON API requests:
+All frontend interactions should use Inertia's built-in request handling:
+
+- **Use Inertia router and forms** - Always use `router.visit()`, `router.get()`, `router.post()`, `useForm()`, and other Inertia methods for requests. Avoid axios or fetch unless required by third-party dependencies.
+- **Leverage Inertia's features** - Use Inertia's automatic CSRF handling, validation error bags, preserveState, preserveScroll, and partial reloads.
+- **Form submissions** - Use `useForm()` for all form handling to get automatic validation error handling and form state management.
+- **Navigation** - Use `<Link>` component or `router.visit()` for navigation instead of traditional anchor tags or window.location.
+
+## Backend Design Guidelines
+
+The backend primarily serves the Inertia frontend, with API support as a secondary concern:
 
 - **Separate business logic from controllers** - Use Service classes or Actions to encapsulate business logic. Controllers should be thin wrappers that call services.
-- **Dual-purpose controllers** - Controllers should detect request type and respond appropriately:
-  - Inertia requests → Return Inertia responses with page components
-  - API requests → Return JSON responses
-- **Use Laravel's `wantsJson()` or custom middleware** - Check `$request->wantsJson()` or use the `Accept: application/json` header to determine response format.
-- **Consistent API responses** - Use Laravel API Resources for JSON responses to ensure consistent data structure across all endpoints.
-- **API routes in `routes/api.php`** - Define API-specific routes with proper versioning (e.g., `/api/v1/`). Web routes remain in `routes/web.php`.
+- **Primary web routes** - Define all routes in `routes/web.php` for Inertia. Controllers return Inertia responses by default.
+- **Secondary API routes** - When API support is needed, define separate routes in `routes/api.php` with versioning (e.g., `/api/v1/`). Use Laravel API Resources for consistent JSON responses.
 - **Shared validation** - Use Form Request classes for validation that work for both Inertia and API requests.
-- **Authentication flexibility** - Support both session-based auth (web) and token-based auth (API) via Laravel Sanctum.
-- **Error handling** - Return appropriate error formats: Inertia error bags for web, JSON error responses for API.
+- **Authentication** - Primary: session-based auth for web. Secondary: token-based auth (API) via Laravel Sanctum when needed.
+- **Error handling** - Return Inertia error bags for web requests. JSON error responses for API requests when implemented.
 
 ## Tech Stack
 

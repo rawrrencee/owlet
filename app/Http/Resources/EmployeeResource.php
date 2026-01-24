@@ -46,6 +46,7 @@ class EmployeeResource extends JsonResource
                 : null,
             'is_active' => $this->isActive(),
             'user' => $this->whenLoaded('user', fn () => new UserResource($this->user)),
+            'employee_companies' => $this->whenLoaded('employeeCompanies', fn () => EmployeeCompanyResource::collection($this->employeeCompanies)),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

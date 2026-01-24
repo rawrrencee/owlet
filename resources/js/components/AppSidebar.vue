@@ -12,11 +12,13 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import { type AppPageProps, type NavItem } from '@/types';
+import { type AppPageProps, type NavItem, type NavSection } from '@/types';
 import { usePage } from '@inertiajs/vue3';
 import { Link } from '@inertiajs/vue3';
 import {
+    BadgeCheck,
     BookOpen,
+    Building2,
     Folder,
     LayoutGrid,
     Users,
@@ -26,19 +28,24 @@ import { computed } from 'vue';
 import AppLogo from './AppLogo.vue';
 
 const iconMap: Record<string, LucideIcon> = {
+    BadgeCheck,
+    BookOpen,
+    Building2,
+    Folder,
     LayoutGrid,
     Users,
-    BookOpen,
-    Folder,
 };
 
 const page = usePage<AppPageProps>();
 
-const mainNavItems = computed<NavItem[]>(() => {
-    return page.props.navigation.map((item) => ({
-        title: item.title,
-        href: item.href,
-        icon: item.icon ? iconMap[item.icon] : undefined,
+const navSections = computed<NavSection[]>(() => {
+    return page.props.navigation.map((section) => ({
+        title: section.title,
+        items: section.items.map((item) => ({
+            title: item.title,
+            href: item.href,
+            icon: item.icon ? iconMap[item.icon] : undefined,
+        })),
     }));
 });
 
@@ -71,7 +78,7 @@ const footerNavItems: NavItem[] = [
         </SidebarHeader>
 
         <SidebarContent>
-            <NavMain :items="mainNavItems" />
+            <NavMain :sections="navSections" />
         </SidebarContent>
 
         <SidebarFooter>

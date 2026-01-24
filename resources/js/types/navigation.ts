@@ -13,8 +13,18 @@ export type NavItem = {
     isActive?: boolean;
 };
 
+export type NavSection = {
+    title: string;
+    items: NavItem[];
+};
+
 export type ServerNavItem = {
     title: string;
     href: string;
     icon?: string;
+};
+
+export type ServerNavSection = {
+    title: string;
+    items: ServerNavItem[];
 };

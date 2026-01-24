@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\EmployeeCompanyController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -52,5 +53,23 @@ Route::prefix('v1')->group(function () {
                 'data' => new \App\Http\Resources\UserResource(auth()->user()),
             ]);
         })->name('api.user');
+
+        // Companies - Uncomment when Sanctum is configured
+        // Route::apiResource('companies', CompanyController::class);
+
+        // Designations - Uncomment when Sanctum is configured
+        // Route::apiResource('designations', DesignationController::class);
+
+        // Employee-Company assignments
+        Route::get('/employees/{employee}/companies', [EmployeeCompanyController::class, 'index'])
+            ->name('api.employees.companies.index');
+        Route::post('/employees/{employee}/companies', [EmployeeCompanyController::class, 'store'])
+            ->name('api.employees.companies.store');
+        Route::get('/employee-companies/{employeeCompany}', [EmployeeCompanyController::class, 'show'])
+            ->name('api.employee-companies.show');
+        Route::put('/employees/{employee}/companies/{employeeCompany}', [EmployeeCompanyController::class, 'update'])
+            ->name('api.employees.companies.update');
+        Route::delete('/employees/{employee}/companies/{employeeCompany}', [EmployeeCompanyController::class, 'destroy'])
+            ->name('api.employees.companies.destroy');
     });
 });

@@ -4,10 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Exceptions\WorkOSException;
 use App\Http\Requests\StoreUserRequest;
+use App\Http\Resources\CompanyResource;
 use App\Http\Resources\CustomerResource;
+use App\Http\Resources\DesignationResource;
+use App\Http\Resources\EmployeeCompanyResource;
 use App\Http\Resources\EmployeeResource;
 use App\Http\Traits\RespondsWithInertiaOrJson;
+use App\Models\Company;
 use App\Models\Customer;
+use App\Models\Designation;
 use App\Models\Employee;
 use App\Services\WorkOSUserService;
 use Illuminate\Http\JsonResponse;
@@ -163,7 +168,7 @@ class UserController extends Controller
 
     public function edit(Employee $employee, WorkOSUserService $workOSUserService): InertiaResponse
     {
-        $employee->load('user');
+        $employee->load(['user', 'employeeCompanies.company', 'employeeCompanies.designation']);
 
         $workosUser = null;
         $workosRole = null;
@@ -196,6 +201,11 @@ class UserController extends Controller
                 'updatedAt' => $workosUser->updatedAt,
             ] : null,
             'role' => $role,
+            'employeeCompanies' => EmployeeCompanyResource::collection(
+                $employee->employeeCompanies->sortByDesc('commencement_date')
+            )->resolve(),
+            'companies' => CompanyResource::collection(Company::where('active', true)->orderBy('company_name')->get())->resolve(),
+            'designations' => DesignationResource::collection(Designation::orderBy('designation_name')->get())->resolve(),
         ]);
     }
 

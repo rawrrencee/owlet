@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import EmployeeCompaniesSection from '@/components/employees/EmployeeCompaniesSection.vue';
+import ImageUpload from '@/components/ImageUpload.vue';
 import {
     countries,
     countryOptions,
@@ -9,19 +11,17 @@ import {
 } from '@/constants/employee';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
+import { type Company, type Designation, type EmployeeCompany } from '@/types/company';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
-import ConfirmDialog from 'primevue/confirmdialog';
 import DatePicker from 'primevue/datepicker';
 import Divider from 'primevue/divider';
-import Image from 'primevue/image';
 import InputText from 'primevue/inputtext';
 import Message from 'primevue/message';
 import Select from 'primevue/select';
 import Textarea from 'primevue/textarea';
 import ToggleSwitch from 'primevue/toggleswitch';
-import { useConfirm } from 'primevue/useconfirm';
 import { computed, ref, watch } from 'vue';
 
 interface Employee {
@@ -79,6 +79,9 @@ interface Props {
     employee: Employee | null;
     workosUser: WorkOSUser | null;
     role?: string;
+    employeeCompanies?: EmployeeCompany[];
+    companies?: Company[];
+    designations?: Designation[];
 }
 
 const props = defineProps<Props>();
@@ -186,109 +189,6 @@ const roleOptions = [
 
 // Profile picture state
 const profilePictureUrl = ref<string | null>(props.employee?.profile_picture_url ?? null);
-const profilePictureFile = ref<File | null>(null);
-const profilePicturePreview = ref<string | null>(null);
-const uploadingPicture = ref(false);
-const profilePictureError = ref<string | null>(null);
-
-const confirm = useConfirm();
-
-function onProfilePictureSelect(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-        profilePictureError.value = 'Please select an image file.';
-        return;
-    }
-
-    // Validate file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
-        profilePictureError.value = 'Image must be less than 5MB.';
-        return;
-    }
-
-    profilePictureError.value = null;
-    profilePictureFile.value = file;
-
-    // Create preview
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        profilePicturePreview.value = e.target?.result as string;
-    };
-    reader.readAsDataURL(file);
-}
-
-function uploadProfilePicture() {
-    if (!profilePictureFile.value || !props.employee) return;
-
-    uploadingPicture.value = true;
-    profilePictureError.value = null;
-
-    const formData = new FormData();
-    formData.append('profile_picture', profilePictureFile.value);
-
-    router.post(`/users/${props.employee.id}/profile-picture`, formData, {
-        preserveScroll: true,
-        onSuccess: () => {
-            profilePictureUrl.value = `/users/${props.employee!.id}/profile-picture?t=${Date.now()}`;
-            profilePictureFile.value = null;
-            profilePicturePreview.value = null;
-        },
-        onError: (errors) => {
-            profilePictureError.value = errors.profile_picture || 'Failed to upload image.';
-        },
-        onFinish: () => {
-            uploadingPicture.value = false;
-        },
-    });
-}
-
-function confirmDeleteProfilePicture() {
-    confirm.require({
-        message: 'Are you sure you want to remove the profile picture?',
-        header: 'Remove Profile Picture',
-        icon: 'pi pi-exclamation-triangle',
-        rejectLabel: 'Cancel',
-        rejectProps: {
-            severity: 'secondary',
-            size: 'small',
-        },
-        acceptLabel: 'Remove',
-        acceptProps: {
-            severity: 'danger',
-            size: 'small',
-        },
-        accept: deleteProfilePicture,
-    });
-}
-
-function deleteProfilePicture() {
-    if (!props.employee) return;
-
-    uploadingPicture.value = true;
-
-    router.delete(`/users/${props.employee.id}/profile-picture`, {
-        preserveScroll: true,
-        onSuccess: () => {
-            profilePictureUrl.value = null;
-            profilePictureFile.value = null;
-            profilePicturePreview.value = null;
-        },
-        onFinish: () => {
-            uploadingPicture.value = false;
-        },
-    });
-}
-
-function cancelProfilePictureSelection() {
-    profilePictureFile.value = null;
-    profilePicturePreview.value = null;
-    profilePictureError.value = null;
-}
 
 function submit() {
     // Transform dates to ISO strings for the backend
@@ -351,79 +251,20 @@ function cancel() {
                                 <h3 class="mb-4 text-lg font-medium">Basic Information</h3>
                                 <div class="flex flex-col gap-4">
                                     <!-- Profile Picture -->
-                                    <div v-if="isEditing" class="flex flex-col gap-3 sm:flex-row sm:items-start">
-                                        <div class="flex flex-col items-center gap-2">
-                                            <div class="relative h-24 w-24 overflow-hidden rounded-full bg-surface-200 dark:bg-surface-700">
-                                                <Image
-                                                    v-if="profilePicturePreview || profilePictureUrl"
-                                                    :src="profilePicturePreview || profilePictureUrl || ''"
-                                                    alt="Profile picture"
-                                                    image-class="h-24 w-24 rounded-full object-cover cursor-pointer"
-                                                    :pt="{ root: { class: 'rounded-full overflow-hidden' }, previewMask: { class: 'rounded-full' } }"
-                                                    preview
-                                                />
-                                                <div v-else class="flex h-full w-full items-center justify-center">
-                                                    <i class="pi pi-user text-3xl text-surface-400"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="flex flex-1 flex-col gap-2">
-                                            <label class="font-medium">Profile Picture</label>
-                                            <div class="flex flex-wrap items-center gap-2">
-                                                <label class="cursor-pointer">
-                                                    <input
-                                                        type="file"
-                                                        accept="image/*"
-                                                        class="hidden"
-                                                        @change="onProfilePictureSelect"
-                                                        :disabled="uploadingPicture"
-                                                    />
-                                                    <Button
-                                                        as="span"
-                                                        :label="profilePictureUrl ? 'Change' : 'Upload'"
-                                                        icon="pi pi-upload"
-                                                        size="small"
-                                                        severity="secondary"
-                                                        :disabled="uploadingPicture"
-                                                    />
-                                                </label>
-                                                <Button
-                                                    v-if="profilePictureFile"
-                                                    label="Save"
-                                                    icon="pi pi-check"
-                                                    size="small"
-                                                    :loading="uploadingPicture"
-                                                    @click="uploadProfilePicture"
-                                                />
-                                                <Button
-                                                    v-if="profilePictureFile"
-                                                    label="Cancel"
-                                                    icon="pi pi-times"
-                                                    size="small"
-                                                    severity="secondary"
-                                                    text
-                                                    :disabled="uploadingPicture"
-                                                    @click="cancelProfilePictureSelection"
-                                                />
-                                                <Button
-                                                    v-if="profilePictureUrl && !profilePictureFile"
-                                                    label="Remove"
-                                                    icon="pi pi-trash"
-                                                    size="small"
-                                                    severity="danger"
-                                                    text
-                                                    :disabled="uploadingPicture"
-                                                    @click="confirmDeleteProfilePicture"
-                                                />
-                                            </div>
-                                            <small class="text-muted-foreground">
-                                                Accepts JPG, PNG, GIF. Max 5MB.
-                                            </small>
-                                            <small v-if="profilePictureError" class="text-red-500">
-                                                {{ profilePictureError }}
-                                            </small>
-                                        </div>
-                                    </div>
+                                    <ImageUpload
+                                        v-if="isEditing && employee"
+                                        :image-url="profilePictureUrl"
+                                        :upload-url="`/users/${employee.id}/profile-picture`"
+                                        :delete-url="`/users/${employee.id}/profile-picture`"
+                                        field-name="profile_picture"
+                                        label="Profile Picture"
+                                        placeholder-icon="pi pi-user"
+                                        alt="Profile picture"
+                                        :circular="true"
+                                        :preview-size="96"
+                                        @uploaded="(url) => profilePictureUrl = url"
+                                        @deleted="profilePictureUrl = null"
+                                    />
 
                                     <div class="grid gap-4 sm:grid-cols-2">
                                         <div class="flex flex-col gap-2">
@@ -869,6 +710,17 @@ function cancel() {
                                 </div>
                             </div>
 
+                            <!-- Company Assignments (only shown when editing) -->
+                            <template v-if="isEditing && employee">
+                                <Divider />
+                                <EmployeeCompaniesSection
+                                    :employee-id="employee.id"
+                                    :employee-companies="employeeCompanies ?? []"
+                                    :companies="companies ?? []"
+                                    :designations="designations ?? []"
+                                />
+                            </template>
+
                             <Divider />
 
                             <!-- Bank Account Details -->
@@ -1057,7 +909,5 @@ function cancel() {
                 </Card>
             </div>
         </div>
-
-        <ConfirmDialog />
     </AppLayout>
 </template>
