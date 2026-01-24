@@ -4,6 +4,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DesignationController;
 use App\Http\Controllers\EmployeeCompanyController;
 use App\Http\Controllers\EmployeeContractController;
+use App\Http\Controllers\EmployeeInsuranceController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -24,6 +25,9 @@ Route::middleware([
 
     // Contract document viewing route (needs auth but not admin)
     Route::get('users/{employee}/contracts/{contract}/document', [EmployeeContractController::class, 'showDocument'])->name('users.contracts.document');
+
+    // Insurance document viewing route (needs auth but not admin)
+    Route::get('users/{employee}/insurances/{insurance}/document', [EmployeeInsuranceController::class, 'showDocument'])->name('users.insurances.document');
 
     Route::middleware('admin')->group(function () {
         Route::get('users', [UserController::class, 'index'])->name('users.index');
@@ -65,6 +69,14 @@ Route::middleware([
         Route::delete('users/{employee}/contracts/{contract}', [EmployeeContractController::class, 'destroy'])->name('users.contracts.destroy');
         Route::post('users/{employee}/contracts/{contract}/document', [EmployeeContractController::class, 'uploadDocument'])->name('users.contracts.upload-document');
         Route::delete('users/{employee}/contracts/{contract}/document', [EmployeeContractController::class, 'deleteDocument'])->name('users.contracts.delete-document');
+
+        // Employee Insurances
+        Route::get('users/{employee}/insurances', [EmployeeInsuranceController::class, 'index'])->name('users.insurances.index');
+        Route::post('users/{employee}/insurances', [EmployeeInsuranceController::class, 'store'])->name('users.insurances.store');
+        Route::put('users/{employee}/insurances/{insurance}', [EmployeeInsuranceController::class, 'update'])->name('users.insurances.update');
+        Route::delete('users/{employee}/insurances/{insurance}', [EmployeeInsuranceController::class, 'destroy'])->name('users.insurances.destroy');
+        Route::post('users/{employee}/insurances/{insurance}/document', [EmployeeInsuranceController::class, 'uploadDocument'])->name('users.insurances.upload-document');
+        Route::delete('users/{employee}/insurances/{insurance}/document', [EmployeeInsuranceController::class, 'deleteDocument'])->name('users.insurances.delete-document');
     });
 });
 

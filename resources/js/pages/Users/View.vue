@@ -5,6 +5,7 @@ import {
     type Employee,
     type EmployeeCompany,
     type EmployeeContract,
+    type EmployeeInsurance,
     type WorkOSUser,
 } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
@@ -23,6 +24,7 @@ interface Props {
     role?: string;
     employeeCompanies?: EmployeeCompany[];
     contracts?: EmployeeContract[];
+    insurances?: EmployeeInsurance[];
 }
 
 const props = defineProps<Props>();
@@ -70,6 +72,14 @@ function viewContractDocument(contract: EmployeeContract) {
         window.open(contract.external_document_url, '_blank');
     } else if (contract.document_url) {
         window.open(contract.document_url, '_blank');
+    }
+}
+
+function viewInsuranceDocument(insurance: EmployeeInsurance) {
+    if (insurance.external_document_url) {
+        window.open(insurance.external_document_url, '_blank');
+    } else if (insurance.document_url) {
+        window.open(insurance.document_url, '_blank');
     }
 }
 
@@ -341,6 +351,68 @@ function navigateBack() {
                                                     rounded
                                                     size="small"
                                                     @click="viewContractDocument(data)"
+                                                    v-tooltip.top="'View Document'"
+                                                />
+                                            </template>
+                                        </Column>
+                                    </DataTable>
+                                </div>
+                            </template>
+
+                            <!-- Insurances -->
+                            <template v-if="insurances && insurances.length > 0">
+                                <Divider />
+                                <div>
+                                    <h3 class="mb-4 text-lg font-medium">Insurances</h3>
+                                    <DataTable
+                                        :value="insurances"
+                                        size="small"
+                                        stripedRows
+                                        class="rounded-lg border border-sidebar-border/70"
+                                    >
+                                        <Column field="title" header="Title">
+                                            <template #body="{ data }">
+                                                {{ data.title }}
+                                            </template>
+                                        </Column>
+                                        <Column field="insurer_name" header="Insurer" class="hidden sm:table-cell">
+                                            <template #body="{ data }">
+                                                {{ data.insurer_name }}
+                                            </template>
+                                        </Column>
+                                        <Column field="policy_number" header="Policy #" class="hidden md:table-cell">
+                                            <template #body="{ data }">
+                                                {{ data.policy_number }}
+                                            </template>
+                                        </Column>
+                                        <Column field="start_date" header="Start Date" class="hidden lg:table-cell">
+                                            <template #body="{ data }">
+                                                {{ formatDate(data.start_date) }}
+                                            </template>
+                                        </Column>
+                                        <Column field="end_date" header="End Date" class="hidden lg:table-cell">
+                                            <template #body="{ data }">
+                                                {{ formatDate(data.end_date) }}
+                                            </template>
+                                        </Column>
+                                        <Column header="Status">
+                                            <template #body="{ data }">
+                                                <Tag
+                                                    :value="data.is_active ? 'Active' : 'Expired'"
+                                                    :severity="data.is_active ? 'success' : 'secondary'"
+                                                />
+                                            </template>
+                                        </Column>
+                                        <Column header="Doc" class="w-12">
+                                            <template #body="{ data }">
+                                                <Button
+                                                    v-if="data.has_document"
+                                                    icon="pi pi-file"
+                                                    severity="secondary"
+                                                    text
+                                                    rounded
+                                                    size="small"
+                                                    @click="viewInsuranceDocument(data)"
                                                     v-tooltip.top="'View Document'"
                                                 />
                                             </template>

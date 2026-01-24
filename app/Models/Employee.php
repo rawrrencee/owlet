@@ -93,6 +93,21 @@ class Employee extends Model
             });
     }
 
+    public function insurances(): HasMany
+    {
+        return $this->hasMany(EmployeeInsurance::class);
+    }
+
+    public function activeInsurances(): HasMany
+    {
+        return $this->insurances()
+            ->where('start_date', '<=', now())
+            ->where(function ($query) {
+                $query->whereNull('end_date')
+                    ->orWhere('end_date', '>=', now());
+            });
+    }
+
     public function activeCompanies(): BelongsToMany
     {
         return $this->companies()->whereNull('employee_companies.left_date');

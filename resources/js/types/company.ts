@@ -67,3 +67,23 @@ export interface EmployeeContract {
     created_at: string | null;
     updated_at: string | null;
 }
+
+export interface EmployeeInsurance {
+    id: number;
+    employee_id: number;
+    title: string;
+    insurer_name: string;
+    policy_number: string;
+    start_date: string;
+    end_date: string | null;
+    external_document_url: string | null;
+    document_url: string | null;
+    document_filename: string | null;
+    document_mime_type: string | null;
+    has_document: boolean;
+    is_document_viewable_inline: boolean;
+    comments: string | null;
+    is_active: boolean;
+    created_at: string | null;
+    updated_at: string | null;
+}

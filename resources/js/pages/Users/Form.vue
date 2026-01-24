@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import EmployeeCompaniesSection from '@/components/employees/EmployeeCompaniesSection.vue';
 import EmployeeContractsSection from '@/components/employees/EmployeeContractsSection.vue';
+import EmployeeInsurancesSection from '@/components/employees/EmployeeInsurancesSection.vue';
 import ImageUpload from '@/components/ImageUpload.vue';
 import {
     countries,
@@ -18,6 +19,7 @@ import {
     type Employee,
     type EmployeeCompany,
     type EmployeeContract,
+    type EmployeeInsurance,
     type WorkOSUser,
 } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
@@ -40,6 +42,7 @@ interface Props {
     role?: string;
     employeeCompanies?: EmployeeCompany[];
     contracts?: EmployeeContract[];
+    insurances?: EmployeeInsurance[];
     companies?: Company[];
     designations?: Designation[];
 }
@@ -747,6 +750,12 @@ function cancel() {
                                     :employee-id="employee.id"
                                     :contracts="contracts ?? []"
                                     :companies="companies ?? []"
+                                />
+
+                                <Divider />
+                                <EmployeeInsurancesSection
+                                    :employee-id="employee.id"
+                                    :insurances="insurances ?? []"
                                 />
                             </template>
 
