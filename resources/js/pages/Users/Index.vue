@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type Company, type Customer, type Employee, type PaginatedData } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
@@ -19,48 +19,17 @@ import Tag from 'primevue/tag';
 import { useConfirm } from 'primevue/useconfirm';
 import { computed, reactive, watch } from 'vue';
 
-interface Employee {
-    id: number;
-    first_name: string;
-    last_name: string;
-    employee_number: string | null;
-    phone: string | null;
-    hire_date: string | null;
-    termination_date: string | null;
-    profile_picture_url: string | null;
-}
-
-interface Customer {
-    id: number;
-    first_name: string;
-    last_name: string;
-    email: string | null;
-    phone: string | null;
-    company_name: string | null;
-    customer_since: string | null;
-    loyalty_points: number;
-    image_url: string | null;
-}
-
-interface PaginatedData<T> {
-    data: T[];
-    current_page: number;
-    last_page: number;
-    from: number | null;
-    to: number | null;
-    total: number;
-    links: Array<{ url: string | null; label: string; active: boolean }>;
-}
-
 interface Filters {
     search?: string;
     status?: string;
+    company?: string | number;
 }
 
 interface Props {
     users: PaginatedData<Employee | Customer>;
     type: 'employees' | 'customers';
     filters?: Filters;
+    companies?: Company[];
 }
 
 const props = defineProps<Props>();
@@ -69,6 +38,7 @@ const props = defineProps<Props>();
 const filters = reactive({
     search: props.filters?.search ?? '',
     status: props.filters?.status ?? '',
+    company: props.filters?.company ?? '',
 });
 
 const statusOptions = [
@@ -76,6 +46,11 @@ const statusOptions = [
     { label: 'Active', value: 'active' },
     { label: 'Terminated', value: 'terminated' },
 ];
+
+const companyOptions = computed(() => [
+    { label: 'All Companies', value: '' },
+    ...(props.companies ?? []).map(c => ({ label: c.company_name, value: c.id })),
+]);
 
 // Debounce timer for search
 let searchTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -98,16 +73,25 @@ watch(
     },
 );
 
+watch(
+    () => filters.company,
+    () => {
+        applyFilters();
+    },
+);
+
 function applyFilters() {
     const params: Record<string, string | number> = { type: props.type };
     if (filters.search) params.search = filters.search;
     if (filters.status) params.status = filters.status;
+    if (filters.company) params.company = filters.company;
     router.get('/users', params, { preserveState: true });
 }
 
 function clearFilters() {
     filters.search = '';
     filters.status = '';
+    filters.company = '';
     router.get('/users', { type: props.type }, { preserveState: true });
 }
 
@@ -123,7 +107,7 @@ const pageTitle = computed(() =>
 const expandedEmployeeRows = reactive({});
 const expandedCustomerRows = reactive({});
 
-const hasActiveFilters = computed(() => filters.search || filters.status);
+const hasActiveFilters = computed(() => filters.search || filters.status || filters.company);
 
 const confirm = useConfirm();
 
@@ -131,6 +115,7 @@ function switchType(newType: string | number) {
     // Clear filters when switching tabs
     filters.search = '';
     filters.status = '';
+    filters.company = '';
     router.get('/users', { type: newType }, { preserveState: true });
 }
 
@@ -152,7 +137,26 @@ function isEmployee(user: Employee | Customer): user is Employee {
 }
 
 function getFullName(user: Employee | Customer): string {
-    return `${user.last_name}, ${user.first_name}`;
+    return `${user.first_name} ${user.last_name}`;
+}
+
+function getEmployeeEmail(employee: Employee): string {
+    return employee.user?.email ?? '-';
+}
+
+function getEmployeeCompanies(employee: Employee): { text: string; full: string } {
+    if (!employee.companies || employee.companies.length === 0) {
+        return { text: '-', full: '-' };
+    }
+    const full = employee.companies.map(c => c.name).join(', ');
+    if (employee.companies.length === 1) {
+        return { text: employee.companies[0].name, full };
+    }
+    const othersCount = employee.companies.length - 1;
+    return {
+        text: `${employee.companies[0].name} ...and ${othersCount} other${othersCount > 1 ? 's' : ''}`,
+        full,
+    };
 }
 
 function getInitials(user: Employee | Customer): string {
@@ -161,11 +165,11 @@ function getInitials(user: Employee | Customer): string {
     return `${first}${last}`;
 }
 
-function getProfilePictureUrl(user: Employee | Customer): string | null {
+function getProfilePictureUrl(user: Employee | Customer): string | undefined {
     if (isEmployee(user)) {
-        return user.profile_picture_url;
+        return user.profile_picture_url ?? undefined;
     }
-    return (user as Customer).image_url;
+    return (user as Customer).image_url ?? undefined;
 }
 
 function navigateToCreate() {
@@ -176,12 +180,28 @@ function navigateToCreateCustomer() {
     router.get('/customers/create');
 }
 
+function navigateToView(employee: Employee) {
+    router.get(`/users/${employee.id}`);
+}
+
 function navigateToEdit(employee: Employee) {
     router.get(`/users/${employee.id}/edit`);
 }
 
+function navigateToViewCustomer(customer: Customer) {
+    router.get(`/customers/${customer.id}`);
+}
+
 function navigateToEditCustomer(customer: Customer) {
     router.get(`/customers/${customer.id}/edit`);
+}
+
+function onEmployeeRowClick(event: { data: Employee }) {
+    navigateToView(event.data);
+}
+
+function onCustomerRowClick(event: { data: Customer }) {
+    navigateToViewCustomer(event.data);
 }
 
 function confirmDeleteEmployee(employee: Employee) {
@@ -273,12 +293,21 @@ function onPage(event: { page: number }) {
                     <InputIcon class="pi pi-search" />
                     <InputText
                         v-model="filters.search"
-                        :placeholder="type === 'employees' ? 'Search by name, employee #, or phone...' : 'Search by name, email, phone, or company...'"
+                        :placeholder="type === 'employees' ? 'Search by name or email...' : 'Search by name, email, phone, or company...'"
                         size="small"
                         fluid
                     />
                 </IconField>
-                <div v-if="type === 'employees'" class="flex items-center gap-2">
+                <div v-if="type === 'employees'" class="flex flex-wrap items-center gap-2">
+                    <Select
+                        v-model="filters.company"
+                        :options="companyOptions"
+                        option-label="label"
+                        option-value="value"
+                        placeholder="Company"
+                        size="small"
+                        class="w-full sm:w-44"
+                    />
                     <Select
                         v-model="filters.status"
                         :options="statusOptions"
@@ -321,17 +350,19 @@ function onPage(event: { page: number }) {
                 :total-records="users.total"
                 :first="((users.current_page - 1) * 15)"
                 @page="onPage"
+                @row-click="onEmployeeRowClick"
                 striped-rows
                 size="small"
-                class="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
+                tableLayout="fixed"
+                class="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border [&_.p-datatable-tbody>tr]:cursor-pointer"
             >
                 <template #empty>
                     <div class="p-4 text-center text-muted-foreground">
                         No employees found.
                     </div>
                 </template>
-                <Column expander class="w-12 !pr-0 md:hidden" />
-                <Column header="" class="w-12 !pl-4 !pr-0">
+                <Column expander style="width: 3rem" class="!pr-0 md:hidden" />
+                <Column header="" style="width: 3.5rem" class="!pl-4 !pr-0">
                     <template #body="{ data }">
                         <Image
                             v-if="getProfilePictureUrl(data)"
@@ -349,27 +380,27 @@ function onPage(event: { page: number }) {
                         />
                     </template>
                 </Column>
-                <Column field="name" header="Name" class="!pl-3">
+                <Column field="name" header="Name" style="width: 25%" class="!pl-3">
                     <template #body="{ data }">
-                        <span class="font-medium">{{ getFullName(data) }}</span>
+                        <span class="block truncate font-medium">{{ getFullName(data) }}</span>
                     </template>
                 </Column>
-                <Column field="employee_number" header="Employee #" class="hidden md:table-cell">
+                <Column field="companies" header="Companies" style="width: 25%" class="hidden md:table-cell">
                     <template #body="{ data }">
-                        {{ data.employee_number ?? '-' }}
+                        <span
+                            class="block truncate"
+                            v-tooltip.top="getEmployeeCompanies(data).full"
+                        >
+                            {{ getEmployeeCompanies(data).text }}
+                        </span>
                     </template>
                 </Column>
-                <Column field="phone" header="Phone" class="hidden md:table-cell">
+                <Column field="email" header="Email" style="width: 25%" class="hidden md:table-cell">
                     <template #body="{ data }">
-                        {{ data.phone ?? '-' }}
+                        <span class="block truncate">{{ getEmployeeEmail(data) }}</span>
                     </template>
                 </Column>
-                <Column field="hire_date" header="Hire Date" class="hidden lg:table-cell">
-                    <template #body="{ data }">
-                        {{ formatDate(data.hire_date) }}
-                    </template>
-                </Column>
-                <Column field="status" header="Status">
+                <Column field="status" header="Status" style="width: 6rem">
                     <template #body="{ data }">
                         <Tag
                             :value="getEmployeeStatus(data)"
@@ -377,7 +408,7 @@ function onPage(event: { page: number }) {
                         />
                     </template>
                 </Column>
-                <Column header="" class="w-24 !pr-4">
+                <Column header="" style="width: 5.5rem" class="!pr-4">
                     <template #body="{ data }">
                         <div class="flex justify-end gap-1">
                             <Button
@@ -401,17 +432,13 @@ function onPage(event: { page: number }) {
                 </Column>
                 <template #expansion="{ data }">
                     <div class="grid gap-3 p-3 text-sm md:hidden">
-                        <div class="flex justify-between border-b border-sidebar-border/50 pb-2">
-                            <span class="text-muted-foreground">Employee #</span>
-                            <span>{{ data.employee_number ?? '-' }}</span>
+                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                            <span class="shrink-0 text-muted-foreground">Companies</span>
+                            <span class="text-right">{{ getEmployeeCompanies(data).full }}</span>
                         </div>
-                        <div class="flex justify-between border-b border-sidebar-border/50 pb-2">
-                            <span class="text-muted-foreground">Phone</span>
-                            <span>{{ data.phone ?? '-' }}</span>
-                        </div>
-                        <div class="flex justify-between border-b border-sidebar-border/50 pb-2">
-                            <span class="text-muted-foreground">Hire Date</span>
-                            <span>{{ formatDate(data.hire_date) }}</span>
+                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                            <span class="shrink-0 text-muted-foreground">Email</span>
+                            <span class="truncate text-right">{{ getEmployeeEmail(data) }}</span>
                         </div>
                         <div class="flex gap-2 pt-2">
                             <Button
@@ -447,9 +474,10 @@ function onPage(event: { page: number }) {
                 :total-records="users.total"
                 :first="((users.current_page - 1) * 15)"
                 @page="onPage"
+                @row-click="onCustomerRowClick"
                 striped-rows
                 size="small"
-                class="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
+                class="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border [&_.p-datatable-tbody>tr]:cursor-pointer"
             >
                 <template #empty>
                     <div class="p-4 text-center text-muted-foreground">

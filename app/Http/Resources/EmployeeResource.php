@@ -47,6 +47,14 @@ class EmployeeResource extends JsonResource
             'is_active' => $this->isActive(),
             'user' => $this->whenLoaded('user', fn () => new UserResource($this->user)),
             'employee_companies' => $this->whenLoaded('employeeCompanies', fn () => EmployeeCompanyResource::collection($this->employeeCompanies)),
+            'companies' => $this->whenLoaded('employeeCompanies', fn () => $this->employeeCompanies
+                ->filter(fn ($ec) => $ec->company && $ec->isActive())
+                ->map(fn ($ec) => [
+                    'id' => $ec->company->id,
+                    'name' => $ec->company->company_name,
+                ])
+                ->values()
+                ->all()),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

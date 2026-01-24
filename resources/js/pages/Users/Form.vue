@@ -10,8 +10,14 @@ import {
     relationshipOptions,
 } from '@/constants/employee';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
-import { type Company, type Designation, type EmployeeCompany } from '@/types/company';
+import {
+    type BreadcrumbItem,
+    type Company,
+    type Designation,
+    type Employee,
+    type EmployeeCompany,
+    type WorkOSUser,
+} from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
@@ -22,58 +28,9 @@ import Message from 'primevue/message';
 import Select from 'primevue/select';
 import Textarea from 'primevue/textarea';
 import ToggleSwitch from 'primevue/toggleswitch';
-import { computed, ref, watch } from 'vue';
-
-interface Employee {
-    id: number;
-    first_name: string;
-    last_name: string;
-    chinese_name: string | null;
-    employee_number: string | null;
-    nric: string | null;
-    phone: string | null;
-    mobile: string | null;
-    address_1: string | null;
-    address_2: string | null;
-    city: string | null;
-    state: string | null;
-    postal_code: string | null;
-    country: string | null;
-    date_of_birth: string | null;
-    gender: string | null;
-    race: string | null;
-    nationality: string | null;
-    residency_status: string | null;
-    pr_conversion_date: string | null;
-    emergency_name: string | null;
-    emergency_relationship: string | null;
-    emergency_contact: string | null;
-    emergency_address_1: string | null;
-    emergency_address_2: string | null;
-    bank_name: string | null;
-    bank_account_number: string | null;
-    hire_date: string | null;
-    termination_date: string | null;
-    notes: string | null;
-    profile_picture_url: string | null;
-    user?: {
-        id: number;
-        email: string;
-        role: string;
-        workos_id: string;
-    } | null;
-}
-
-interface WorkOSUser {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    emailVerified: boolean;
-    profilePictureUrl: string | null;
-    createdAt: string;
-    updatedAt: string;
-}
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { useConfirm } from 'primevue/useconfirm';
+import ConfirmDialog from 'primevue/confirmdialog';
 
 interface Props {
     employee: Employee | null;
@@ -133,6 +90,60 @@ const form = useForm({
     role: props.role ?? 'staff',
 });
 
+// Confirmation dialog for unsaved changes
+const confirm = useConfirm();
+let removeBeforeListener: (() => void) | null = null;
+let pendingNavigation: string | null = null;
+
+function handleBeforeUnload(e: BeforeUnloadEvent) {
+    if (form.isDirty) {
+        e.preventDefault();
+        return '';
+    }
+}
+
+function confirmLeave(targetUrl: string) {
+    // Prevent multiple dialogs - if already pending, ignore
+    if (pendingNavigation) return;
+    pendingNavigation = targetUrl;
+
+    confirm.require({
+        group: 'unsavedChanges',
+        message: 'You have unsaved changes. Are you sure you want to leave?',
+        header: 'Unsaved Changes',
+        icon: 'pi pi-exclamation-triangle',
+        rejectLabel: 'Stay',
+        acceptLabel: 'Leave',
+        accept: () => {
+            removeBeforeListener?.();
+            router.visit(pendingNavigation!);
+            pendingNavigation = null;
+        },
+        onHide: () => {
+            pendingNavigation = null;
+        },
+    });
+}
+
+onMounted(() => {
+    // Browser beforeunload (handles refresh, close tab, external navigation)
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Inertia navigation (handles in-app navigation like links, router.visit)
+    removeBeforeListener = router.on('before', (event) => {
+        if (form.isDirty && !pendingNavigation) {
+            event.preventDefault();
+            confirmLeave(event.detail.visit.url.toString());
+            return false;
+        }
+    });
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener('beforeunload', handleBeforeUnload);
+    removeBeforeListener?.();
+});
+
 const genderOptions = [
     { label: 'Male', value: 'Male' },
     { label: 'Female', value: 'Female' },
@@ -149,7 +160,7 @@ const residencyStatusOptions = [
 ];
 
 // Helper to check if value is in predefined list or is a custom "Other" value
-const isOtherValue = (value: string | null, list: readonly string[]) => {
+const isOtherValue = (value: string | null | undefined, list: readonly string[]) => {
     return value && !list.includes(value);
 };
 
@@ -226,7 +237,15 @@ function cancel() {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <Button
+                    icon="pi pi-arrow-left"
+                    severity="secondary"
+                    text
+                    rounded
+                    size="small"
+                    @click="cancel"
+                />
                 <h1 class="text-2xl font-semibold">{{ pageTitle }}</h1>
             </div>
 
@@ -909,5 +928,7 @@ function cancel() {
                 </Card>
             </div>
         </div>
+
+        <ConfirmDialog group="unsavedChanges" />
     </AppLayout>
 </template>

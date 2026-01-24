@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
-import { type Designation } from '@/types/company';
+import { type BreadcrumbItem, type Designation, type PaginatedData } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Column from 'primevue/column';
@@ -12,16 +11,6 @@ import InputIcon from 'primevue/inputicon';
 import InputText from 'primevue/inputtext';
 import { useConfirm } from 'primevue/useconfirm';
 import { computed, reactive, watch } from 'vue';
-
-interface PaginatedData<T> {
-    data: T[];
-    current_page: number;
-    last_page: number;
-    from: number | null;
-    to: number | null;
-    total: number;
-    links: Array<{ url: string | null; label: string; active: boolean }>;
-}
 
 interface Filters {
     search?: string;

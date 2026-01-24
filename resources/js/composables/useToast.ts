@@ -88,11 +88,11 @@ export function useToast() {
  * Should be called in the setup function of pages/layouts.
  */
 export function useFlashToast() {
-    const page = usePage<{ flash?: FlashMessages }>();
+    const page = usePage();
     const { showSuccess, showError } = useToast();
 
     watch(
-        () => page.props.flash,
+        () => page.props.flash as FlashMessages | undefined,
         (flash) => {
             if (flash?.success) {
                 showSuccess(flash.success);

@@ -33,6 +33,7 @@ class UserController extends Controller
         $type = $request->query('type', 'employees');
         $search = $request->query('search', '');
         $status = $request->query('status', '');
+        $companyId = $request->query('company', '');
 
         if ($type === 'customers') {
             $query = Customer::query();
@@ -57,7 +58,7 @@ class UserController extends Controller
                 return CustomerResource::collection($users)->response();
             }
         } else {
-            $query = Employee::query()->with('user');
+            $query = Employee::query()->with(['user', 'employeeCompanies.company']);
 
             if ($search) {
                 $query->where(function ($q) use ($search) {
@@ -65,7 +66,10 @@ class UserController extends Controller
                         ->orWhere('last_name', 'like', "%{$search}%")
                         ->orWhere('employee_number', 'like', "%{$search}%")
                         ->orWhere('phone', 'like', "%{$search}%")
-                        ->orWhere('mobile', 'like', "%{$search}%");
+                        ->orWhere('mobile', 'like', "%{$search}%")
+                        ->orWhereHas('user', function ($q) use ($search) {
+                            $q->where('email', 'like', "%{$search}%");
+                        });
                 });
             }
 
@@ -73,6 +77,13 @@ class UserController extends Controller
                 $query->whereNull('termination_date');
             } elseif ($status === 'terminated') {
                 $query->whereNotNull('termination_date');
+            }
+
+            if ($companyId) {
+                $query->whereHas('employeeCompanies', function ($q) use ($companyId) {
+                    $q->where('company_id', $companyId)
+                        ->whereNull('left_date');
+                });
             }
 
             $users = $query
@@ -91,13 +102,20 @@ class UserController extends Controller
             ? CustomerResource::collection($users)->response()->getData(true)
             : EmployeeResource::collection($users)->response()->getData(true);
 
+        // Get companies for filter dropdown
+        $companies = Company::where('active', true)
+            ->orderBy('company_name')
+            ->get(['id', 'company_name']);
+
         return Inertia::render('Users/Index', [
             'users' => $transformedUsers,
             'type' => $type,
             'filters' => [
                 'search' => $search,
                 'status' => $status,
+                'company' => $companyId,
             ],
+            'companies' => $companies,
         ]);
     }
 
@@ -111,7 +129,7 @@ class UserController extends Controller
 
     public function show(Request $request, Employee $employee, WorkOSUserService $workOSUserService): InertiaResponse|JsonResponse
     {
-        $employee->load('user');
+        $employee->load(['user', 'employeeCompanies.company', 'employeeCompanies.designation']);
 
         $workosUser = null;
         $workosRole = null;
@@ -150,7 +168,7 @@ class UserController extends Controller
             ]);
         }
 
-        return Inertia::render('Users/Form', [
+        return Inertia::render('Users/View', [
             'employee' => (new EmployeeResource($employee))->resolve(),
             'workosUser' => $workosUser ? [
                 'id' => $workosUser->id,
@@ -163,6 +181,9 @@ class UserController extends Controller
                 'updatedAt' => $workosUser->updatedAt,
             ] : null,
             'role' => $role,
+            'employeeCompanies' => EmployeeCompanyResource::collection(
+                $employee->employeeCompanies->sortByDesc('commencement_date')
+            )->resolve(),
         ]);
     }
 
@@ -313,7 +334,7 @@ class UserController extends Controller
             ]);
         }
 
-        return Inertia::render('Customers/Form', [
+        return Inertia::render('Customers/View', [
             'customer' => $customer,
         ]);
     }

@@ -1,22 +1,11 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type Customer } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import InputText from 'primevue/inputtext';
 import { computed } from 'vue';
-
-interface Customer {
-    id: number;
-    first_name: string;
-    last_name: string;
-    email: string | null;
-    phone: string | null;
-    company_name: string | null;
-    customer_since: string | null;
-    loyalty_points: number;
-}
 
 interface Props {
     customer: Customer | null;
@@ -59,7 +48,15 @@ function cancel() {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <Button
+                    icon="pi pi-arrow-left"
+                    severity="secondary"
+                    text
+                    rounded
+                    size="small"
+                    @click="cancel"
+                />
                 <h1 class="text-2xl font-semibold">{{ pageTitle }}</h1>
             </div>
 
