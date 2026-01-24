@@ -46,6 +46,10 @@ class HandleInertiaRequests extends Middleware
             'navigation' => $request->user()
                 ? app(NavigationService::class)->getMainNavItems($request->user())
                 : [],
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+            ],
         ];
     }
 }

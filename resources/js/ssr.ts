@@ -1,11 +1,14 @@
 import { createInertiaApp } from '@inertiajs/vue3';
 import createServer from '@inertiajs/vue3/server';
-import Aura from '@primeuix/themes/aura';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import PrimeVue from 'primevue/config';
+import ConfirmationService from 'primevue/confirmationservice';
+import ToastService from 'primevue/toastservice';
+import Tooltip from 'primevue/tooltip';
 import type { DefineComponent } from 'vue';
 import { createSSRApp, h } from 'vue';
 import { renderToString } from 'vue/server-renderer';
+import { OwletPreset } from './primevue-theme';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -25,9 +28,15 @@ createServer(
                     .use(plugin)
                     .use(PrimeVue, {
                         theme: {
-                            preset: Aura,
+                            preset: OwletPreset,
+                            options: {
+                                darkModeSelector: '.dark',
+                            },
                         },
-                    }),
+                    })
+                    .use(ToastService)
+                    .use(ConfirmationService)
+                    .directive('tooltip', Tooltip),
         }),
     { cluster: true },
 );

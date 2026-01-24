@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { useAppearance } from '@/composables/useAppearance';
 import type { BreadcrumbItem } from '@/types';
+import Button from 'primevue/button';
+import { computed } from 'vue';
 
 withDefaults(
     defineProps<{
@@ -11,6 +14,19 @@ withDefaults(
         breadcrumbs: () => [],
     },
 );
+
+const { appearance, updateAppearance } = useAppearance();
+
+const isDark = computed(() => {
+    if (appearance.value === 'system') {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return appearance.value === 'dark';
+});
+
+function toggleTheme() {
+    updateAppearance(isDark.value ? 'light' : 'dark');
+}
 </script>
 
 <template>
@@ -22,6 +38,16 @@ withDefaults(
             <template v-if="breadcrumbs && breadcrumbs.length > 0">
                 <Breadcrumbs :breadcrumbs="breadcrumbs" />
             </template>
+        </div>
+        <div class="ml-auto flex items-center gap-2">
+            <Button
+                :icon="isDark ? 'pi pi-sun' : 'pi pi-moon'"
+                severity="secondary"
+                text
+                rounded
+                aria-label="Toggle theme"
+                @click="toggleTheme"
+            />
         </div>
     </header>
 </template>

@@ -2,35 +2,423 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\WorkOSException;
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Resources\CustomerResource;
+use App\Http\Resources\EmployeeResource;
+use App\Http\Traits\RespondsWithInertiaOrJson;
 use App\Models\Customer;
 use App\Models\Employee;
+use App\Services\WorkOSUserService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Inertia\Response;
+use Inertia\Response as InertiaResponse;
+use Throwable;
 
 class UserController extends Controller
 {
-    public function index(Request $request): Response
+    use RespondsWithInertiaOrJson;
+
+    public function index(Request $request): InertiaResponse|JsonResponse
     {
         $type = $request->query('type', 'employees');
+        $search = $request->query('search', '');
+        $status = $request->query('status', '');
 
         if ($type === 'customers') {
-            $users = Customer::query()
+            $query = Customer::query();
+
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%")
+                        ->orWhere('company_name', 'like', "%{$search}%");
+                });
+            }
+
+            $users = $query
                 ->orderBy('last_name')
                 ->orderBy('first_name')
                 ->paginate(15)
                 ->withQueryString();
+
+            if ($this->wantsJson($request)) {
+                return CustomerResource::collection($users)->response();
+            }
         } else {
-            $users = Employee::query()
+            $query = Employee::query()->with('user');
+
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhere('employee_number', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%")
+                        ->orWhere('mobile', 'like', "%{$search}%");
+                });
+            }
+
+            if ($status === 'active') {
+                $query->whereNull('termination_date');
+            } elseif ($status === 'terminated') {
+                $query->whereNotNull('termination_date');
+            }
+
+            $users = $query
                 ->orderBy('last_name')
                 ->orderBy('first_name')
                 ->paginate(15)
                 ->withQueryString();
+
+            if ($this->wantsJson($request)) {
+                return EmployeeResource::collection($users)->response();
+            }
         }
 
         return Inertia::render('Users/Index', [
             'users' => $users,
             'type' => $type,
+            'filters' => [
+                'search' => $search,
+                'status' => $status,
+            ],
         ]);
+    }
+
+    public function create(): InertiaResponse
+    {
+        return Inertia::render('Users/Form', [
+            'employee' => null,
+            'workosUser' => null,
+        ]);
+    }
+
+    public function show(Request $request, Employee $employee, WorkOSUserService $workOSUserService): InertiaResponse|JsonResponse
+    {
+        $employee->load('user');
+
+        $workosUser = null;
+        $workosRole = null;
+
+        if ($employee->user?->workos_id) {
+            try {
+                $workosUser = $workOSUserService->getUser($employee->user->workos_id);
+                $workosRole = $workOSUserService->getUserRole($employee->user->workos_id);
+            } catch (WorkOSException) {
+                // WorkOS user not found, continue without it
+            }
+        }
+
+        $validRoles = ['admin', 'staff'];
+        $role = $workosRole ?? $employee->user?->role ?? 'staff';
+        if (! in_array($role, $validRoles, true)) {
+            $role = 'staff';
+        }
+
+        if ($this->wantsJson($request)) {
+            $resource = new EmployeeResource($employee);
+
+            return response()->json([
+                'data' => $resource->resolve(),
+                'workos_user' => $workosUser ? [
+                    'id' => $workosUser->id,
+                    'email' => $workosUser->email,
+                    'first_name' => $workosUser->firstName,
+                    'last_name' => $workosUser->lastName,
+                    'email_verified' => $workosUser->emailVerified,
+                    'profile_picture_url' => $workosUser->profilePictureUrl,
+                    'created_at' => $workosUser->createdAt,
+                    'updated_at' => $workosUser->updatedAt,
+                ] : null,
+                'role' => $role,
+            ]);
+        }
+
+        return Inertia::render('Users/Form', [
+            'employee' => $employee,
+            'workosUser' => $workosUser ? [
+                'id' => $workosUser->id,
+                'email' => $workosUser->email,
+                'firstName' => $workosUser->firstName,
+                'lastName' => $workosUser->lastName,
+                'emailVerified' => $workosUser->emailVerified,
+                'profilePictureUrl' => $workosUser->profilePictureUrl,
+                'createdAt' => $workosUser->createdAt,
+                'updatedAt' => $workosUser->updatedAt,
+            ] : null,
+            'role' => $role,
+        ]);
+    }
+
+    public function edit(Employee $employee, WorkOSUserService $workOSUserService): InertiaResponse
+    {
+        $employee->load('user');
+
+        $workosUser = null;
+        $workosRole = null;
+
+        if ($employee->user?->workos_id) {
+            try {
+                $workosUser = $workOSUserService->getUser($employee->user->workos_id);
+                $workosRole = $workOSUserService->getUserRole($employee->user->workos_id);
+            } catch (WorkOSException) {
+                // WorkOS user not found, continue without it
+            }
+        }
+
+        $validRoles = ['admin', 'staff'];
+        $role = $workosRole ?? $employee->user?->role ?? 'staff';
+        if (! in_array($role, $validRoles, true)) {
+            $role = 'staff';
+        }
+
+        return Inertia::render('Users/Form', [
+            'employee' => $employee,
+            'workosUser' => $workosUser ? [
+                'id' => $workosUser->id,
+                'email' => $workosUser->email,
+                'firstName' => $workosUser->firstName,
+                'lastName' => $workosUser->lastName,
+                'emailVerified' => $workosUser->emailVerified,
+                'profilePictureUrl' => $workosUser->profilePictureUrl,
+                'createdAt' => $workosUser->createdAt,
+                'updatedAt' => $workosUser->updatedAt,
+            ] : null,
+            'role' => $role,
+        ]);
+    }
+
+    public function update(Employee $employee, Request $request, WorkOSUserService $workOSUserService): RedirectResponse|JsonResponse
+    {
+        $validated = $request->validate([
+            'first_name' => ['required', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'chinese_name' => ['nullable', 'string', 'max:255'],
+            'employee_number' => ['nullable', 'string', 'max:50'],
+            'nric' => ['nullable', 'string', 'max:20'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'mobile' => ['nullable', 'string', 'max:50'],
+            'address_1' => ['nullable', 'string', 'max:255'],
+            'address_2' => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:100'],
+            'state' => ['nullable', 'string', 'max:100'],
+            'postal_code' => ['nullable', 'string', 'max:20'],
+            'country' => ['nullable', 'string', 'max:100'],
+            'date_of_birth' => ['nullable', 'date'],
+            'gender' => ['nullable', 'string', 'in:Male,Female'],
+            'race' => ['nullable', 'string', 'max:100'],
+            'nationality' => ['nullable', 'string', 'max:100'],
+            'residency_status' => ['nullable', 'string', 'max:50'],
+            'pr_conversion_date' => ['nullable', 'date'],
+            'emergency_name' => ['nullable', 'string', 'max:255'],
+            'emergency_relationship' => ['nullable', 'string', 'max:100'],
+            'emergency_contact' => ['nullable', 'string', 'max:50'],
+            'emergency_address_1' => ['nullable', 'string', 'max:255'],
+            'emergency_address_2' => ['nullable', 'string', 'max:255'],
+            'bank_name' => ['nullable', 'string', 'max:100'],
+            'bank_account_number' => ['nullable', 'string', 'max:50'],
+            'hire_date' => ['nullable', 'date'],
+            'termination_date' => ['nullable', 'date'],
+            'notes' => ['nullable', 'string', 'max:5000'],
+            'role' => ['required', 'string', 'in:admin,staff'],
+        ]);
+
+        $employee->load('user.employee');
+
+        $employeeData = collect($validated)->except('role')->toArray();
+        $employee->update($employeeData);
+
+        if ($employee->user?->workos_id) {
+            try {
+                $employee->user->setRelation('employee', $employee);
+                $workOSUserService->updateEmployee($employee->user, $validated);
+
+                return $this->respondWithSuccess(
+                    $request,
+                    'users.index',
+                    [],
+                    'User updated successfully.',
+                    (new EmployeeResource($employee->fresh('user')))->resolve()
+                );
+            } catch (WorkOSException $e) {
+                return $this->respondWithError($request, $e->message, $e->toArray(), 422);
+            }
+        }
+
+        return $this->respondWithSuccess(
+            $request,
+            'users.index',
+            [],
+            'Employee updated successfully.',
+            (new EmployeeResource($employee->fresh('user')))->resolve()
+        );
+    }
+
+    public function storeCustomer(Request $request): RedirectResponse|JsonResponse
+    {
+        $validated = $request->validate([
+            'first_name' => ['required', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'company_name' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        if (! empty($validated['email'])) {
+            Customer::withTrashed()
+                ->where('email', $validated['email'])
+                ->whereNotNull('deleted_at')
+                ->forceDelete();
+        }
+
+        $validated['customer_since'] = now();
+
+        $customer = Customer::create($validated);
+
+        return $this->respondWithCreated(
+            $request,
+            'users.index',
+            ['type' => 'customers'],
+            'Customer created successfully.',
+            new CustomerResource($customer)
+        );
+    }
+
+    public function showCustomer(Request $request, Customer $customer): InertiaResponse|JsonResponse
+    {
+        if ($this->wantsJson($request)) {
+            return response()->json([
+                'data' => (new CustomerResource($customer))->resolve(),
+            ]);
+        }
+
+        return Inertia::render('Customers/Form', [
+            'customer' => $customer,
+        ]);
+    }
+
+    public function editCustomer(Customer $customer): InertiaResponse
+    {
+        return Inertia::render('Customers/Form', [
+            'customer' => $customer,
+        ]);
+    }
+
+    public function updateCustomer(Customer $customer, Request $request): RedirectResponse|JsonResponse
+    {
+        $validated = $request->validate([
+            'first_name' => ['required', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'company_name' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $customer->update($validated);
+
+        return $this->respondWithSuccess(
+            $request,
+            'users.index',
+            ['type' => 'customers'],
+            'Customer updated successfully.',
+            (new CustomerResource($customer->fresh()))->resolve()
+        );
+    }
+
+    public function createCustomer(): InertiaResponse
+    {
+        return Inertia::render('Customers/Form', [
+            'customer' => null,
+        ]);
+    }
+
+    public function destroy(Request $request, Employee $employee, WorkOSUserService $workOSUserService): RedirectResponse|JsonResponse
+    {
+        $employee->load('user');
+
+        if ($employee->user?->workos_id) {
+            try {
+                $workOSUserService->deleteUser($employee->user->workos_id);
+            } catch (WorkOSException $e) {
+                if ($e->errorCode !== 'entity_not_found') {
+                    return $this->respondWithError($request, $e->message, $e->toArray(), 422);
+                }
+            }
+        }
+
+        if ($employee->user) {
+            $employee->user->delete();
+        }
+
+        $employee->delete();
+
+        return $this->respondWithDeleted(
+            $request,
+            'users.index',
+            [],
+            'User deleted successfully.'
+        );
+    }
+
+    public function destroyCustomer(Request $request, Customer $customer): RedirectResponse|JsonResponse
+    {
+        $customer->delete();
+
+        return $this->respondWithDeleted(
+            $request,
+            'users.index',
+            ['type' => 'customers'],
+            'Customer deleted successfully.'
+        );
+    }
+
+    public function store(StoreUserRequest $request, WorkOSUserService $workOSUserService): RedirectResponse|JsonResponse
+    {
+        try {
+            $user = $workOSUserService->createEmployee($request->validated());
+
+            $message = "User {$user->name} created successfully.";
+            try {
+                $workOSUserService->sendPasswordSetupEmail($user->email);
+                $message .= ' A password setup email has been sent.';
+            } catch (WorkOSException) {
+                $message .= ' They can log in using the configured authentication method.';
+            }
+
+            $employee = $user->employee;
+
+            return $this->respondWithCreated(
+                $request,
+                'users.index',
+                [],
+                $message,
+                $employee ? new EmployeeResource($employee->load('user')) : []
+            );
+        } catch (WorkOSException $e) {
+            return $this->respondWithError($request, $e->message, $e->toArray(), 422);
+        } catch (Throwable $e) {
+            $errorData = ['code' => 'unexpected_error'];
+
+            if (config('app.debug')) {
+                $errorData['debug'] = sprintf(
+                    '%s: %s in %s:%d',
+                    get_class($e),
+                    $e->getMessage(),
+                    $e->getFile(),
+                    $e->getLine()
+                );
+            }
+
+            return $this->respondWithError(
+                $request,
+                'An unexpected error occurred while creating the user.',
+                $errorData,
+                500
+            );
+        }
     }
 }

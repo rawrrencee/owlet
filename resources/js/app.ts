@@ -1,11 +1,14 @@
 import { createInertiaApp } from '@inertiajs/vue3';
-import Aura from '@primeuix/themes/aura';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import PrimeVue from 'primevue/config';
+import ConfirmationService from 'primevue/confirmationservice';
+import ToastService from 'primevue/toastservice';
+import Tooltip from 'primevue/tooltip';
 import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import '../css/app.css';
 import { initializeTheme } from './composables/useAppearance';
+import { OwletPreset } from './primevue-theme';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -21,9 +24,15 @@ createInertiaApp({
             .use(plugin)
             .use(PrimeVue, {
                 theme: {
-                    preset: Aura,
+                    preset: OwletPreset,
+                    options: {
+                        darkModeSelector: '.dark',
+                    },
                 },
             })
+            .use(ToastService)
+            .use(ConfirmationService)
+            .directive('tooltip', Tooltip)
             .mount(el);
     },
     progress: {
