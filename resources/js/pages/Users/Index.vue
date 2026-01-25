@@ -16,6 +16,7 @@ import Tab from 'primevue/tab';
 import TabList from 'primevue/tablist';
 import Tabs from 'primevue/tabs';
 import Tag from 'primevue/tag';
+import ToggleSwitch from 'primevue/toggleswitch';
 import { useConfirm } from 'primevue/useconfirm';
 import { computed, reactive, watch } from 'vue';
 
@@ -23,6 +24,7 @@ interface Filters {
     search?: string;
     status?: string;
     company?: string | number;
+    show_deleted?: boolean;
 }
 
 interface Props {
@@ -39,6 +41,7 @@ const filters = reactive({
     search: props.filters?.search ?? '',
     status: props.filters?.status ?? '',
     company: props.filters?.company ?? '',
+    showDeleted: props.filters?.show_deleted ?? false,
 });
 
 const statusOptions = [
@@ -80,11 +83,19 @@ watch(
     },
 );
 
+watch(
+    () => filters.showDeleted,
+    () => {
+        applyFilters();
+    },
+);
+
 function applyFilters() {
-    const params: Record<string, string | number> = { type: props.type };
+    const params: Record<string, string | number | boolean> = { type: props.type };
     if (filters.search) params.search = filters.search;
     if (filters.status) params.status = filters.status;
     if (filters.company) params.company = filters.company;
+    if (filters.showDeleted) params.show_deleted = true;
     router.get('/users', params, { preserveState: true });
 }
 
@@ -92,6 +103,7 @@ function clearFilters() {
     filters.search = '';
     filters.status = '';
     filters.company = '';
+    filters.showDeleted = false;
     router.get('/users', { type: props.type }, { preserveState: true });
 }
 
@@ -107,7 +119,7 @@ const pageTitle = computed(() =>
 const expandedEmployeeRows = reactive({});
 const expandedCustomerRows = reactive({});
 
-const hasActiveFilters = computed(() => filters.search || filters.status || filters.company);
+const hasActiveFilters = computed(() => filters.search || filters.status || filters.company || filters.showDeleted);
 
 const confirm = useConfirm();
 
@@ -116,6 +128,7 @@ function switchType(newType: string | number) {
     filters.search = '';
     filters.status = '';
     filters.company = '';
+    filters.showDeleted = false;
     router.get('/users', { type: newType }, { preserveState: true });
 }
 
@@ -130,6 +143,10 @@ function getEmployeeStatus(employee: Employee): 'Active' | 'Terminated' {
 
 function getStatusSeverity(employee: Employee): 'success' | 'danger' {
     return employee.termination_date ? 'danger' : 'success';
+}
+
+function isEmployeeDeleted(employee: Employee): boolean {
+    return employee.is_deleted === true;
 }
 
 function isEmployee(user: Employee | Customer): user is Employee {
@@ -247,12 +264,14 @@ function confirmDeleteCustomer(customer: Customer) {
 }
 
 function onPage(event: { page: number }) {
-    const params: Record<string, string | number> = {
+    const params: Record<string, string | number | boolean> = {
         type: props.type,
         page: event.page + 1,
     };
     if (filters.search) params.search = filters.search;
     if (filters.status) params.status = filters.status;
+    if (filters.company) params.company = filters.company;
+    if (filters.showDeleted) params.show_deleted = true;
     router.get('/users', params, { preserveState: true });
 }
 </script>
@@ -317,6 +336,10 @@ function onPage(event: { page: number }) {
                         size="small"
                         class="w-full sm:w-36"
                     />
+                    <label class="flex cursor-pointer items-center gap-2">
+                        <ToggleSwitch v-model="filters.showDeleted" />
+                        <span class="whitespace-nowrap text-sm">Show Deleted</span>
+                    </label>
                     <Button
                         v-if="hasActiveFilters"
                         icon="pi pi-times"
@@ -382,7 +405,15 @@ function onPage(event: { page: number }) {
                 </Column>
                 <Column field="name" header="Name" style="width: 25%" class="!pl-3">
                     <template #body="{ data }">
-                        <span class="block truncate font-medium">{{ getFullName(data) }}</span>
+                        <div class="flex items-center gap-2">
+                            <span
+                                class="block truncate font-medium"
+                                :class="{ 'text-muted-foreground line-through': isEmployeeDeleted(data) }"
+                            >
+                                {{ getFullName(data) }}
+                            </span>
+                            <Tag v-if="isEmployeeDeleted(data)" value="Deleted" severity="danger" class="!text-xs" />
+                        </div>
                     </template>
                 </Column>
                 <Column field="companies" header="Companies" style="width: 25%" class="hidden md:table-cell">

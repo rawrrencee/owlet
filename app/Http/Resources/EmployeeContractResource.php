@@ -33,7 +33,10 @@ class EmployeeContractResource extends JsonResource
             'comments' => $this->comments,
             'is_active' => $this->isActive(),
             'company' => $this->company ? (new CompanyResource($this->company))->resolve() : null,
-            'employee' => $this->whenLoaded('employee', fn () => new EmployeeResource($this->employee)),
+            'employee' => $this->whenLoaded('employee', fn () => $this->employee
+                ? (new EmployeeResource($this->employee))->resolve()
+                : null),
+            'employee_is_deleted' => $this->whenLoaded('employee', fn () => $this->employee?->trashed() ?? false),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

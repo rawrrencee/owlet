@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DesignationController;
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EmployeeCompanyController;
 use App\Http\Controllers\EmployeeContractController;
 use App\Http\Controllers\EmployeeInsuranceController;
@@ -77,6 +78,26 @@ Route::middleware([
         Route::delete('users/{employee}/insurances/{insurance}', [EmployeeInsuranceController::class, 'destroy'])->name('users.insurances.destroy');
         Route::post('users/{employee}/insurances/{insurance}/document', [EmployeeInsuranceController::class, 'uploadDocument'])->name('users.insurances.upload-document');
         Route::delete('users/{employee}/insurances/{insurance}/document', [EmployeeInsuranceController::class, 'deleteDocument'])->name('users.insurances.delete-document');
+
+        // Documents
+        Route::get('documents', [DocumentController::class, 'index'])->name('documents.index');
+        // Create routes must be before parameter routes
+        Route::get('documents/contracts/create', [DocumentController::class, 'createContract'])->name('documents.contracts.create');
+        Route::post('documents/contracts', [DocumentController::class, 'storeContract'])->name('documents.contracts.store');
+        Route::get('documents/insurances/create', [DocumentController::class, 'createInsurance'])->name('documents.insurances.create');
+        Route::post('documents/insurances', [DocumentController::class, 'storeInsurance'])->name('documents.insurances.store');
+        Route::get('documents/contracts/{contract}', [DocumentController::class, 'showContract'])->name('documents.contracts.show');
+        Route::get('documents/contracts/{contract}/edit', [DocumentController::class, 'editContract'])->name('documents.contracts.edit');
+        Route::put('documents/contracts/{contract}', [DocumentController::class, 'updateContract'])->name('documents.contracts.update');
+        Route::get('documents/contracts/{contract}/document', [DocumentController::class, 'showContractDocument'])->name('documents.contracts.document');
+        Route::post('documents/contracts/{contract}/document', [DocumentController::class, 'uploadContractDocument'])->name('documents.contracts.upload-document');
+        Route::delete('documents/contracts/{contract}/document', [DocumentController::class, 'deleteContractDocument'])->name('documents.contracts.delete-document');
+        Route::get('documents/insurances/{insurance}', [DocumentController::class, 'showInsurance'])->name('documents.insurances.show');
+        Route::get('documents/insurances/{insurance}/edit', [DocumentController::class, 'editInsurance'])->name('documents.insurances.edit');
+        Route::put('documents/insurances/{insurance}', [DocumentController::class, 'updateInsurance'])->name('documents.insurances.update');
+        Route::get('documents/insurances/{insurance}/document', [DocumentController::class, 'showInsuranceDocument'])->name('documents.insurances.document');
+        Route::post('documents/insurances/{insurance}/document', [DocumentController::class, 'uploadInsuranceDocument'])->name('documents.insurances.upload-document');
+        Route::delete('documents/insurances/{insurance}/document', [DocumentController::class, 'deleteInsuranceDocument'])->name('documents.insurances.delete-document');
     });
 });
 

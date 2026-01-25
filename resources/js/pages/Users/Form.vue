@@ -100,6 +100,7 @@ const form = useForm({
 const confirm = useConfirm();
 let removeBeforeListener: (() => void) | null = null;
 let pendingNavigation: string | null = null;
+let isSubmitting = false;
 
 function handleBeforeUnload(e: BeforeUnloadEvent) {
     if (form.isDirty) {
@@ -137,6 +138,10 @@ onMounted(() => {
 
     // Inertia navigation (handles in-app navigation like links, router.visit)
     removeBeforeListener = router.on('before', (event) => {
+        // Skip dirty check if form is being submitted
+        if (isSubmitting) {
+            return;
+        }
         if (form.isDirty && !pendingNavigation) {
             event.preventDefault();
             confirmLeave(event.detail.visit.url.toString());
@@ -204,28 +209,37 @@ const roleOptions = [
     { label: 'Admin', value: 'admin' },
 ];
 
-// Profile picture state
-const profilePictureUrl = ref<string | null>(props.employee?.profile_picture_url ?? null);
+// Profile picture - use computed to always reflect the current state from props
+// This ensures the WorkOS avatar fallback is shown after deleting a local profile picture
+const profilePictureUrl = computed(() => props.employee?.profile_picture_url ?? null);
 
 function submit() {
+    isSubmitting = true;
+
     // Transform dates to ISO strings for the backend
     // Use custom "Other" values when selected
-    const data = {
-        ...form.data(),
+    form.transform((data) => ({
+        ...data,
         nationality: nationalitySelection.value === 'Other' ? nationalityOther.value : nationalitySelection.value,
         country: countrySelection.value === 'Other' ? countryOther.value : countrySelection.value,
         emergency_relationship:
             relationshipSelection.value === 'Other' ? relationshipOther.value : relationshipSelection.value,
-        date_of_birth: form.date_of_birth ? formatDateForBackend(form.date_of_birth) : null,
-        pr_conversion_date: form.pr_conversion_date ? formatDateForBackend(form.pr_conversion_date) : null,
-        hire_date: form.hire_date ? formatDateForBackend(form.hire_date) : null,
-        termination_date: isActive.value ? null : (form.termination_date ? formatDateForBackend(form.termination_date) : null),
+        date_of_birth: data.date_of_birth ? formatDateForBackend(data.date_of_birth as Date) : null,
+        pr_conversion_date: data.pr_conversion_date ? formatDateForBackend(data.pr_conversion_date as Date) : null,
+        hire_date: data.hire_date ? formatDateForBackend(data.hire_date as Date) : null,
+        termination_date: isActive.value ? null : (data.termination_date ? formatDateForBackend(data.termination_date as Date) : null),
+    }));
+
+    const options = {
+        onFinish: () => {
+            isSubmitting = false;
+        },
     };
 
     if (isEditing.value) {
-        router.put(`/users/${props.employee!.id}`, data);
+        form.put(`/users/${props.employee!.id}`, options);
     } else {
-        router.post('/users', data);
+        form.post('/users', options);
     }
 }
 
@@ -268,7 +282,7 @@ function cancel() {
                             </Message>
 
                             <p v-if="!isEditing" class="text-surface-500 dark:text-surface-400 text-sm">
-                                Create a new user in WorkOS. They will receive an email to set their password.
+                                Create a new employee. They will receive an invitation email to set up their account.
                             </p>
 
                             <!-- Basic Information -->
@@ -287,8 +301,6 @@ function cancel() {
                                         alt="Profile picture"
                                         :circular="true"
                                         :preview-size="96"
-                                        @uploaded="(url) => profilePictureUrl = url"
-                                        @deleted="profilePictureUrl = null"
                                     />
 
                                     <div class="grid gap-4 sm:grid-cols-2">

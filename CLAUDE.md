@@ -65,6 +65,46 @@ The backend primarily serves the Inertia frontend, with API support as a seconda
   - Prioritize essential content; hide secondary information behind expandable sections
 - **Use Tailwind responsive prefixes** (`sm:`, `md:`, `lg:`, `xl:`) consistently
 
+## CRUD Page Patterns
+
+When building new CRUD (Create, Read, Update, Delete) pages, reference the **Users page** (`resources/js/pages/Users/`) as the canonical example for structure and UI patterns.
+
+### Index/List Pages
+- Use PrimeVue `Tabs` for switching between related entity types (e.g., Employees/Customers, Contracts/Insurances)
+- Use PrimeVue `DataTable` with `striped-rows`, `size="small"`, and lazy pagination
+- **Mobile responsiveness:** Use `expander` column and `#expansion` template to show hidden column data on small screens
+- Hide secondary columns on mobile using Tailwind classes (`hidden sm:table-cell`, `hidden md:table-cell`, etc.)
+- Row clicks should navigate to the View page (`@row-click`)
+- Include a filter section with search input and relevant dropdown filters
+
+### View Pages
+- Display entity details in a `Card` component with organized sections separated by `Divider`
+- Include a header with back button, title, status tag, and action buttons (Edit, View Document, etc.)
+- Link to related entities (e.g., "Employee: [Name]" with link to `/users/{id}`)
+- Use the `useSmartBack` composable for the back button (see below)
+
+### Create Pages
+- Use `useForm()` from Inertia for form state management
+- Back/Cancel buttons should navigate directly to the parent Index page (e.g., `router.visit('/users')`) since Create pages are only accessible from Index pages
+- Do NOT use `useSmartBack` for Create pages
+
+### Edit Pages
+- Use `useForm()` from Inertia for form state management
+- Display read-only fields (like Employee assignment) in a disabled-style container
+- Include document upload/delete functionality where applicable
+- Use the `useSmartBack` composable for the back button since Edit pages can be accessed from multiple places (Index, View, etc.)
+- Cancel button should use the same smart back navigation
+
+### Smart Back Navigation
+Use the `useSmartBack` composable (`resources/js/composables/useSmartBack.ts`) for back buttons:
+```typescript
+import { useSmartBack } from '@/composables/useSmartBack';
+const { goBack } = useSmartBack('/fallback-url');
+```
+This provides better UX by:
+- Using browser history (`window.history.back()`) when the user navigated from within the app
+- Falling back to a specified URL when accessing the page directly (e.g., via bookmark or shared link)
+
 ## Development Approach
 
 1. When asked about a feature, first check the legacy codebases for existing implementation

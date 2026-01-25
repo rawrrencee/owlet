@@ -64,6 +64,12 @@ export interface EmployeeContract {
     comments: string | null;
     is_active: boolean;
     company?: Company;
+    employee?: {
+        id: number;
+        first_name: string;
+        last_name: string;
+    };
+    employee_is_deleted?: boolean;
     created_at: string | null;
     updated_at: string | null;
 }
@@ -84,6 +90,12 @@ export interface EmployeeInsurance {
     is_document_viewable_inline: boolean;
     comments: string | null;
     is_active: boolean;
+    employee?: {
+        id: number;
+        first_name: string;
+        last_name: string;
+    };
+    employee_is_deleted?: boolean;
     created_at: string | null;
     updated_at: string | null;
 }

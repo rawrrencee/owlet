@@ -21,13 +21,14 @@ class WorkOSUserService
     }
 
     /**
-     * Create a user in WorkOS and locally as an employee.
+     * Create an employee locally and send a WorkOS invitation.
+     * The WorkOS user will be created when the user accepts the invitation.
      *
      * @param array{email: string, first_name: string, last_name: string, role: string} $data
      *
      * @throws WorkOSException
      */
-    public function createEmployee(array $data): User
+    public function createEmployee(array $data): Employee
     {
         // Validate role before proceeding
         if (! in_array($data['role'] ?? null, self::VALID_EMPLOYEE_ROLES, true)) {
@@ -48,38 +49,11 @@ class WorkOSUserService
                 $existingUser->forceDelete();
             }
 
-            try {
-                // Create user in WorkOS
-                $workosUser = $this->userManagement->createUser(
-                    email: $data['email'],
-                    firstName: $data['first_name'],
-                    lastName: $data['last_name'],
-                    emailVerified: false,
-                );
-            } catch (Throwable $e) {
-                throw WorkOSException::fromWorkOS($e);
-            }
-
-            try {
-                // Add to organization with role
-                // Available WorkOS roles: admin, staff, customer
-                $organizationId = config('services.workos.organization_id');
-                if ($organizationId) {
-                    $this->userManagement->createOrganizationMembership(
-                        userId: $workosUser->id,
-                        organizationId: $organizationId,
-                        roleSlug: $data['role'], // admin or staff
-                    );
-                }
-            } catch (Throwable $e) {
-                // Clean up the WorkOS user if membership creation fails
-                try {
-                    $this->userManagement->deleteUser($workosUser->id);
-                } catch (Throwable) {
-                    // Ignore cleanup errors
-                }
-                throw WorkOSException::fromWorkOS($e);
-            }
+            // Also remove any soft-deleted employee with the same pending_email
+            Employee::withTrashed()
+                ->where('pending_email', $data['email'])
+                ->whereNotNull('deleted_at')
+                ->forceDelete();
 
             // Create local Employee record with all profile fields
             $employeeFields = [
@@ -96,30 +70,79 @@ class WorkOSUserService
             $employeeData['first_name'] = $data['first_name'];
             $employeeData['last_name'] = $data['last_name'];
             $employeeData['hire_date'] = $data['hire_date'] ?? now();
+            // Store email and role for linking when user accepts invitation
+            $employeeData['pending_email'] = $data['email'];
+            $employeeData['pending_role'] = $data['role'];
 
-            $employee = Employee::create($employeeData);
-
-            // Create local User record
-            return User::create([
-                'name' => "{$data['first_name']} {$data['last_name']}",
-                'email' => $data['email'],
-                'workos_id' => $workosUser->id,
-                'avatar' => $workosUser->profilePictureUrl ?? '',
-                'role' => $data['role'],
-                'employee_id' => $employee->id,
-            ]);
+            return Employee::create($employeeData);
         });
     }
 
     /**
-     * Send a password reset email to allow user to set their password.
+     * Send an invitation email via WorkOS for the user to set up their account.
+     * If an invitation already exists for this email, it will be revoked and a new one sent.
      *
      * @throws WorkOSException
      */
-    public function sendPasswordSetupEmail(string $email): void
+    public function sendInvitation(string $email, string $role): void
+    {
+        $organizationId = config('services.workos.organization_id');
+
+        if (! $organizationId) {
+            throw new WorkOSException(
+                'Organization ID is not configured. Cannot send invitation.',
+                'missing_organization_id'
+            );
+        }
+
+        try {
+            $this->userManagement->sendInvitation(
+                email: $email,
+                organizationId: $organizationId,
+                expiresInDays: 7,
+                roleSlug: $role,
+            );
+        } catch (Throwable $e) {
+            // Check if the error is "email already invited" - if so, revoke and resend
+            $errorMessage = $e->getMessage();
+            if (str_contains($errorMessage, 'email_already_invited_to_organization')) {
+                $this->revokeAndResendInvitation($email, $organizationId, $role);
+
+                return;
+            }
+
+            throw WorkOSException::fromWorkOS($e);
+        }
+    }
+
+    /**
+     * Revoke an existing invitation and send a new one.
+     *
+     * @throws WorkOSException
+     */
+    private function revokeAndResendInvitation(string $email, string $organizationId, string $role): void
     {
         try {
-            $this->userManagement->createPasswordReset($email);
+            // Find the existing invitation
+            [$before, $after, $invitations] = $this->userManagement->listInvitations(
+                email: $email,
+                organizationId: $organizationId,
+            );
+
+            // Revoke all pending invitations for this email
+            foreach ($invitations as $invitation) {
+                if ($invitation->state === 'pending') {
+                    $this->userManagement->revokeInvitation($invitation->id);
+                }
+            }
+
+            // Send a new invitation
+            $this->userManagement->sendInvitation(
+                email: $email,
+                organizationId: $organizationId,
+                expiresInDays: 7,
+                roleSlug: $role,
+            );
         } catch (Throwable $e) {
             throw WorkOSException::fromWorkOS($e);
         }

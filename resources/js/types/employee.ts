@@ -30,6 +30,8 @@ export interface Employee {
     termination_date: string | null;
     notes: string | null;
     profile_picture_url: string | null;
+    is_deleted?: boolean;
+    external_avatar_url: string | null;
     user?: {
         id: number;
         email: string;

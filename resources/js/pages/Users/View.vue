@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useSmartBack } from '@/composables/useSmartBack';
 import AppLayout from '@/layouts/AppLayout.vue';
 import {
     type BreadcrumbItem,
@@ -17,6 +18,7 @@ import DataTable from 'primevue/datatable';
 import Divider from 'primevue/divider';
 import Image from 'primevue/image';
 import Tag from 'primevue/tag';
+import { reactive } from 'vue';
 
 interface Props {
     employee: Employee;
@@ -28,6 +30,12 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+const { goBack } = useSmartBack('/users');
+
+const expandedCompanyRows = reactive({});
+const expandedContractRows = reactive({});
+const expandedInsuranceRows = reactive({});
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -86,10 +94,6 @@ function viewInsuranceDocument(insurance: EmployeeInsurance) {
 function navigateToEdit() {
     router.get(`/users/${props.employee.id}/edit`);
 }
-
-function navigateBack() {
-    router.get('/users');
-}
 </script>
 
 <template>
@@ -105,7 +109,7 @@ function navigateBack() {
                         text
                         rounded
                         size="small"
-                        @click="navigateBack"
+                        @click="goBack"
                     />
                     <h1 class="text-2xl font-semibold">{{ employee.first_name }} {{ employee.last_name }}</h1>
                     <Tag
@@ -255,27 +259,30 @@ function navigateBack() {
                                 <div>
                                     <h3 class="mb-4 text-lg font-medium">Company Assignments</h3>
                                     <DataTable
+                                        v-model:expandedRows="expandedCompanyRows"
                                         :value="employeeCompanies"
+                                        dataKey="id"
                                         size="small"
                                         stripedRows
                                         class="rounded-lg border border-sidebar-border/70"
                                     >
+                                        <Column expander style="width: 3rem" class="!pr-0 md:hidden" />
                                         <Column field="company.company_name" header="Company">
                                             <template #body="{ data }">
                                                 {{ data.company?.company_name ?? '-' }}
                                             </template>
                                         </Column>
-                                        <Column field="designation.designation_name" header="Designation">
+                                        <Column field="designation.designation_name" header="Designation" class="hidden md:table-cell">
                                             <template #body="{ data }">
                                                 {{ data.designation?.designation_name ?? '-' }}
                                             </template>
                                         </Column>
-                                        <Column field="status" header="Type">
+                                        <Column field="status" header="Type" class="hidden sm:table-cell">
                                             <template #body="{ data }">
                                                 {{ getStatusLabel(data.status) }}
                                             </template>
                                         </Column>
-                                        <Column field="commencement_date" header="Start Date">
+                                        <Column field="commencement_date" header="Start Date" class="hidden lg:table-cell">
                                             <template #body="{ data }">
                                                 {{ formatDate(data.commencement_date) }}
                                             </template>
@@ -288,6 +295,26 @@ function navigateBack() {
                                                 />
                                             </template>
                                         </Column>
+                                        <template #expansion="{ data }">
+                                            <div class="grid gap-3 p-3 text-sm md:hidden">
+                                                <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                                                    <span class="shrink-0 text-muted-foreground">Designation</span>
+                                                    <span class="text-right">{{ data.designation?.designation_name ?? '-' }}</span>
+                                                </div>
+                                                <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2 sm:hidden">
+                                                    <span class="shrink-0 text-muted-foreground">Type</span>
+                                                    <span class="text-right">{{ getStatusLabel(data.status) }}</span>
+                                                </div>
+                                                <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2 lg:hidden">
+                                                    <span class="shrink-0 text-muted-foreground">Start Date</span>
+                                                    <span class="text-right">{{ formatDate(data.commencement_date) }}</span>
+                                                </div>
+                                                <div v-if="data.left_date" class="flex justify-between gap-4">
+                                                    <span class="shrink-0 text-muted-foreground">Left Date</span>
+                                                    <span class="text-right">{{ formatDate(data.left_date) }}</span>
+                                                </div>
+                                            </div>
+                                        </template>
                                     </DataTable>
                                 </div>
                             </template>
@@ -298,11 +325,14 @@ function navigateBack() {
                                 <div>
                                     <h3 class="mb-4 text-lg font-medium">Contracts</h3>
                                     <DataTable
+                                        v-model:expandedRows="expandedContractRows"
                                         :value="contracts"
+                                        dataKey="id"
                                         size="small"
                                         stripedRows
                                         class="rounded-lg border border-sidebar-border/70"
                                     >
+                                        <Column expander style="width: 3rem" class="!pr-0 sm:hidden" />
                                         <Column field="company.company_name" header="Company">
                                             <template #body="{ data }">
                                                 {{ data.company?.company_name ?? '-' }}
@@ -355,6 +385,30 @@ function navigateBack() {
                                                 />
                                             </template>
                                         </Column>
+                                        <template #expansion="{ data }">
+                                            <div class="grid gap-3 p-3 text-sm sm:hidden">
+                                                <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                                                    <span class="shrink-0 text-muted-foreground">Start Date</span>
+                                                    <span class="text-right">{{ formatDate(data.start_date) }}</span>
+                                                </div>
+                                                <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                                                    <span class="shrink-0 text-muted-foreground">End Date</span>
+                                                    <span class="text-right">{{ formatDate(data.end_date) }}</span>
+                                                </div>
+                                                <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                                                    <span class="shrink-0 text-muted-foreground">Salary</span>
+                                                    <span class="text-right">{{ formatCurrency(data.salary_amount) }}</span>
+                                                </div>
+                                                <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                                                    <span class="shrink-0 text-muted-foreground">Annual Leave</span>
+                                                    <span class="text-right">{{ getLeaveDisplay(data.annual_leave_entitled, data.annual_leave_taken) }}</span>
+                                                </div>
+                                                <div class="flex justify-between gap-4">
+                                                    <span class="shrink-0 text-muted-foreground">Sick Leave</span>
+                                                    <span class="text-right">{{ getLeaveDisplay(data.sick_leave_entitled, data.sick_leave_taken) }}</span>
+                                                </div>
+                                            </div>
+                                        </template>
                                     </DataTable>
                                 </div>
                             </template>
@@ -365,11 +419,14 @@ function navigateBack() {
                                 <div>
                                     <h3 class="mb-4 text-lg font-medium">Insurances</h3>
                                     <DataTable
+                                        v-model:expandedRows="expandedInsuranceRows"
                                         :value="insurances"
+                                        dataKey="id"
                                         size="small"
                                         stripedRows
                                         class="rounded-lg border border-sidebar-border/70"
                                     >
+                                        <Column expander style="width: 3rem" class="!pr-0 sm:hidden" />
                                         <Column field="title" header="Title">
                                             <template #body="{ data }">
                                                 {{ data.title }}
@@ -417,6 +474,26 @@ function navigateBack() {
                                                 />
                                             </template>
                                         </Column>
+                                        <template #expansion="{ data }">
+                                            <div class="grid gap-3 p-3 text-sm sm:hidden">
+                                                <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                                                    <span class="shrink-0 text-muted-foreground">Insurer</span>
+                                                    <span class="text-right">{{ data.insurer_name }}</span>
+                                                </div>
+                                                <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                                                    <span class="shrink-0 text-muted-foreground">Policy #</span>
+                                                    <span class="text-right">{{ data.policy_number }}</span>
+                                                </div>
+                                                <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                                                    <span class="shrink-0 text-muted-foreground">Start Date</span>
+                                                    <span class="text-right">{{ formatDate(data.start_date) }}</span>
+                                                </div>
+                                                <div class="flex justify-between gap-4">
+                                                    <span class="shrink-0 text-muted-foreground">End Date</span>
+                                                    <span class="text-right">{{ formatDate(data.end_date) }}</span>
+                                                </div>
+                                            </div>
+                                        </template>
                                     </DataTable>
                                 </div>
                             </template>

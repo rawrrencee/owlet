@@ -25,13 +25,28 @@ Route::get('authenticate', function (AuthKitAuthenticationRequest $request) {
             $employeeId = null;
             $customerId = null;
 
-            // Create the appropriate record based on role
-            // Admin and staff get Employee records, everyone else gets Customer records
-            if (in_array($role, ['admin', 'staff'])) {
+            // Check if there's a pending employee invitation for this email
+            $pendingEmployee = Employee::where('pending_email', $workosUser->email)->first();
+
+            if ($pendingEmployee) {
+                // Link to existing employee created via invitation
+                $employeeId = $pendingEmployee->id;
+                // Use the role from the invitation if available
+                $role = $pendingEmployee->pending_role ?? $role;
+                // Clear the pending fields and store WorkOS avatar
+                $pendingEmployee->update([
+                    'pending_email' => null,
+                    'pending_role' => null,
+                    'external_avatar_url' => $workosUser->avatar,
+                ]);
+            } elseif (in_array($role, ['admin', 'staff'])) {
+                // Create the appropriate record based on role
+                // Admin and staff get Employee records, everyone else gets Customer records
                 $employee = Employee::create([
                     'first_name' => $workosUser->firstName,
                     'last_name' => $workosUser->lastName,
                     'hire_date' => now(),
+                    'external_avatar_url' => $workosUser->avatar,
                 ]);
                 $employeeId = $employee->id;
             } else {
@@ -62,7 +77,6 @@ Route::get('authenticate', function (AuthKitAuthenticationRequest $request) {
 
         return DB::transaction(function () use ($user, $workosUser, $role) {
             $updates = [
-                'avatar' => $workosUser->avatar ?? '',
                 'role' => $role,
             ];
 
@@ -72,8 +86,14 @@ Route::get('authenticate', function (AuthKitAuthenticationRequest $request) {
                     'first_name' => $workosUser->firstName,
                     'last_name' => $workosUser->lastName,
                     'hire_date' => now(),
+                    'external_avatar_url' => $workosUser->avatar,
                 ]);
                 $updates['employee_id'] = $employee->id;
+            } elseif ($user->employee_id) {
+                // Update the external avatar URL on the existing Employee
+                Employee::where('id', $user->employee_id)->update([
+                    'external_avatar_url' => $workosUser->avatar,
+                ]);
             }
 
             // If role changed to customer and user doesn't have a Customer record, create one

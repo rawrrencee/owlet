@@ -36,6 +36,7 @@ class UserController extends Controller
         $search = $request->query('search', '');
         $status = $request->query('status', '');
         $companyId = $request->query('company', '');
+        $showDeleted = $request->boolean('show_deleted');
 
         if ($type === 'customers') {
             $query = Customer::query();
@@ -61,6 +62,10 @@ class UserController extends Controller
             }
         } else {
             $query = Employee::query()->with(['user', 'employeeCompanies.company']);
+
+            if ($showDeleted) {
+                $query->withTrashed();
+            }
 
             if ($search) {
                 $query->where(function ($q) use ($search) {
@@ -99,10 +104,16 @@ class UserController extends Controller
             }
         }
 
-        // Transform through resources for Inertia as well
-        $transformedUsers = $type === 'customers'
-            ? CustomerResource::collection($users)->response()->getData(true)
-            : EmployeeResource::collection($users)->response()->getData(true);
+        // Transform through resources for Inertia with flattened pagination
+        $transformedUsers = [
+            'data' => $type === 'customers'
+                ? CustomerResource::collection($users->items())->resolve()
+                : EmployeeResource::collection($users->items())->resolve(),
+            'current_page' => $users->currentPage(),
+            'last_page' => $users->lastPage(),
+            'per_page' => $users->perPage(),
+            'total' => $users->total(),
+        ];
 
         // Get companies for filter dropdown
         $companies = Company::where('active', true)
@@ -116,6 +127,7 @@ class UserController extends Controller
                 'search' => $search,
                 'status' => $status,
                 'company' => $companyId,
+                'show_deleted' => $showDeleted,
             ],
             'companies' => $companies,
         ]);
@@ -472,36 +484,49 @@ class UserController extends Controller
             $employee->update(['profile_picture' => null]);
         }
 
+        // Refresh the employee to get the updated profile_picture_url with fallback to external_avatar_url
+        $employee->refresh();
+
         return $this->respondWithSuccess(
             $request,
             'users.edit',
             ['employee' => $employee->id],
             'Profile picture removed successfully.',
-            ['profile_picture_url' => null]
+            ['profile_picture_url' => $employee->external_avatar_url]
         );
     }
 
     public function store(StoreUserRequest $request, WorkOSUserService $workOSUserService): RedirectResponse|JsonResponse
     {
         try {
-            $user = $workOSUserService->createEmployee($request->validated());
+            $validated = $request->validated();
+            $employee = $workOSUserService->createEmployee($validated);
 
-            $message = "User {$user->name} created successfully.";
+            $fullName = "{$employee->first_name} {$employee->last_name}";
+            $message = "Employee {$fullName} created successfully.";
+
             try {
-                $workOSUserService->sendPasswordSetupEmail($user->email);
-                $message .= ' A password setup email has been sent.';
-            } catch (WorkOSException) {
-                $message .= ' They can log in using the configured authentication method.';
+                $workOSUserService->sendInvitation($validated['email'], $validated['role']);
+                $message .= ' An invitation email has been sent.';
+            } catch (WorkOSException $e) {
+                \Log::warning('Failed to send WorkOS invitation', [
+                    'email' => $validated['email'],
+                    'role' => $validated['role'],
+                    'error' => $e->getMessage(),
+                    'code' => $e->errorCode,
+                ]);
+                $message .= ' However, the invitation email could not be sent.';
+                if (config('app.debug')) {
+                    $message .= " ({$e->errorCode}: {$e->getMessage()})";
+                }
             }
-
-            $employee = $user->employee;
 
             return $this->respondWithCreated(
                 $request,
                 'users.index',
                 [],
                 $message,
-                $employee ? new EmployeeResource($employee->load('user')) : []
+                new EmployeeResource($employee)
             );
         } catch (WorkOSException $e) {
             return $this->respondWithError($request, $e->message, $e->toArray(), 422);

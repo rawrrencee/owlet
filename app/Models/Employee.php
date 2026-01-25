@@ -44,6 +44,9 @@ class Employee extends Model
         'termination_date',
         'notes',
         'profile_picture',
+        'external_avatar_url',
+        'pending_email',
+        'pending_role',
     ];
 
     protected function casts(): array
@@ -116,5 +119,30 @@ class Employee extends Model
     public function getFullNameAttribute(): string
     {
         return "{$this->first_name} {$this->last_name}";
+    }
+
+    /**
+     * Get the profile picture URL with fallbacks.
+     *
+     * Priority: local profile_picture > external_avatar_url > User.avatar
+     */
+    public function getProfilePictureUrl(): ?string
+    {
+        // 1. Local uploaded profile picture takes priority
+        if ($this->profile_picture) {
+            return route('users.profile-picture', $this->id);
+        }
+
+        // 2. External avatar URL from WorkOS (stored on Employee)
+        if ($this->external_avatar_url) {
+            return $this->external_avatar_url;
+        }
+
+        // 3. Fall back to User's avatar (for users who logged in before migration)
+        if ($this->relationLoaded('user') && $this->user?->avatar) {
+            return $this->user->avatar;
+        }
+
+        return null;
     }
 }

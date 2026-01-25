@@ -23,6 +23,7 @@ class NavigationService
 
         if ($user->isAdmin()) {
             $managementItems[] = ['title' => 'Users', 'href' => '/users', 'icon' => 'Users'];
+            $managementItems[] = ['title' => 'Documents', 'href' => '/documents', 'icon' => 'Folder'];
             $managementItems[] = ['title' => 'Companies', 'href' => '/companies', 'icon' => 'Building2'];
             $managementItems[] = ['title' => 'Designations', 'href' => '/designations', 'icon' => 'BadgeCheck'];
         }

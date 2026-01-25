@@ -39,7 +39,13 @@ class DesignationController extends Controller
             return DesignationResource::collection($designations)->response();
         }
 
-        $transformedDesignations = DesignationResource::collection($designations)->response()->getData(true);
+        $transformedDesignations = [
+            'data' => DesignationResource::collection($designations->items())->resolve(),
+            'current_page' => $designations->currentPage(),
+            'last_page' => $designations->lastPage(),
+            'per_page' => $designations->perPage(),
+            'total' => $designations->total(),
+        ];
 
         return Inertia::render('Designations/Index', [
             'designations' => $transformedDesignations,

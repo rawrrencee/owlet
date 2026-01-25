@@ -41,9 +41,7 @@ class EmployeeResource extends JsonResource
             'hire_date' => $this->hire_date?->toDateString(),
             'termination_date' => $this->termination_date?->toDateString(),
             'notes' => $this->notes,
-            'profile_picture_url' => $this->profile_picture
-                ? route('users.profile-picture', $this->id)
-                : null,
+            'profile_picture_url' => $this->getProfilePictureUrl(),
             'is_active' => $this->isActive(),
             'user' => $this->whenLoaded('user', fn () => new UserResource($this->user)),
             'employee_companies' => $this->whenLoaded('employeeCompanies', fn () => EmployeeCompanyResource::collection($this->employeeCompanies)),
@@ -55,6 +53,7 @@ class EmployeeResource extends JsonResource
                 ])
                 ->values()
                 ->all()),
+            'is_deleted' => $this->trashed(),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

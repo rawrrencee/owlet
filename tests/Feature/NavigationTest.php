@@ -7,12 +7,15 @@ test('admin users see users nav item', function () {
     $user = User::factory()->admin()->create();
 
     $navService = new NavigationService;
-    $items = $navService->getMainNavItems($user);
+    $sections = $navService->getMainNavItems($user);
 
-    expect($items)->toContain(
+    // Get all items from all sections
+    $allItems = collect($sections)->pluck('items')->flatten(1)->toArray();
+
+    expect($allItems)->toContain(
         ['title' => 'Dashboard', 'href' => '/dashboard', 'icon' => 'LayoutGrid']
     );
-    expect($items)->toContain(
+    expect($allItems)->toContain(
         ['title' => 'Users', 'href' => '/users', 'icon' => 'Users']
     );
 });
@@ -21,13 +24,16 @@ test('staff users do not see users nav item', function () {
     $user = User::factory()->staff()->create();
 
     $navService = new NavigationService;
-    $items = $navService->getMainNavItems($user);
+    $sections = $navService->getMainNavItems($user);
 
-    expect($items)->toContain(
+    // Get all items from all sections
+    $allItems = collect($sections)->pluck('items')->flatten(1);
+
+    expect($allItems->toArray())->toContain(
         ['title' => 'Dashboard', 'href' => '/dashboard', 'icon' => 'LayoutGrid']
     );
 
-    $usersItem = collect($items)->firstWhere('title', 'Users');
+    $usersItem = $allItems->firstWhere('title', 'Users');
     expect($usersItem)->toBeNull();
 });
 
@@ -37,11 +43,16 @@ test('navigation is shared via inertia for authenticated users', function () {
     $this->actingAs($user)
         ->get('/dashboard')
         ->assertInertia(function ($page) {
-            expect($page->toArray()['props']['navigation'])->toBeArray();
-            expect($page->toArray()['props']['navigation'])->toContain(
+            $navigation = $page->toArray()['props']['navigation'];
+            expect($navigation)->toBeArray();
+
+            // Get all items from all sections
+            $allItems = collect($navigation)->pluck('items')->flatten(1)->toArray();
+
+            expect($allItems)->toContain(
                 ['title' => 'Dashboard', 'href' => '/dashboard', 'icon' => 'LayoutGrid']
             );
-            expect($page->toArray()['props']['navigation'])->toContain(
+            expect($allItems)->toContain(
                 ['title' => 'Users', 'href' => '/users', 'icon' => 'Users']
             );
         });

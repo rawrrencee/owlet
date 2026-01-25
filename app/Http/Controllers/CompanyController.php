@@ -49,7 +49,13 @@ class CompanyController extends Controller
             return CompanyResource::collection($companies)->response();
         }
 
-        $transformedCompanies = CompanyResource::collection($companies)->response()->getData(true);
+        $transformedCompanies = [
+            'data' => CompanyResource::collection($companies->items())->resolve(),
+            'current_page' => $companies->currentPage(),
+            'last_page' => $companies->lastPage(),
+            'per_page' => $companies->perPage(),
+            'total' => $companies->total(),
+        ];
 
         return Inertia::render('Companies/Index', [
             'companies' => $transformedCompanies,

@@ -36,6 +36,26 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Get the avatar URL, preferring locally uploaded profile picture.
+     *
+     * Priority: Employee's profile_picture > Employee's external_avatar_url > User's avatar
+     */
+    public function getAvatarAttribute(?string $value): ?string
+    {
+        if ($this->employee_id && $this->relationLoaded('employee') && $this->employee) {
+            if ($this->employee->profile_picture) {
+                return route('users.profile-picture', $this->employee->id);
+            }
+
+            if ($this->employee->external_avatar_url) {
+                return $this->employee->external_avatar_url;
+            }
+        }
+
+        return $value;
+    }
+
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
