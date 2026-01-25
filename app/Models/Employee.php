@@ -135,6 +135,74 @@ class Employee extends Model
     }
 
     /**
+     * Get employees that this employee manages (subordinates).
+     */
+    public function subordinateRelations(): HasMany
+    {
+        return $this->hasMany(EmployeeHierarchy::class, 'manager_id');
+    }
+
+    /**
+     * Get employees that manage this employee (managers).
+     */
+    public function managerRelations(): HasMany
+    {
+        return $this->hasMany(EmployeeHierarchy::class, 'subordinate_id');
+    }
+
+    /**
+     * Get subordinate employees through the hierarchy.
+     */
+    public function subordinates(): BelongsToMany
+    {
+        return $this->belongsToMany(Employee::class, 'employee_hierarchies', 'manager_id', 'subordinate_id')
+            ->withPivot(['active'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Get active subordinate employees.
+     */
+    public function activeSubordinates(): BelongsToMany
+    {
+        return $this->subordinates()->wherePivot('active', true);
+    }
+
+    /**
+     * Get manager employees through the hierarchy.
+     */
+    public function managers(): BelongsToMany
+    {
+        return $this->belongsToMany(Employee::class, 'employee_hierarchies', 'subordinate_id', 'manager_id')
+            ->withPivot(['active'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Get active manager employees.
+     */
+    public function activeManagers(): BelongsToMany
+    {
+        return $this->managers()->wherePivot('active', true);
+    }
+
+    /**
+     * Get hierarchy visibility settings for this employee (as manager).
+     */
+    public function hierarchyVisibility(): HasOne
+    {
+        return $this->hasOne(HierarchyVisibilitySetting::class, 'manager_id');
+    }
+
+    /**
+     * Check if this employee has any subordinates.
+     */
+    public function hasSubordinates(): bool
+    {
+        return $this->activeSubordinates()->exists();
+    }
+
+    /**
      * Check if the employee has a specific permission for a store.
      */
     public function hasStorePermission(int $storeId, string $permission): bool

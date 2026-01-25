@@ -7,6 +7,8 @@ use App\Http\Controllers\EmployeeCompanyController;
 use App\Http\Controllers\EmployeeContractController;
 use App\Http\Controllers\EmployeeInsuranceController;
 use App\Http\Controllers\EmployeeStoreController;
+use App\Http\Controllers\MyTeamController;
+use App\Http\Controllers\OrganisationChartController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -31,6 +33,9 @@ Route::middleware([
 
     // Insurance document viewing route (needs auth but not admin)
     Route::get('users/{employee}/insurances/{insurance}/document', [EmployeeInsuranceController::class, 'showDocument'])->name('users.insurances.document');
+
+    // My Team - for employees with subordinates (staff or admin)
+    Route::get('my-team', [MyTeamController::class, 'index'])->name('my-team.index');
 
     Route::middleware('admin')->group(function () {
         Route::get('users', [UserController::class, 'index'])->name('users.index');
@@ -101,6 +106,15 @@ Route::middleware([
         Route::post('users/{employee}/stores', [EmployeeStoreController::class, 'store'])->name('users.stores.store');
         Route::put('users/{employee}/stores/{employeeStore}', [EmployeeStoreController::class, 'update'])->name('users.stores.update');
         Route::delete('users/{employee}/stores/{employeeStore}', [EmployeeStoreController::class, 'destroy'])->name('users.stores.destroy');
+
+        // Organisation Chart
+        Route::get('organisation-chart', [OrganisationChartController::class, 'index'])->name('organisation-chart.index');
+
+        // Employee Hierarchy (used in Edit User page)
+        Route::get('users/{employee}/hierarchy', [OrganisationChartController::class, 'getEmployeeSubordinates'])->name('users.hierarchy.index');
+        Route::post('users/{employee}/hierarchy', [OrganisationChartController::class, 'addSubordinate'])->name('users.hierarchy.store');
+        Route::delete('users/{employee}/hierarchy/{subordinate}', [OrganisationChartController::class, 'removeSubordinate'])->name('users.hierarchy.destroy');
+        Route::put('users/{employee}/hierarchy/visibility', [OrganisationChartController::class, 'updateVisibility'])->name('users.hierarchy.visibility');
 
         // Documents
         Route::get('documents', [DocumentController::class, 'index'])->name('documents.index');

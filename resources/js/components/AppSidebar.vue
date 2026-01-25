@@ -7,8 +7,10 @@ import {
     Building2,
     Folder,
     LayoutGrid,
+    Network,
     Store,
     Users,
+    UsersRound,
     type LucideIcon,
 } from 'lucide-vue-next';
 import { computed } from 'vue';
@@ -34,8 +36,10 @@ const iconMap: Record<string, LucideIcon> = {
     Building2,
     Folder,
     LayoutGrid,
+    Network,
     Store,
     Users,
+    UsersRound,
 };
 
 const page = usePage<AppPageProps>();

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import ConfirmDialog from 'primevue/confirmdialog';
@@ -19,6 +19,7 @@ import { useConfirm } from 'primevue/useconfirm';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import EmployeeCompaniesSection from '@/components/employees/EmployeeCompaniesSection.vue';
 import EmployeeContractsSection from '@/components/employees/EmployeeContractsSection.vue';
+import EmployeeHierarchySection from '@/components/employees/EmployeeHierarchySection.vue';
 import EmployeeInsurancesSection from '@/components/employees/EmployeeInsurancesSection.vue';
 import EmployeeStoresSection from '@/components/employees/EmployeeStoresSection.vue';
 import ImageSelect from '@/components/ImageSelect.vue';
@@ -34,6 +35,7 @@ import {
 } from '@/constants/employee';
 import AppLayout from '@/layouts/AppLayout.vue';
 import {
+    type AppPageProps,
     type BreadcrumbItem,
     type Company,
     type Designation,
@@ -65,6 +67,10 @@ const { goBack } = useSmartBack('/users');
 const isEditing = computed(() => !!props.employee);
 const pageTitle = computed(() => (isEditing.value ? 'Edit User' : 'Create User'));
 const hasWorkOSAccount = computed(() => !!props.workosUser);
+
+// Check if current user is admin (for showing hierarchy tab)
+const page = usePage<AppPageProps>();
+const isAdmin = computed(() => page.props.auth.user.role === 'admin');
 
 // Active tab for edit mode
 const activeTab = ref('basic');
@@ -935,6 +941,7 @@ function cancel() {
                                 <Tab value="contracts">Contracts</Tab>
                                 <Tab value="insurances">Insurances</Tab>
                                 <Tab value="stores">Stores</Tab>
+                                <Tab v-if="isAdmin" value="hierarchy">Hierarchy</Tab>
                             </TabList>
                             <TabPanels>
                                 <TabPanel value="basic">
@@ -1632,6 +1639,15 @@ function cancel() {
                                             v-if="employee"
                                             :employee-id="employee.id"
                                             :stores="stores ?? []"
+                                        />
+                                    </div>
+                                </TabPanel>
+
+                                <TabPanel v-if="isAdmin" value="hierarchy">
+                                    <div class="pt-4">
+                                        <EmployeeHierarchySection
+                                            v-if="employee"
+                                            :employee-id="employee.id"
                                         />
                                     </div>
                                 </TabPanel>

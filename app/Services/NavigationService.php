@@ -18,6 +18,19 @@ class NavigationService
             ],
         ];
 
+        // My Tools section - for employees with subordinates
+        $myToolsItems = [];
+        if ($user->employee?->hasSubordinates()) {
+            $myToolsItems[] = ['title' => 'My Team', 'href' => '/my-team', 'icon' => 'UsersRound'];
+        }
+
+        if (! empty($myToolsItems)) {
+            $sections[] = [
+                'title' => 'My Tools',
+                'items' => $myToolsItems,
+            ];
+        }
+
         // Management section - only visible for admins
         $managementItems = [];
 
@@ -26,6 +39,7 @@ class NavigationService
             $managementItems[] = ['title' => 'Documents', 'href' => '/documents', 'icon' => 'Folder'];
             $managementItems[] = ['title' => 'Companies', 'href' => '/companies', 'icon' => 'Building2'];
             $managementItems[] = ['title' => 'Designations', 'href' => '/designations', 'icon' => 'BadgeCheck'];
+            $managementItems[] = ['title' => 'Organisation Chart', 'href' => '/organisation-chart', 'icon' => 'Network'];
         }
 
         // Only add the Management section if there are items
