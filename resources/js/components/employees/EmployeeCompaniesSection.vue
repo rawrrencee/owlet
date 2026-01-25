@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { employmentStatusOptions } from '@/constants/company';
-import { type Company, type Designation, type EmployeeCompany } from '@/types/company';
 import { router } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Column from 'primevue/column';
@@ -13,6 +11,8 @@ import Tag from 'primevue/tag';
 import ToggleSwitch from 'primevue/toggleswitch';
 import { useConfirm } from 'primevue/useconfirm';
 import { computed, reactive, ref } from 'vue';
+import { employmentStatusOptions } from '@/constants/company';
+import { type Company, type Designation, type EmployeeCompany } from '@/types/company';
 
 interface Props {
     employeeId: number;

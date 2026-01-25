@@ -1,9 +1,4 @@
 <script setup lang="ts">
-import ImageSelect from '@/components/ImageSelect.vue';
-import ImageUpload from '@/components/ImageUpload.vue';
-import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
-import { type Company } from '@/types/company';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
@@ -12,6 +7,11 @@ import Divider from 'primevue/divider';
 import InputText from 'primevue/inputtext';
 import ToggleSwitch from 'primevue/toggleswitch';
 import { computed, ref } from 'vue';
+import ImageSelect from '@/components/ImageSelect.vue';
+import ImageUpload from '@/components/ImageUpload.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem } from '@/types';
+import { type Company } from '@/types/company';
 
 interface Props {
     company: Company | null;

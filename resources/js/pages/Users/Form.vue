@@ -1,10 +1,29 @@
 <script setup lang="ts">
+import { Head, router, useForm } from '@inertiajs/vue3';
+import Button from 'primevue/button';
+import Card from 'primevue/card';
+import ConfirmDialog from 'primevue/confirmdialog';
+import DatePicker from 'primevue/datepicker';
+import Divider from 'primevue/divider';
+import Editor from 'primevue/editor';
+import InputText from 'primevue/inputtext';
+import Message from 'primevue/message';
+import Select from 'primevue/select';
+import Tab from 'primevue/tab';
+import TabList from 'primevue/tablist';
+import TabPanel from 'primevue/tabpanel';
+import TabPanels from 'primevue/tabpanels';
+import Tabs from 'primevue/tabs';
+import ToggleSwitch from 'primevue/toggleswitch';
+import { useConfirm } from 'primevue/useconfirm';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import EmployeeCompaniesSection from '@/components/employees/EmployeeCompaniesSection.vue';
 import EmployeeContractsSection from '@/components/employees/EmployeeContractsSection.vue';
 import EmployeeInsurancesSection from '@/components/employees/EmployeeInsurancesSection.vue';
 import EmployeeStoresSection from '@/components/employees/EmployeeStoresSection.vue';
 import ImageSelect from '@/components/ImageSelect.vue';
 import ImageUpload from '@/components/ImageUpload.vue';
+import { useSmartBack } from '@/composables/useSmartBack';
 import {
     countries,
     countryOptions,
@@ -25,25 +44,6 @@ import {
     type Store,
     type WorkOSUser,
 } from '@/types';
-import { Head, router, useForm } from '@inertiajs/vue3';
-import Button from 'primevue/button';
-import Card from 'primevue/card';
-import DatePicker from 'primevue/datepicker';
-import Divider from 'primevue/divider';
-import InputText from 'primevue/inputtext';
-import Message from 'primevue/message';
-import Select from 'primevue/select';
-import Tab from 'primevue/tab';
-import TabList from 'primevue/tablist';
-import TabPanel from 'primevue/tabpanel';
-import TabPanels from 'primevue/tabpanels';
-import Tabs from 'primevue/tabs';
-import Textarea from 'primevue/textarea';
-import ToggleSwitch from 'primevue/toggleswitch';
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { useConfirm } from 'primevue/useconfirm';
-import ConfirmDialog from 'primevue/confirmdialog';
-import { useSmartBack } from '@/composables/useSmartBack';
 
 interface Props {
     employee: Employee | null;
@@ -865,13 +865,11 @@ function cancel() {
                             <div>
                                 <h3 class="mb-4 text-lg font-medium">Notes</h3>
                                 <div class="flex flex-col gap-2">
-                                    <Textarea
+                                    <Editor
                                         id="notes"
                                         v-model="form.notes"
-                                        :invalid="!!form.errors.notes"
-                                        rows="4"
-                                        autoResize
-                                        fluid
+                                        editorStyle="height: 200px"
+                                        :class="{ 'border-red-500 rounded-lg': !!form.errors.notes }"
                                     />
                                     <small v-if="form.errors.notes" class="text-red-500">
                                         {{ form.errors.notes }}
@@ -1548,13 +1546,11 @@ function cancel() {
                                         <div>
                                             <h3 class="mb-4 text-lg font-medium">Notes</h3>
                                             <div class="flex flex-col gap-2">
-                                                <Textarea
+                                                <Editor
                                                     id="edit_notes"
                                                     v-model="form.notes"
-                                                    :invalid="!!form.errors.notes"
-                                                    rows="4"
-                                                    autoResize
-                                                    fluid
+                                                    editorStyle="height: 200px"
+                                                    :class="{ 'border-red-500 rounded-lg': !!form.errors.notes }"
                                                 />
                                                 <small v-if="form.errors.notes" class="text-red-500">
                                                     {{ form.errors.notes }}

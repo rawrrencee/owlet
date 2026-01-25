@@ -1,15 +1,4 @@
 <script setup lang="ts">
-import { useSmartBack } from '@/composables/useSmartBack';
-import AppLayout from '@/layouts/AppLayout.vue';
-import {
-    type BreadcrumbItem,
-    type Employee,
-    type EmployeeCompany,
-    type EmployeeContract,
-    type EmployeeInsurance,
-    type EmployeeStore,
-    type WorkOSUser,
-} from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
@@ -25,6 +14,17 @@ import TabPanels from 'primevue/tabpanels';
 import Tabs from 'primevue/tabs';
 import Tag from 'primevue/tag';
 import { reactive, ref } from 'vue';
+import { useSmartBack } from '@/composables/useSmartBack';
+import AppLayout from '@/layouts/AppLayout.vue';
+import {
+    type BreadcrumbItem,
+    type Employee,
+    type EmployeeCompany,
+    type EmployeeContract,
+    type EmployeeInsurance,
+    type EmployeeStore,
+    type WorkOSUser,
+} from '@/types';
 
 interface Props {
     employee: Employee;
@@ -330,7 +330,7 @@ function navigateToEdit() {
                                             <Divider />
                                             <div>
                                                 <h3 class="mb-4 text-lg font-medium">Notes</h3>
-                                                <p class="whitespace-pre-wrap text-sm">{{ employee.notes }}</p>
+                                                <div class="prose prose-sm dark:prose-invert max-w-none" v-html="employee.notes"></div>
                                             </div>
                                         </template>
 

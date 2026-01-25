@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type Company, type Customer, type Employee, type PaginatedData } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
@@ -19,6 +17,8 @@ import Tag from 'primevue/tag';
 import ToggleSwitch from 'primevue/toggleswitch';
 import { useConfirm } from 'primevue/useconfirm';
 import { computed, reactive, ref, watch } from 'vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem, type Company, type Customer, type Employee, type PaginatedData } from '@/types';
 
 interface Filters {
     search?: string;
@@ -61,7 +61,7 @@ let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 // Watch for filter changes and apply them
 watch(
     () => filters.search,
-    (newValue) => {
+    () => {
         if (searchTimeout) clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
             applyFilters();

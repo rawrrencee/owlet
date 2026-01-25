@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { useSmartBack } from '@/composables/useSmartBack';
-import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type EmployeeStoreView, type Store } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
@@ -12,6 +9,9 @@ import Divider from 'primevue/divider';
 import Image from 'primevue/image';
 import Tag from 'primevue/tag';
 import { reactive } from 'vue';
+import { useSmartBack } from '@/composables/useSmartBack';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem, type EmployeeStoreView, type Store } from '@/types';
 
 interface Props {
     store: Store;

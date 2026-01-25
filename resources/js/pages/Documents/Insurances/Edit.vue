@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { useSmartBack } from '@/composables/useSmartBack';
-import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type EmployeeInsurance } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
@@ -13,6 +10,9 @@ import InputText from 'primevue/inputtext';
 import Tag from 'primevue/tag';
 import { useConfirm } from 'primevue/useconfirm';
 import { ref } from 'vue';
+import { useSmartBack } from '@/composables/useSmartBack';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem, type EmployeeInsurance } from '@/types';
 
 interface InsuranceWithEmployee extends EmployeeInsurance {
     employee?: {

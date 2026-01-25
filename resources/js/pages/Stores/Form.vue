@@ -1,10 +1,4 @@
 <script setup lang="ts">
-import ImageSelect from '@/components/ImageSelect.vue';
-import ImageUpload from '@/components/ImageUpload.vue';
-import StoreEmployeesSection from '@/components/stores/StoreEmployeesSection.vue';
-import { useSmartBack } from '@/composables/useSmartBack';
-import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type Company, type Store } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
@@ -20,6 +14,12 @@ import TabPanels from 'primevue/tabpanels';
 import Tabs from 'primevue/tabs';
 import ToggleSwitch from 'primevue/toggleswitch';
 import { computed, ref } from 'vue';
+import ImageSelect from '@/components/ImageSelect.vue';
+import ImageUpload from '@/components/ImageUpload.vue';
+import StoreEmployeesSection from '@/components/stores/StoreEmployeesSection.vue';
+import { useSmartBack } from '@/composables/useSmartBack';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem, type Company, type Store } from '@/types';
 
 interface EmployeeOption {
     id: number;

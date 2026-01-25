@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { useSmartBack } from '@/composables/useSmartBack';
-import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type EmployeeContract } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
@@ -9,6 +6,9 @@ import Dialog from 'primevue/dialog';
 import Divider from 'primevue/divider';
 import Tag from 'primevue/tag';
 import { ref } from 'vue';
+import { useSmartBack } from '@/composables/useSmartBack';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem, type EmployeeContract } from '@/types';
 
 interface ContractWithEmployee extends EmployeeContract {
     employee?: {

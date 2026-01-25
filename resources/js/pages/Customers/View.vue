@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type Customer } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Divider from 'primevue/divider';
 import Image from 'primevue/image';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem, type Customer } from '@/types';
 
 interface Props {
     customer: Customer;

@@ -1,4 +1,17 @@
 <script setup lang="ts">
+import { usePage } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
+import {
+    BadgeCheck,
+    BookOpen,
+    Building2,
+    Folder,
+    LayoutGrid,
+    Store,
+    Users,
+    type LucideIcon,
+} from 'lucide-vue-next';
+import { computed } from 'vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
@@ -13,19 +26,6 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import { type AppPageProps, type NavItem, type NavSection } from '@/types';
-import { usePage } from '@inertiajs/vue3';
-import { Link } from '@inertiajs/vue3';
-import {
-    BadgeCheck,
-    BookOpen,
-    Building2,
-    Folder,
-    LayoutGrid,
-    Store,
-    Users,
-    type LucideIcon,
-} from 'lucide-vue-next';
-import { computed } from 'vue';
 import AppLogo from './AppLogo.vue';
 
 const iconMap: Record<string, LucideIcon> = {

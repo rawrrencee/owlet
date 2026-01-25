@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type Company, type EmployeeContract, type EmployeeInsurance, type PaginatedData } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Column from 'primevue/column';
@@ -15,6 +13,8 @@ import Tabs from 'primevue/tabs';
 import Tag from 'primevue/tag';
 import ToggleSwitch from 'primevue/toggleswitch';
 import { computed, reactive, watch } from 'vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem, type Company, type EmployeeContract, type EmployeeInsurance, type PaginatedData } from '@/types';
 
 interface ContractWithEmployee extends EmployeeContract {
     employee?: {
@@ -144,10 +144,6 @@ function getEmployeeName(doc: ContractWithEmployee | InsuranceWithEmployee): str
 
 function isEmployeeDeleted(doc: ContractWithEmployee | InsuranceWithEmployee): boolean {
     return doc.employee_is_deleted === true;
-}
-
-function isContract(doc: ContractWithEmployee | InsuranceWithEmployee): doc is ContractWithEmployee {
-    return 'salary_amount' in doc;
 }
 
 function onContractRowClick(event: { data: ContractWithEmployee }) {

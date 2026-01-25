@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Link } from '@inertiajs/vue3';
 import {
     SidebarGroup,
     SidebarGroupLabel,
@@ -8,7 +9,6 @@ import {
 } from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { type NavSection } from '@/types';
-import { Link } from '@inertiajs/vue3';
 
 defineProps<{
     sections: NavSection[];

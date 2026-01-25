@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import Toast from 'primevue/toast';
 import { useFlashToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItem } from '@/types';
-import Toast from 'primevue/toast';
 
 type Props = {
     breadcrumbs?: BreadcrumbItem[];
