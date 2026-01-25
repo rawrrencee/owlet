@@ -104,6 +104,12 @@ function collapseAll() {
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <h1 class="text-2xl font-semibold">Organisation Chart</h1>
+                <Button
+                    label="Edit Chart"
+                    icon="pi pi-pencil"
+                    size="small"
+                    @click="router.visit('/organisation-chart/edit')"
+                />
             </div>
 
             <!-- Filter Section -->
@@ -142,6 +148,7 @@ function collapseAll() {
                 <Card v-for="rootNode in filteredOrgChart" :key="rootNode.key" class="min-w-max">
                     <template #content>
                         <OrganizationChart
+                            :key="`${rootNode.key}-${searchQuery}`"
                             :value="rootNode"
                             v-model:collapsedKeys="collapsedKeys"
                             collapsible

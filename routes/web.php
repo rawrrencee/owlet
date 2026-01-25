@@ -117,6 +117,11 @@ Route::middleware([
 
         // Organisation Chart
         Route::get('organisation-chart', [OrganisationChartController::class, 'index'])->name('organisation-chart.index');
+        Route::get('organisation-chart/edit', [OrganisationChartController::class, 'edit'])->name('organisation-chart.edit');
+        Route::get('organisation-chart/employees/{employee}/managers', [OrganisationChartController::class, 'getEmployeeManagers'])->name('organisation-chart.employee-managers');
+        Route::post('organisation-chart/employees/{employee}/managers', [OrganisationChartController::class, 'addManager'])->name('organisation-chart.add-manager');
+        Route::delete('organisation-chart/employees/{employee}/managers/{manager}', [OrganisationChartController::class, 'removeManager'])->name('organisation-chart.remove-manager');
+        Route::post('organisation-chart/bulk-assign', [OrganisationChartController::class, 'bulkAssignManager'])->name('organisation-chart.bulk-assign');
 
         // Employee Hierarchy (used in Edit User page)
         Route::get('users/{employee}/hierarchy', [OrganisationChartController::class, 'getEmployeeSubordinates'])->name('users.hierarchy.index');

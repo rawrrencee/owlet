@@ -397,4 +397,110 @@ class HierarchyService
             $this->collectAncestors($managerId, $ancestors, $visited);
         }
     }
+
+    /**
+     * Get all employees that can be managers for an employee.
+     * Excludes: the employee themselves, current managers, and descendants (to prevent circular refs).
+     *
+     * @return Collection<int, Employee>
+     */
+    public function getAvailableManagers(Employee $employee): Collection
+    {
+        $employeeId = $employee->id;
+
+        // Get existing manager IDs
+        $existingManagerIds = $employee->activeManagers()->pluck('employees.id');
+
+        // Get all descendant IDs (to prevent circular references)
+        $descendantIds = $this->getAllDescendantIds($employeeId);
+
+        return Employee::whereNull('termination_date')
+            ->where('id', '!=', $employeeId)
+            ->whereNotIn('id', $existingManagerIds)
+            ->whereNotIn('id', $descendantIds)
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->get();
+    }
+
+    /**
+     * Get all descendant IDs for an employee.
+     *
+     * @return array<int>
+     */
+    private function getAllDescendantIds(int $employeeId): array
+    {
+        $descendants = [];
+        $visited = [];
+        $this->collectDescendants($employeeId, $descendants, $visited);
+
+        return $descendants;
+    }
+
+    /**
+     * @param  array<int>  $descendants
+     * @param  array<int, bool>  $visited
+     */
+    private function collectDescendants(int $employeeId, array &$descendants, array &$visited): void
+    {
+        if (isset($visited[$employeeId])) {
+            return;
+        }
+        $visited[$employeeId] = true;
+
+        $subordinateIds = EmployeeHierarchy::where('manager_id', $employeeId)
+            ->where('active', true)
+            ->pluck('subordinate_id');
+
+        foreach ($subordinateIds as $subordinateId) {
+            $descendants[] = $subordinateId;
+            $this->collectDescendants($subordinateId, $descendants, $visited);
+        }
+    }
+
+    /**
+     * Get employees list with their managers and tiers for edit page.
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    public function getEmployeesWithManagers(): Collection
+    {
+        $employees = Employee::with(['activeManagers', 'activeCompanies'])
+            ->whereNull('termination_date')
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->get();
+
+        // Calculate tiers for all employees
+        $tiers = $this->calculateAllTiers($employees);
+
+        return $employees->map(function (Employee $employee) use ($tiers) {
+            // Get designation from the first active company
+            $designation = null;
+            $companyName = null;
+            $firstActiveCompany = $employee->activeCompanies->first();
+            if ($firstActiveCompany) {
+                $companyName = $firstActiveCompany->company_name;
+                if ($firstActiveCompany->pivot?->designation_id) {
+                    $designation = Designation::find($firstActiveCompany->pivot->designation_id)?->designation_name;
+                }
+            }
+
+            return [
+                'id' => $employee->id,
+                'name' => $employee->full_name,
+                'profile_picture_url' => $employee->getProfilePictureUrl(),
+                'employee_number' => $employee->employee_number,
+                'designation' => $designation,
+                'company' => $companyName,
+                'tier' => $tiers[$employee->id] ?? 1,
+                'managers' => $employee->activeManagers->map(fn (Employee $manager) => [
+                    'id' => $manager->id,
+                    'name' => $manager->full_name,
+                    'profile_picture_url' => $manager->getProfilePictureUrl(),
+                    'employee_number' => $manager->employee_number,
+                ])->values()->toArray(),
+            ];
+        });
+    }
 }

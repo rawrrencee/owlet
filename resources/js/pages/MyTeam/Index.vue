@@ -54,10 +54,7 @@ function filterNodes(nodes: OrgChartNode[], query: string): OrgChartNode[] {
 
     return nodes
         .map((node) => {
-            const matchesSearch =
-                node.data.name.toLowerCase().includes(lowerQuery) ||
-                (node.data.employee_number?.toLowerCase().includes(lowerQuery) ?? false) ||
-                (node.data.email?.toLowerCase().includes(lowerQuery) ?? false);
+            const matchesSearch = node.data.name.toLowerCase().includes(lowerQuery);
 
             const filteredChildren = filterNodes(node.children, query);
 
@@ -72,8 +69,14 @@ function filterNodes(nodes: OrgChartNode[], query: string): OrgChartNode[] {
         .filter((node): node is OrgChartNode => node !== null);
 }
 
+// Convert and filter in a single computed to ensure reactivity
+const filteredOrgChartNodes = computed(() => {
+    const nodes = convertToOrgChartNodes(props.subordinates);
+    return filterNodes(nodes, searchQuery.value);
+});
+
+// Keep original nodes for collapse functionality
 const orgChartNodes = computed(() => convertToOrgChartNodes(props.subordinates));
-const filteredOrgChartNodes = computed(() => filterNodes(orgChartNodes.value, searchQuery.value));
 
 // Check if any subordinate has nested subordinates (to show/hide expand buttons)
 function hasNestedSubordinates(subs: SubordinateInfo[]): boolean {
@@ -132,7 +135,7 @@ function navigateToSubordinate(employeeId: number) {
                     <InputIcon class="pi pi-search" />
                     <InputText
                         v-model="searchQuery"
-                        placeholder="Search by name, employee number, or email..."
+                        placeholder="Search by name..."
                         size="small"
                         fluid
                     />
@@ -162,6 +165,7 @@ function navigateToSubordinate(employeeId: number) {
                 <Card v-for="rootNode in filteredOrgChartNodes" :key="rootNode.key" class="min-w-max">
                     <template #content>
                         <OrganizationChart
+                            :key="`${rootNode.key}-${searchQuery}`"
                             :value="rootNode"
                             v-model:collapsedKeys="collapsedKeys"
                             collapsible

@@ -41,3 +41,37 @@ export interface EmployeeHierarchyData {
     available_sections: AvailableSections;
     available_subordinates: { label: string; value: number }[];
 }
+
+// Organisation Chart Edit page types
+export interface ManagerInfo {
+    id: number;
+    name: string;
+    profile_picture_url: string | null;
+    employee_number: string | null;
+}
+
+export interface EmployeeWithManagers {
+    id: number;
+    name: string;
+    profile_picture_url: string | null;
+    employee_number: string | null;
+    designation: string | null;
+    company: string | null;
+    tier: number;
+    managers: ManagerInfo[];
+}
+
+export interface AvailableManager {
+    label: string;
+    value: number;
+}
+
+export interface EmployeeManagersData {
+    employee: EmployeeWithManagers;
+    available_managers: AvailableManager[];
+}
+
+export interface BulkAssignResult {
+    success: number[];
+    failed: Array<{ id: number; name: string; reason: string }>;
+}
