@@ -1,19 +1,11 @@
 <script setup lang="ts">
-import { router } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Image from 'primevue/image';
-import { useConfirm } from 'primevue/useconfirm';
 import { ref, watch } from 'vue';
 
 interface Props {
-    /** Current image URL (if exists) */
-    imageUrl: string | null;
-    /** URL to POST the image to */
-    uploadUrl: string;
-    /** URL to DELETE the image from */
-    deleteUrl: string;
-    /** Field name for the file input */
-    fieldName?: string;
+    /** Current image URL (if exists, for edit mode) */
+    imageUrl?: string | null;
     /** Label for the upload section */
     label?: string;
     /** Placeholder icon class when no image */
@@ -31,7 +23,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    fieldName: 'image',
+    imageUrl: null,
     label: 'Image',
     placeholderIcon: 'pi pi-image',
     alt: 'Image',
@@ -41,24 +33,21 @@ const props = withDefaults(defineProps<Props>(), {
     previewSize: 96,
 });
 
+const model = defineModel<File | null>({ default: null });
+
 const emit = defineEmits<{
-    (e: 'uploaded', url: string): void;
-    (e: 'deleted'): void;
     (e: 'error', message: string): void;
 }>();
 
 // Local state
-const currentImageUrl = ref<string | null>(props.imageUrl);
-const selectedFile = ref<File | null>(null);
 const previewUrl = ref<string | null>(null);
-const uploading = ref(false);
 const error = ref<string | null>(null);
 
-const confirm = useConfirm();
-
-// Watch for external imageUrl changes
-watch(() => props.imageUrl, (newUrl) => {
-    currentImageUrl.value = newUrl;
+// Watch for external model changes (e.g., form reset)
+watch(model, (newFile) => {
+    if (!newFile && previewUrl.value) {
+        previewUrl.value = null;
+    }
 });
 
 function onFileSelect(event: Event) {
@@ -83,7 +72,7 @@ function onFileSelect(event: Event) {
     }
 
     error.value = null;
-    selectedFile.value = file;
+    model.value = file;
 
     // Create preview
     const reader = new FileReader();
@@ -91,80 +80,20 @@ function onFileSelect(event: Event) {
         previewUrl.value = e.target?.result as string;
     };
     reader.readAsDataURL(file);
+
+    // Reset input so the same file can be selected again if needed
+    input.value = '';
 }
 
-function upload() {
-    if (!selectedFile.value) return;
-
-    uploading.value = true;
-    error.value = null;
-
-    const formData = new FormData();
-    formData.append(props.fieldName, selectedFile.value);
-
-    router.post(props.uploadUrl, formData, {
-        preserveScroll: true,
-        onSuccess: () => {
-            // Add cache-busting timestamp to the URL
-            currentImageUrl.value = `${props.uploadUrl}?t=${Date.now()}`;
-            selectedFile.value = null;
-            previewUrl.value = null;
-            emit('uploaded', currentImageUrl.value);
-        },
-        onError: (errors) => {
-            error.value = errors[props.fieldName] || 'Failed to upload image.';
-            emit('error', error.value);
-        },
-        onFinish: () => {
-            uploading.value = false;
-        },
-    });
-}
-
-function confirmDelete() {
-    confirm.require({
-        message: `Are you sure you want to remove this ${props.label.toLowerCase()}?`,
-        header: `Remove ${props.label}`,
-        icon: 'pi pi-exclamation-triangle',
-        rejectLabel: 'Cancel',
-        rejectProps: {
-            severity: 'secondary',
-            size: 'small',
-        },
-        acceptLabel: 'Remove',
-        acceptProps: {
-            severity: 'danger',
-            size: 'small',
-        },
-        accept: deleteImage,
-    });
-}
-
-function deleteImage() {
-    uploading.value = true;
-
-    router.delete(props.deleteUrl, {
-        preserveScroll: true,
-        onSuccess: () => {
-            currentImageUrl.value = null;
-            selectedFile.value = null;
-            previewUrl.value = null;
-            emit('deleted');
-        },
-        onFinish: () => {
-            uploading.value = false;
-        },
-    });
-}
-
-function cancelSelection() {
-    selectedFile.value = null;
+function clearSelection() {
+    model.value = null;
     previewUrl.value = null;
     error.value = null;
 }
 
-const displayUrl = () => previewUrl.value || currentImageUrl.value;
+const displayUrl = () => previewUrl.value || props.imageUrl;
 const hasImage = () => displayUrl() !== null;
+const hasNewSelection = () => previewUrl.value !== null;
 </script>
 
 <template>
@@ -203,44 +132,23 @@ const hasImage = () => displayUrl() !== null;
                         :accept="accept"
                         class="hidden"
                         @change="onFileSelect"
-                        :disabled="uploading"
                     />
                     <Button
                         as="span"
-                        :label="currentImageUrl ? 'Change' : 'Upload'"
+                        :label="hasImage() ? 'Change' : 'Select'"
                         icon="pi pi-upload"
                         size="small"
                         severity="secondary"
-                        :disabled="uploading"
                     />
                 </label>
                 <Button
-                    v-if="selectedFile"
-                    label="Save"
-                    icon="pi pi-check"
-                    size="small"
-                    :loading="uploading"
-                    @click="upload"
-                />
-                <Button
-                    v-if="selectedFile"
-                    label="Cancel"
+                    v-if="hasNewSelection()"
+                    label="Clear"
                     icon="pi pi-times"
                     size="small"
                     severity="secondary"
                     text
-                    :disabled="uploading"
-                    @click="cancelSelection"
-                />
-                <Button
-                    v-if="currentImageUrl && !selectedFile"
-                    label="Remove"
-                    icon="pi pi-trash"
-                    size="small"
-                    severity="danger"
-                    text
-                    :disabled="uploading"
-                    @click="confirmDelete"
+                    @click="clearSelection"
                 />
             </div>
             <small class="text-muted-foreground">

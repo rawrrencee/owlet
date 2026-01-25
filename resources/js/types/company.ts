@@ -10,6 +10,7 @@ export interface Company {
     logo: string | null;
     logo_url: string | null;
     active: boolean;
+    is_deleted?: boolean;
     created_at: string | null;
     updated_at: string | null;
 }

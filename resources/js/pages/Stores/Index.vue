@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type Company, type PaginatedData } from '@/types';
+import { type BreadcrumbItem, type Company, type PaginatedData, type Store } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
@@ -20,11 +20,13 @@ import { computed, reactive, ref, watch } from 'vue';
 interface Filters {
     search?: string;
     status?: string;
+    company_id?: string | number;
     show_deleted?: boolean;
 }
 
 interface Props {
-    companies: PaginatedData<Company>;
+    stores: PaginatedData<Store>;
+    companies: Company[];
     filters?: Filters;
 }
 
@@ -33,6 +35,7 @@ const props = defineProps<Props>();
 const filters = reactive({
     search: props.filters?.search ?? '',
     status: props.filters?.status ?? '',
+    company_id: props.filters?.company_id ?? '',
     showDeleted: props.filters?.show_deleted ?? false,
 });
 
@@ -41,6 +44,11 @@ const statusOptions = [
     { label: 'Active', value: 'active' },
     { label: 'Inactive', value: 'inactive' },
 ];
+
+const companyOptions = computed(() => [
+    { label: 'All Companies', value: '' },
+    ...props.companies.map(c => ({ label: c.company_name, value: c.id })),
+]);
 
 let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -62,6 +70,13 @@ watch(
 );
 
 watch(
+    () => filters.company_id,
+    () => {
+        applyFilters();
+    },
+);
+
+watch(
     () => filters.showDeleted,
     () => {
         applyFilters();
@@ -72,50 +87,56 @@ function applyFilters() {
     const params: Record<string, string | number | boolean> = {};
     if (filters.search) params.search = filters.search;
     if (filters.status) params.status = filters.status;
+    if (filters.company_id) params.company_id = filters.company_id;
     if (filters.showDeleted) params.show_deleted = true;
-    router.get('/companies', params, { preserveState: true });
+    router.get('/stores', params, { preserveState: true });
 }
 
 function clearFilters() {
     filters.search = '';
     filters.status = '';
+    filters.company_id = '';
     filters.showDeleted = false;
-    router.get('/companies', {}, { preserveState: true });
+    router.get('/stores', {}, { preserveState: true });
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Companies' },
+    { title: 'Stores' },
 ];
 
 const expandedRows = ref({});
-const hasActiveFilters = computed(() => filters.search || filters.status || filters.showDeleted);
+const hasActiveFilters = computed(() => filters.search || filters.status || filters.company_id || filters.showDeleted);
 const confirm = useConfirm();
 
-function getInitials(company: Company): string {
-    const words = company.company_name.split(' ');
+function getInitials(store: Store): string {
+    const words = store.store_name.split(' ');
     if (words.length >= 2) {
         return (words[0].charAt(0) + words[1].charAt(0)).toUpperCase();
     }
-    return company.company_name.substring(0, 2).toUpperCase();
+    return store.store_name.substring(0, 2).toUpperCase();
 }
 
-function isDeleted(company: Company): boolean {
-    return company.is_deleted === true;
+function isDeleted(store: Store): boolean {
+    return store.is_deleted === true;
 }
 
 function navigateToCreate() {
-    router.get('/companies/create');
+    router.get('/stores/create');
 }
 
-function navigateToEdit(company: Company) {
-    router.get(`/companies/${company.id}/edit`);
+function navigateToView(store: Store) {
+    router.get(`/stores/${store.id}`);
 }
 
-function confirmDelete(company: Company) {
+function navigateToEdit(store: Store) {
+    router.get(`/stores/${store.id}/edit`);
+}
+
+function confirmDelete(store: Store) {
     confirm.require({
-        message: `Are you sure you want to delete "${company.company_name}"?`,
-        header: 'Delete Company',
+        message: `Are you sure you want to delete "${store.store_name}"?`,
+        header: 'Delete Store',
         icon: 'pi pi-exclamation-triangle',
         rejectLabel: 'Cancel',
         rejectProps: {
@@ -128,15 +149,15 @@ function confirmDelete(company: Company) {
             size: 'small',
         },
         accept: () => {
-            router.delete(`/companies/${company.id}`);
+            router.delete(`/stores/${store.id}`);
         },
     });
 }
 
-function confirmRestore(company: Company) {
+function confirmRestore(store: Store) {
     confirm.require({
-        message: `Are you sure you want to restore "${company.company_name}"?`,
-        header: 'Restore Company',
+        message: `Are you sure you want to restore "${store.store_name}"?`,
+        header: 'Restore Store',
         icon: 'pi pi-history',
         rejectLabel: 'Cancel',
         rejectProps: {
@@ -149,29 +170,34 @@ function confirmRestore(company: Company) {
             size: 'small',
         },
         accept: () => {
-            router.post(`/companies/${company.id}/restore`);
+            router.post(`/stores/${store.id}/restore`);
         },
     });
+}
+
+function onRowClick(event: { data: Store }) {
+    navigateToView(event.data);
 }
 
 function onPage(event: { page: number }) {
     const params: Record<string, string | number | boolean> = { page: event.page + 1 };
     if (filters.search) params.search = filters.search;
     if (filters.status) params.status = filters.status;
+    if (filters.company_id) params.company_id = filters.company_id;
     if (filters.showDeleted) params.show_deleted = true;
-    router.get('/companies', params, { preserveState: true });
+    router.get('/stores', params, { preserveState: true });
 }
 </script>
 
 <template>
-    <Head title="Companies" />
+    <Head title="Stores" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <h1 class="text-2xl font-semibold">Companies</h1>
+                <h1 class="text-2xl font-semibold">Stores</h1>
                 <Button
-                    label="Create Company"
+                    label="Create Store"
                     icon="pi pi-plus"
                     size="small"
                     @click="navigateToCreate"
@@ -184,12 +210,21 @@ function onPage(event: { page: number }) {
                     <InputIcon class="pi pi-search" />
                     <InputText
                         v-model="filters.search"
-                        placeholder="Search by name, email, or phone..."
+                        placeholder="Search by name, code, email, or phone..."
                         size="small"
                         fluid
                     />
                 </IconField>
                 <div class="flex flex-wrap items-center gap-2">
+                    <Select
+                        v-model="filters.company_id"
+                        :options="companyOptions"
+                        option-label="label"
+                        option-value="value"
+                        placeholder="Company"
+                        size="small"
+                        class="w-full sm:w-44"
+                    />
                     <Select
                         v-model="filters.status"
                         :options="statusOptions"
@@ -215,24 +250,25 @@ function onPage(event: { page: number }) {
                 </div>
             </div>
 
-            <!-- Companies Table -->
+            <!-- Stores Table -->
             <DataTable
                 v-model:expandedRows="expandedRows"
-                :value="companies.data"
+                :value="stores.data"
                 dataKey="id"
                 :lazy="true"
                 :paginator="true"
                 :rows="15"
-                :total-records="companies.total"
-                :first="((companies.current_page - 1) * 15)"
+                :total-records="stores.total"
+                :first="((stores.current_page - 1) * 15)"
                 @page="onPage"
+                @row-click="onRowClick"
                 striped-rows
                 size="small"
-                class="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
+                class="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border [&_.p-datatable-tbody>tr]:cursor-pointer"
             >
                 <template #empty>
                     <div class="p-4 text-center text-muted-foreground">
-                        No companies found.
+                        No stores found.
                     </div>
                 </template>
                 <Column expander class="w-12 !pr-0 md:hidden" />
@@ -241,7 +277,7 @@ function onPage(event: { page: number }) {
                         <Image
                             v-if="data.logo_url"
                             :src="data.logo_url"
-                            :alt="data.company_name"
+                            :alt="data.store_name"
                             image-class="h-8 w-8 rounded-full object-cover cursor-pointer"
                             :pt="{ root: { class: 'rounded-full overflow-hidden' }, previewMask: { class: 'rounded-full' } }"
                             preview
@@ -254,27 +290,32 @@ function onPage(event: { page: number }) {
                         />
                     </template>
                 </Column>
-                <Column field="company_name" header="Company Name" class="!pl-3">
+                <Column field="store_name" header="Store Name" class="!pl-3">
                     <template #body="{ data }">
                         <div class="flex items-center gap-2">
                             <span
                                 class="font-medium"
                                 :class="{ 'text-muted-foreground line-through': isDeleted(data) }"
                             >
-                                {{ data.company_name }}
+                                {{ data.store_name }}
                             </span>
                             <Tag v-if="isDeleted(data)" value="Deleted" severity="danger" class="!text-xs" />
                         </div>
                     </template>
                 </Column>
-                <Column field="email" header="Email" class="hidden md:table-cell">
+                <Column field="store_code" header="Code" class="w-20">
                     <template #body="{ data }">
-                        {{ data.email ?? '-' }}
+                        <Tag :value="data.store_code" severity="secondary" />
                     </template>
                 </Column>
-                <Column field="phone_number" header="Phone" class="hidden md:table-cell">
+                <Column field="company" header="Company" class="hidden md:table-cell">
                     <template #body="{ data }">
-                        {{ data.phone_number ?? '-' }}
+                        {{ data.company?.company_name ?? '-' }}
+                    </template>
+                </Column>
+                <Column field="email" header="Email" class="hidden lg:table-cell">
+                    <template #body="{ data }">
+                        {{ data.email ?? '-' }}
                     </template>
                 </Column>
                 <Column field="active" header="Status">
@@ -294,7 +335,7 @@ function onPage(event: { page: number }) {
                                 text
                                 rounded
                                 size="small"
-                                @click="confirmRestore(data)"
+                                @click.stop="confirmRestore(data)"
                                 v-tooltip.top="'Restore'"
                             />
                         </div>
@@ -305,7 +346,7 @@ function onPage(event: { page: number }) {
                                 text
                                 rounded
                                 size="small"
-                                @click="navigateToEdit(data)"
+                                @click.stop="navigateToEdit(data)"
                             />
                             <Button
                                 icon="pi pi-trash"
@@ -313,13 +354,17 @@ function onPage(event: { page: number }) {
                                 text
                                 rounded
                                 size="small"
-                                @click="confirmDelete(data)"
+                                @click.stop="confirmDelete(data)"
                             />
                         </div>
                     </template>
                 </Column>
                 <template #expansion="{ data }">
                     <div class="grid gap-3 p-3 text-sm md:hidden">
+                        <div class="flex justify-between border-b border-sidebar-border/50 pb-2">
+                            <span class="text-muted-foreground">Company</span>
+                            <span>{{ data.company?.company_name ?? '-' }}</span>
+                        </div>
                         <div class="flex justify-between border-b border-sidebar-border/50 pb-2">
                             <span class="text-muted-foreground">Email</span>
                             <span>{{ data.email ?? '-' }}</span>

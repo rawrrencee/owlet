@@ -143,7 +143,7 @@ function viewDocument() {
                                     </div>
                                     <div class="flex flex-col gap-1">
                                         <span class="text-sm text-muted-foreground">Status</span>
-                                        <Tag :value="contract.is_active ? 'Active' : 'Expired'" :severity="contract.is_active ? 'success' : 'secondary'" />
+                                        <Tag :value="contract.is_active ? 'Active' : 'Expired'" :severity="contract.is_active ? 'success' : 'secondary'" class="w-fit" />
                                     </div>
                                     <div class="flex flex-col gap-1">
                                         <span class="text-sm text-muted-foreground">Start Date</span>

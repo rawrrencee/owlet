@@ -32,7 +32,6 @@ All frontend interactions should use Inertia's built-in request handling:
 - **Leverage Inertia's features** - Use Inertia's automatic CSRF handling, validation error bags, preserveState, preserveScroll, and partial reloads.
 - **Form submissions** - Use `useForm()` for all form handling to get automatic validation error handling and form state management.
 - **Navigation** - Use `<Link>` component or `router.visit()` for navigation instead of traditional anchor tags or window.location.
-
 ## Backend Design Guidelines
 
 The backend primarily serves the Inertia frontend, with API support as a secondary concern:

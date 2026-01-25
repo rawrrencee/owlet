@@ -10,7 +10,7 @@ import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import InputText from 'primevue/inputtext';
 import { useConfirm } from 'primevue/useconfirm';
-import { computed, reactive, watch } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 
 interface Filters {
     search?: string;
@@ -55,7 +55,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Designations' },
 ];
 
-const expandedRows = reactive({});
+const expandedRows = ref({});
 const hasActiveFilters = computed(() => filters.search);
 const confirm = useConfirm();
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ImageSelect from '@/components/ImageSelect.vue';
 import ImageUpload from '@/components/ImageUpload.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -6,6 +7,7 @@ import { type Company } from '@/types/company';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
+import ConfirmDialog from 'primevue/confirmdialog';
 import Divider from 'primevue/divider';
 import InputText from 'primevue/inputtext';
 import ToggleSwitch from 'primevue/toggleswitch';
@@ -35,16 +37,19 @@ const form = useForm({
     address_2: props.company?.address_2 ?? '',
     website: props.company?.website ?? '',
     active: props.company?.active ?? true,
+    logo: null as File | null,
 });
 
-// Logo state
+// Logo state for edit mode
 const logoUrl = ref<string | null>(props.company?.logo_url ?? null);
 
 function submit() {
     if (isEditing.value) {
         form.put(`/companies/${props.company!.id}`);
     } else {
-        form.post('/companies');
+        form.post('/companies', {
+            forceFormData: true,
+        });
     }
 }
 
@@ -66,7 +71,18 @@ function cancel() {
                 <Card>
                     <template #content>
                         <form @submit.prevent="submit" class="flex flex-col gap-6">
-                            <!-- Logo (only shown when editing) -->
+                            <!-- Logo for create mode -->
+                            <ImageSelect
+                                v-if="!isEditing"
+                                v-model="form.logo"
+                                label="Company Logo"
+                                placeholder-icon="pi pi-building"
+                                alt="Company logo"
+                                :circular="false"
+                                :preview-size="96"
+                            />
+
+                            <!-- Logo for edit mode -->
                             <ImageUpload
                                 v-if="isEditing && company"
                                 :image-url="logoUrl"
@@ -82,7 +98,7 @@ function cancel() {
                                 @deleted="logoUrl = null"
                             />
 
-                            <Divider v-if="isEditing && company" />
+                            <Divider />
 
                             <!-- Basic Information -->
                             <div>
@@ -242,5 +258,7 @@ function cancel() {
                 </Card>
             </div>
         </div>
+
+        <ConfirmDialog />
     </AppLayout>
 </template>

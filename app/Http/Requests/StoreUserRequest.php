@@ -53,6 +53,7 @@ class StoreUserRequest extends FormRequest
             'termination_date' => ['nullable', 'date'],
             'notes' => ['nullable', 'string', 'max:5000'],
             'role' => ['required', 'string', 'in:admin,staff'],
+            'profile_picture' => ['nullable', 'image', 'max:5120'], // 5MB max
         ];
     }
 }

@@ -36,6 +36,19 @@ class NavigationService
             ];
         }
 
+        // Commerce section
+        $commerceItems = [];
+        if ($user->isAdmin()) {
+            $commerceItems[] = ['title' => 'Stores', 'href' => '/stores', 'icon' => 'Store'];
+        }
+
+        if (! empty($commerceItems)) {
+            $sections[] = [
+                'title' => 'Commerce',
+                'items' => $commerceItems,
+            ];
+        }
+
         return $sections;
     }
 }

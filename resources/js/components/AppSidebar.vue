@@ -21,6 +21,7 @@ import {
     Building2,
     Folder,
     LayoutGrid,
+    Store,
     Users,
     type LucideIcon,
 } from 'lucide-vue-next';
@@ -33,6 +34,7 @@ const iconMap: Record<string, LucideIcon> = {
     Building2,
     Folder,
     LayoutGrid,
+    Store,
     Users,
 };
 

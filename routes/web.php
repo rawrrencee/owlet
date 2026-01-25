@@ -6,6 +6,8 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EmployeeCompanyController;
 use App\Http\Controllers\EmployeeContractController;
 use App\Http\Controllers\EmployeeInsuranceController;
+use App\Http\Controllers\EmployeeStoreController;
+use App\Http\Controllers\StoreController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -34,12 +36,13 @@ Route::middleware([
         Route::get('users', [UserController::class, 'index'])->name('users.index');
         Route::get('users/create', [UserController::class, 'create'])->name('users.create');
         Route::post('users', [UserController::class, 'store'])->name('users.store');
-        Route::get('users/{employee}', [UserController::class, 'show'])->name('users.show');
+        Route::get('users/{employee}', [UserController::class, 'show'])->name('users.show')->withTrashed();
         Route::get('users/{employee}/edit', [UserController::class, 'edit'])->name('users.edit');
         Route::put('users/{employee}', [UserController::class, 'update'])->name('users.update');
         Route::post('users/{employee}/profile-picture', [UserController::class, 'uploadProfilePicture'])->name('users.upload-profile-picture');
         Route::delete('users/{employee}/profile-picture', [UserController::class, 'deleteProfilePicture'])->name('users.delete-profile-picture');
         Route::delete('users/{employee}', [UserController::class, 'destroy'])->name('users.destroy');
+        Route::post('users/{employee}/restore', [UserController::class, 'restore'])->name('users.restore')->withTrashed();
 
         Route::get('customers/create', [UserController::class, 'createCustomer'])->name('customers.create');
         Route::post('customers', [UserController::class, 'storeCustomer'])->name('customers.store');
@@ -50,6 +53,7 @@ Route::middleware([
 
         // Companies
         Route::resource('companies', CompanyController::class)->except(['show']);
+        Route::post('companies/{company}/restore', [CompanyController::class, 'restore'])->name('companies.restore')->withTrashed();
         Route::get('companies/{company}/logo', [CompanyController::class, 'showLogo'])->name('companies.logo');
         Route::post('companies/{company}/logo', [CompanyController::class, 'uploadLogo'])->name('companies.upload-logo');
         Route::delete('companies/{company}/logo', [CompanyController::class, 'deleteLogo'])->name('companies.delete-logo');
@@ -78,6 +82,25 @@ Route::middleware([
         Route::delete('users/{employee}/insurances/{insurance}', [EmployeeInsuranceController::class, 'destroy'])->name('users.insurances.destroy');
         Route::post('users/{employee}/insurances/{insurance}/document', [EmployeeInsuranceController::class, 'uploadDocument'])->name('users.insurances.upload-document');
         Route::delete('users/{employee}/insurances/{insurance}/document', [EmployeeInsuranceController::class, 'deleteDocument'])->name('users.insurances.delete-document');
+
+        // Stores
+        Route::resource('stores', StoreController::class);
+        Route::post('stores/{store}/restore', [StoreController::class, 'restore'])->name('stores.restore')->withTrashed();
+        Route::get('stores/{store}/logo', [StoreController::class, 'showLogo'])->name('stores.logo');
+        Route::post('stores/{store}/logo', [StoreController::class, 'uploadLogo'])->name('stores.upload-logo');
+        Route::delete('stores/{store}/logo', [StoreController::class, 'deleteLogo'])->name('stores.delete-logo');
+
+        // Store-Employee assignments (manage employees from store side)
+        Route::get('stores/{store}/employees', [StoreController::class, 'employees'])->name('stores.employees.index');
+        Route::post('stores/{store}/employees', [StoreController::class, 'addEmployee'])->name('stores.employees.store');
+        Route::put('stores/{store}/employees/{employeeStore}', [StoreController::class, 'updateEmployee'])->name('stores.employees.update');
+        Route::delete('stores/{store}/employees/{employeeStore}', [StoreController::class, 'removeEmployee'])->name('stores.employees.destroy');
+
+        // Employee-Store assignments
+        Route::get('users/{employee}/stores', [EmployeeStoreController::class, 'index'])->name('users.stores.index');
+        Route::post('users/{employee}/stores', [EmployeeStoreController::class, 'store'])->name('users.stores.store');
+        Route::put('users/{employee}/stores/{employeeStore}', [EmployeeStoreController::class, 'update'])->name('users.stores.update');
+        Route::delete('users/{employee}/stores/{employeeStore}', [EmployeeStoreController::class, 'destroy'])->name('users.stores.destroy');
 
         // Documents
         Route::get('documents', [DocumentController::class, 'index'])->name('documents.index');

@@ -18,7 +18,7 @@ import Tabs from 'primevue/tabs';
 import Tag from 'primevue/tag';
 import ToggleSwitch from 'primevue/toggleswitch';
 import { useConfirm } from 'primevue/useconfirm';
-import { computed, reactive, watch } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 
 interface Filters {
     search?: string;
@@ -116,8 +116,8 @@ const pageTitle = computed(() =>
     props.type === 'employees' ? 'Employees' : 'Customers',
 );
 
-const expandedEmployeeRows = reactive({});
-const expandedCustomerRows = reactive({});
+const expandedEmployeeRows = ref({});
+const expandedCustomerRows = ref({});
 
 const hasActiveFilters = computed(() => filters.search || filters.status || filters.company || filters.showDeleted);
 
@@ -263,6 +263,27 @@ function confirmDeleteCustomer(customer: Customer) {
     });
 }
 
+function confirmRestoreEmployee(employee: Employee) {
+    confirm.require({
+        message: `Are you sure you want to restore ${employee.first_name} ${employee.last_name}?`,
+        header: 'Restore User',
+        icon: 'pi pi-history',
+        rejectLabel: 'Cancel',
+        rejectProps: {
+            severity: 'secondary',
+            size: 'small',
+        },
+        acceptLabel: 'Restore',
+        acceptProps: {
+            severity: 'success',
+            size: 'small',
+        },
+        accept: () => {
+            router.post(`/users/${employee.id}/restore`);
+        },
+    });
+}
+
 function onPage(event: { page: number }) {
     const params: Record<string, string | number | boolean> = {
         type: props.type,
@@ -385,7 +406,7 @@ function onPage(event: { page: number }) {
                     </div>
                 </template>
                 <Column expander style="width: 3rem" class="!pr-0 md:hidden" />
-                <Column header="" style="width: 3.5rem" class="!pl-4 !pr-0">
+                <Column header="" :style="{ width: '3.5rem', minWidth: '3.5rem', maxWidth: '3.5rem' }" class="!pl-4 !pr-0">
                     <template #body="{ data }">
                         <Image
                             v-if="getProfilePictureUrl(data)"
@@ -441,14 +462,25 @@ function onPage(event: { page: number }) {
                 </Column>
                 <Column header="" style="width: 5.5rem" class="!pr-4">
                     <template #body="{ data }">
-                        <div class="flex justify-end gap-1">
+                        <div v-if="isEmployeeDeleted(data)" class="flex justify-end gap-1">
+                            <Button
+                                icon="pi pi-history"
+                                severity="success"
+                                text
+                                rounded
+                                size="small"
+                                @click.stop="confirmRestoreEmployee(data)"
+                                v-tooltip.top="'Restore'"
+                            />
+                        </div>
+                        <div v-else class="flex justify-end gap-1">
                             <Button
                                 icon="pi pi-pencil"
                                 severity="secondary"
                                 text
                                 rounded
                                 size="small"
-                                @click="navigateToEdit(data)"
+                                @click.stop="navigateToEdit(data)"
                             />
                             <Button
                                 icon="pi pi-trash"
@@ -456,7 +488,7 @@ function onPage(event: { page: number }) {
                                 text
                                 rounded
                                 size="small"
-                                @click="confirmDeleteEmployee(data)"
+                                @click.stop="confirmDeleteEmployee(data)"
                             />
                         </div>
                     </template>
@@ -471,7 +503,17 @@ function onPage(event: { page: number }) {
                             <span class="shrink-0 text-muted-foreground">Email</span>
                             <span class="truncate text-right">{{ getEmployeeEmail(data) }}</span>
                         </div>
-                        <div class="flex gap-2 pt-2">
+                        <div v-if="isEmployeeDeleted(data)" class="flex gap-2 pt-2">
+                            <Button
+                                label="Restore"
+                                icon="pi pi-history"
+                                severity="success"
+                                size="small"
+                                @click="confirmRestoreEmployee(data)"
+                                class="flex-1"
+                            />
+                        </div>
+                        <div v-else class="flex gap-2 pt-2">
                             <Button
                                 label="Edit"
                                 icon="pi pi-pencil"
@@ -508,6 +550,7 @@ function onPage(event: { page: number }) {
                 @row-click="onCustomerRowClick"
                 striped-rows
                 size="small"
+                tableLayout="fixed"
                 class="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border [&_.p-datatable-tbody>tr]:cursor-pointer"
             >
                 <template #empty>
@@ -515,8 +558,8 @@ function onPage(event: { page: number }) {
                         No customers found.
                     </div>
                 </template>
-                <Column expander class="w-12 !pr-0 md:hidden" />
-                <Column header="" class="w-12 !pl-4 !pr-0">
+                <Column expander style="width: 3rem" class="!pr-0 md:hidden" />
+                <Column header="" :style="{ width: '3.5rem', minWidth: '3.5rem', maxWidth: '3.5rem' }" class="!pl-4 !pr-0">
                     <template #body="{ data }">
                         <Image
                             v-if="getProfilePictureUrl(data)"

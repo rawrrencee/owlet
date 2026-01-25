@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 
 class Employee extends Model
 {
@@ -114,6 +115,63 @@ class Employee extends Model
     public function activeCompanies(): BelongsToMany
     {
         return $this->companies()->whereNull('employee_companies.left_date');
+    }
+
+    public function stores(): BelongsToMany
+    {
+        return $this->belongsToMany(Store::class, 'employee_stores')
+            ->withPivot(['active', 'permissions'])
+            ->withTimestamps();
+    }
+
+    public function employeeStores(): HasMany
+    {
+        return $this->hasMany(EmployeeStore::class);
+    }
+
+    public function activeStores(): BelongsToMany
+    {
+        return $this->stores()->wherePivot('active', true);
+    }
+
+    /**
+     * Check if the employee has a specific permission for a store.
+     */
+    public function hasStorePermission(int $storeId, string $permission): bool
+    {
+        $employeeStore = $this->employeeStores()
+            ->where('store_id', $storeId)
+            ->where('active', true)
+            ->first();
+
+        return $employeeStore?->hasPermission($permission) ?? false;
+    }
+
+    /**
+     * Get all permissions for a specific store.
+     *
+     * @return array<string>
+     */
+    public function getStorePermissions(int $storeId): array
+    {
+        $employeeStore = $this->employeeStores()
+            ->where('store_id', $storeId)
+            ->where('active', true)
+            ->first();
+
+        return $employeeStore?->permissions ?? [];
+    }
+
+    /**
+     * Get all stores where the employee has a specific permission.
+     */
+    public function storesWithPermission(string $permission): Collection
+    {
+        return $this->employeeStores()
+            ->where('active', true)
+            ->get()
+            ->filter(fn (EmployeeStore $es) => $es->hasPermission($permission))
+            ->map(fn (EmployeeStore $es) => $es->store);
     }
 
     public function getFullNameAttribute(): string

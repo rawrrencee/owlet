@@ -4,7 +4,6 @@ import { type Company, type Designation, type EmployeeCompany } from '@/types/co
 import { router } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Column from 'primevue/column';
-import ConfirmDialog from 'primevue/confirmdialog';
 import DataTable from 'primevue/datatable';
 import DatePicker from 'primevue/datepicker';
 import Dialog from 'primevue/dialog';
@@ -397,7 +396,5 @@ function confirmRemoveAssignment(ec: EmployeeCompany) {
                 </div>
             </form>
         </Dialog>
-
-        <ConfirmDialog />
     </div>
 </template>

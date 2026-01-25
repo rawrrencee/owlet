@@ -11,11 +11,14 @@ use App\Http\Resources\EmployeeCompanyResource;
 use App\Http\Resources\EmployeeContractResource;
 use App\Http\Resources\EmployeeInsuranceResource;
 use App\Http\Resources\EmployeeResource;
+use App\Http\Resources\EmployeeStoreResource;
+use App\Http\Resources\StoreResource;
 use App\Http\Traits\RespondsWithInertiaOrJson;
 use App\Models\Company;
 use App\Models\Customer;
 use App\Models\Designation;
 use App\Models\Employee;
+use App\Models\Store;
 use App\Services\WorkOSUserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -143,7 +146,7 @@ class UserController extends Controller
 
     public function show(Request $request, Employee $employee, WorkOSUserService $workOSUserService): InertiaResponse|JsonResponse
     {
-        $employee->load(['user', 'employeeCompanies.company', 'employeeCompanies.designation', 'contracts.company', 'insurances']);
+        $employee->load(['user', 'employeeCompanies.company', 'employeeCompanies.designation', 'contracts.company', 'insurances', 'employeeStores.store']);
 
         $workosUser = null;
         $workosRole = null;
@@ -204,6 +207,9 @@ class UserController extends Controller
             'insurances' => EmployeeInsuranceResource::collection(
                 $employee->insurances->sortByDesc('start_date')
             )->resolve(),
+            'stores' => EmployeeStoreResource::collection(
+                $employee->employeeStores->sortByDesc('start_date')
+            )->resolve(),
         ]);
     }
 
@@ -253,6 +259,7 @@ class UserController extends Controller
             )->resolve(),
             'companies' => CompanyResource::collection(Company::where('active', true)->orderBy('company_name')->get())->resolve(),
             'designations' => DesignationResource::collection(Designation::orderBy('designation_name')->get())->resolve(),
+            'stores' => StoreResource::collection(Store::where('active', true)->orderBy('store_name')->get())->resolve(),
         ]);
     }
 
@@ -428,6 +435,23 @@ class UserController extends Controller
         );
     }
 
+    public function restore(Request $request, Employee $employee): RedirectResponse|JsonResponse
+    {
+        $employee->restore();
+
+        if ($employee->user()->withTrashed()->exists()) {
+            $employee->user()->withTrashed()->first()->restore();
+        }
+
+        return $this->respondWithSuccess(
+            $request,
+            'users.index',
+            ['show_deleted' => true],
+            'User restored successfully.',
+            (new EmployeeResource($employee->fresh('user')))->resolve()
+        );
+    }
+
     public function destroyCustomer(Request $request, Customer $customer): RedirectResponse|JsonResponse
     {
         $customer->delete();
@@ -502,6 +526,15 @@ class UserController extends Controller
             $validated = $request->validated();
             $employee = $workOSUserService->createEmployee($validated);
 
+            // Handle profile picture upload if provided
+            if ($request->hasFile('profile_picture')) {
+                $path = $request->file('profile_picture')->store(
+                    "profile-pictures/{$employee->id}",
+                    'private'
+                );
+                $employee->update(['profile_picture' => $path]);
+            }
+
             $fullName = "{$employee->first_name} {$employee->last_name}";
             $message = "Employee {$fullName} created successfully.";
 
@@ -526,7 +559,7 @@ class UserController extends Controller
                 'users.index',
                 [],
                 $message,
-                new EmployeeResource($employee)
+                new EmployeeResource($employee->fresh())
             );
         } catch (WorkOSException $e) {
             return $this->respondWithError($request, $e->message, $e->toArray(), 422);

@@ -142,6 +142,7 @@ function viewDocument() {
                                         <Tag
                                             :value="insurance.is_active ? 'Active' : 'Expired'"
                                             :severity="insurance.is_active ? 'success' : 'secondary'"
+                                            class="w-fit"
                                         />
                                     </div>
                                     <div class="flex flex-col gap-1">

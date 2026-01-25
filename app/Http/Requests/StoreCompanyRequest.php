@@ -24,7 +24,7 @@ class StoreCompanyRequest extends FormRequest
             'phone_number' => ['nullable', 'string', 'max:50'],
             'mobile_number' => ['nullable', 'string', 'max:50'],
             'website' => ['nullable', 'url', 'max:255'],
-            'logo' => ['nullable', 'string', 'max:255'],
+            'logo' => ['nullable', 'image', 'max:5120'], // 5MB max
             'active' => ['boolean'],
         ];
     }

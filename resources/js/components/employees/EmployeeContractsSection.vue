@@ -3,7 +3,6 @@ import { type Company, type EmployeeContract } from '@/types/company';
 import { router } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Column from 'primevue/column';
-import ConfirmDialog from 'primevue/confirmdialog';
 import DataTable from 'primevue/datatable';
 import DatePicker from 'primevue/datepicker';
 import Dialog from 'primevue/dialog';
@@ -712,7 +711,5 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                 />
             </div>
         </Dialog>
-
-        <ConfirmDialog />
     </div>
 </template>
