@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Designation;
 use App\Models\Employee;
 use App\Models\EmployeeHierarchy;
 use App\Models\HierarchyVisibilitySetting;
@@ -83,14 +84,11 @@ class HierarchyService
             $children[] = $this->buildNodeRecursive($subordinate, $precomputedTiers);
         }
 
-        $designation = $employee->activeCompanies->first()?->pivot?->designation_id
-            ? $employee->activeCompanies->first()->designations->firstWhere('id', $employee->activeCompanies->first()->pivot->designation_id)?->name
-            : null;
-
-        // Try to get designation from employee_companies directly if not found
-        if (! $designation && $employee->relationLoaded('employeeCompanies')) {
-            $activeCompany = $employee->employeeCompanies->first(fn ($ec) => $ec->left_date === null);
-            $designation = $activeCompany?->designation?->name;
+        // Get designation from the pivot's designation_id
+        $designation = null;
+        $firstActiveCompany = $employee->activeCompanies->first();
+        if ($firstActiveCompany?->pivot?->designation_id) {
+            $designation = Designation::find($firstActiveCompany->pivot->designation_id)?->designation_name;
         }
 
         return [
@@ -101,7 +99,7 @@ class HierarchyService
                 'name' => $employee->full_name,
                 'profile_picture_url' => $employee->getProfilePictureUrl(),
                 'designation' => $designation,
-                'company' => $employee->activeCompanies->first()?->name,
+                'company' => $employee->activeCompanies->first()?->company_name,
                 'tier' => $tier,
             ],
             'children' => $children,
@@ -325,7 +323,7 @@ class HierarchyService
         if ($visibilitySettings?->canView('companies')) {
             $info['companies'] = $subordinate->activeCompanies->map(fn ($company) => [
                 'id' => $company->id,
-                'name' => $company->name,
+                'name' => $company->company_name,
             ])->toArray();
         }
 

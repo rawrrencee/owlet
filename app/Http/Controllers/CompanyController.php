@@ -2,11 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreCompanyEmployeeRequest;
 use App\Http\Requests\StoreCompanyRequest;
+use App\Http\Requests\UpdateCompanyEmployeeRequest;
 use App\Http\Requests\UpdateCompanyRequest;
 use App\Http\Resources\CompanyResource;
+use App\Http\Resources\DesignationResource;
+use App\Http\Resources\EmployeeCompanyResource;
+use App\Http\Resources\EmployeeResource;
 use App\Http\Traits\RespondsWithInertiaOrJson;
 use App\Models\Company;
+use App\Models\Designation;
+use App\Models\Employee;
+use App\Models\EmployeeCompany;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -104,21 +112,47 @@ class CompanyController extends Controller
 
     public function show(Request $request, Company $company): InertiaResponse|JsonResponse
     {
+        // Get company's employee assignments
+        $companyEmployees = $company->employeeCompanies()
+            ->with(['employee', 'designation'])
+            ->orderBy('commencement_date', 'desc')
+            ->get();
+
         if ($this->wantsJson($request)) {
             return response()->json([
                 'data' => (new CompanyResource($company))->resolve(),
+                'companyEmployees' => EmployeeCompanyResource::collection($companyEmployees)->resolve(),
             ]);
         }
 
-        return Inertia::render('Companies/Form', [
+        return Inertia::render('Companies/View', [
             'company' => (new CompanyResource($company))->resolve(),
+            'companyEmployees' => EmployeeCompanyResource::collection($companyEmployees)->resolve(),
         ]);
     }
 
     public function edit(Company $company): InertiaResponse
     {
+        // Get all active employees for the dropdown
+        $employees = Employee::whereNull('termination_date')
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->get();
+
+        // Get all designations
+        $designations = Designation::orderBy('designation_name')->get();
+
+        // Get company's employee assignments
+        $companyEmployees = $company->employeeCompanies()
+            ->with(['employee', 'designation'])
+            ->orderBy('commencement_date', 'desc')
+            ->get();
+
         return Inertia::render('Companies/Form', [
             'company' => (new CompanyResource($company))->resolve(),
+            'employees' => EmployeeResource::collection($employees)->resolve(),
+            'designations' => DesignationResource::collection($designations)->resolve(),
+            'companyEmployees' => EmployeeCompanyResource::collection($companyEmployees)->resolve(),
         ]);
     }
 
@@ -215,6 +249,61 @@ class CompanyController extends Controller
             ['company' => $company->id],
             'Logo removed successfully.',
             ['logo_url' => null]
+        );
+    }
+
+    public function employees(Request $request, Company $company): JsonResponse
+    {
+        $companyEmployees = $company->employeeCompanies()
+            ->with(['employee', 'designation'])
+            ->orderBy('commencement_date', 'desc')
+            ->get();
+
+        return response()->json([
+            'data' => EmployeeCompanyResource::collection($companyEmployees),
+        ]);
+    }
+
+    public function addEmployee(StoreCompanyEmployeeRequest $request, Company $company): RedirectResponse|JsonResponse
+    {
+        $data = $request->validated();
+        $data['company_id'] = $company->id;
+
+        $employeeCompany = EmployeeCompany::create($data);
+        $employeeCompany->load(['employee', 'designation']);
+
+        return $this->respondWithCreated(
+            $request,
+            'companies.edit',
+            ['company' => $company->id],
+            'Employee assignment added successfully.',
+            new EmployeeCompanyResource($employeeCompany)
+        );
+    }
+
+    public function updateEmployee(UpdateCompanyEmployeeRequest $request, Company $company, EmployeeCompany $employeeCompany): RedirectResponse|JsonResponse
+    {
+        $employeeCompany->update($request->validated());
+        $employeeCompany->load(['employee', 'designation']);
+
+        return $this->respondWithSuccess(
+            $request,
+            'companies.edit',
+            ['company' => $company->id],
+            'Employee assignment updated successfully.',
+            (new EmployeeCompanyResource($employeeCompany->fresh(['employee', 'designation'])))->resolve()
+        );
+    }
+
+    public function removeEmployee(Request $request, Company $company, EmployeeCompany $employeeCompany): RedirectResponse|JsonResponse
+    {
+        $employeeCompany->delete();
+
+        return $this->respondWithDeleted(
+            $request,
+            'companies.edit',
+            ['company' => $company->id],
+            'Employee assignment removed successfully.'
         );
     }
 }

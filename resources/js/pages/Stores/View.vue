@@ -8,7 +8,7 @@ import DataTable from 'primevue/datatable';
 import Divider from 'primevue/divider';
 import Image from 'primevue/image';
 import Tag from 'primevue/tag';
-import { reactive } from 'vue';
+import { ref } from 'vue';
 import { useSmartBack } from '@/composables/useSmartBack';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type EmployeeStoreView, type Store } from '@/types';
@@ -22,7 +22,7 @@ const props = defineProps<Props>();
 
 const { goBack } = useSmartBack('/stores');
 
-const expandedEmployeeRows = reactive({});
+const expandedEmployeeRows = ref({});
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },

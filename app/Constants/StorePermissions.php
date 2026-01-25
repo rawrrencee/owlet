@@ -6,22 +6,30 @@ class StorePermissions
 {
     // View permissions
     public const VIEW_TRANSACTIONS = 'view_transactions';
+
     public const VIEW_INVENTORY = 'view_inventory';
+
     public const VIEW_REPORTS = 'view_reports';
 
     // Delivery order permissions
     public const ADD_DELIVERY_ORDER = 'add_delivery_order';
+
     public const EDIT_DELIVERY_ORDER = 'edit_delivery_order';
+
     public const APPROVE_DELIVERY_ORDER = 'approve_delivery_order';
+
     public const DELETE_DELIVERY_ORDER = 'delete_delivery_order';
 
     // Sales permissions
     public const PROCESS_SALES = 'process_sales';
+
     public const VOID_SALES = 'void_sales';
+
     public const APPLY_DISCOUNTS = 'apply_discounts';
 
     // Inventory permissions
     public const MANAGE_INVENTORY = 'manage_inventory';
+
     public const STOCK_TRANSFER = 'stock_transfer';
 
     /**

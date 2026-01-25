@@ -520,6 +520,45 @@ class UserController extends Controller
         );
     }
 
+    public function resendInvitation(Employee $employee, Request $request, WorkOSUserService $workOSUserService): RedirectResponse|JsonResponse
+    {
+        $employee->load('user');
+
+        // Check if employee already has a WorkOS account linked
+        if ($employee->user?->workos_id) {
+            return $this->respondWithError(
+                $request,
+                'This user already has an active account and does not need an invitation.',
+                ['code' => 'already_active'],
+                422
+            );
+        }
+
+        // Check if there's a pending email
+        if (! $employee->pending_email) {
+            return $this->respondWithError(
+                $request,
+                'This employee does not have a pending invitation.',
+                ['code' => 'no_pending_invitation'],
+                422
+            );
+        }
+
+        try {
+            $workOSUserService->sendInvitation($employee->pending_email, $employee->pending_role ?? 'staff');
+
+            return $this->respondWithSuccess(
+                $request,
+                'users.show',
+                ['employee' => $employee->id],
+                'Invitation email has been resent successfully.',
+                ['email' => $employee->pending_email]
+            );
+        } catch (WorkOSException $e) {
+            return $this->respondWithError($request, $e->message, $e->toArray(), 422);
+        }
+    }
+
     public function store(StoreUserRequest $request, WorkOSUserService $workOSUserService): RedirectResponse|JsonResponse
     {
         try {

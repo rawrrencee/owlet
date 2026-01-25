@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use App\Constants\StorePermissions;
-use App\Models\EmployeeStore;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 

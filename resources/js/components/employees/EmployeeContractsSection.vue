@@ -21,6 +21,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const expandedRows = ref({});
 
 const dialogVisible = ref(false);
 const editingId = ref<number | null>(null);
@@ -321,17 +322,19 @@ function getLeaveDisplay(entitled: number, taken: number): string {
         </div>
 
         <DataTable
+            v-model:expandedRows="expandedRows"
             :value="contracts"
             dataKey="id"
             striped-rows
             size="small"
-            class="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
+            class="overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
         >
             <template #empty>
                 <div class="p-4 text-center text-muted-foreground">
                     No contracts found. Click "Add Contract" to add a new contract.
                 </div>
             </template>
+            <Column expander style="width: 3rem" class="!pr-0 sm:hidden" />
             <Column field="company.company_name" header="Company">
                 <template #body="{ data }">
                     <span class="font-medium">{{ data.company?.company_name ?? '-' }}</span>
@@ -357,7 +360,7 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                     {{ getLeaveDisplay(data.annual_leave_entitled, data.annual_leave_taken) }}
                 </template>
             </Column>
-            <Column header="Sick Leave" class="hidden sm:table-cell">
+            <Column header="Sick Leave" class="hidden lg:table-cell">
                 <template #body="{ data }">
                     {{ getLeaveDisplay(data.sick_leave_entitled, data.sick_leave_taken) }}
                 </template>
@@ -367,7 +370,7 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                     <Tag :value="data.is_active ? 'Active' : 'Expired'" :severity="data.is_active ? 'success' : 'secondary'" />
                 </template>
             </Column>
-            <Column header="Doc" class="w-12">
+            <Column header="Doc" class="w-12 hidden sm:table-cell">
                 <template #body="{ data }">
                     <Button
                         v-if="data.has_document"
@@ -381,7 +384,7 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                     />
                 </template>
             </Column>
-            <Column header="" class="w-32 !pr-4">
+            <Column header="" class="w-32 !pr-4 hidden sm:table-cell">
                 <template #body="{ data }">
                     <div class="flex justify-end gap-1">
                         <Button
@@ -405,6 +408,63 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                     </div>
                 </template>
             </Column>
+            <template #expansion="{ data }">
+                <div class="grid gap-3 p-3 text-sm sm:hidden">
+                    <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                        <span class="shrink-0 text-muted-foreground">Start Date</span>
+                        <span class="text-right">{{ formatDate(data.start_date) }}</span>
+                    </div>
+                    <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                        <span class="shrink-0 text-muted-foreground">End Date</span>
+                        <span class="text-right">{{ formatDate(data.end_date) }}</span>
+                    </div>
+                    <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                        <span class="shrink-0 text-muted-foreground">Salary</span>
+                        <span class="text-right">{{ formatCurrency(data.salary_amount) }}</span>
+                    </div>
+                    <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                        <span class="shrink-0 text-muted-foreground">Annual Leave</span>
+                        <span class="text-right">{{ getLeaveDisplay(data.annual_leave_entitled, data.annual_leave_taken) }}</span>
+                    </div>
+                    <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                        <span class="shrink-0 text-muted-foreground">Sick Leave</span>
+                        <span class="text-right">{{ getLeaveDisplay(data.sick_leave_entitled, data.sick_leave_taken) }}</span>
+                    </div>
+                    <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                        <span class="shrink-0 text-muted-foreground">Document</span>
+                        <span class="text-right">
+                            <Button
+                                v-if="data.has_document"
+                                icon="pi pi-file"
+                                label="View"
+                                severity="secondary"
+                                text
+                                size="small"
+                                @click="viewDocument(data)"
+                            />
+                            <span v-else>-</span>
+                        </span>
+                    </div>
+                    <div class="flex justify-end gap-1 pt-1">
+                        <Button
+                            icon="pi pi-pencil"
+                            label="Edit"
+                            severity="secondary"
+                            text
+                            size="small"
+                            @click="openEditDialog(data)"
+                        />
+                        <Button
+                            icon="pi pi-trash"
+                            label="Remove"
+                            severity="danger"
+                            text
+                            size="small"
+                            @click="confirmRemoveContract(data)"
+                        />
+                    </div>
+                </div>
+            </template>
         </DataTable>
 
         <Dialog

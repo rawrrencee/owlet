@@ -24,7 +24,7 @@ class WorkOSUserService
      * Create an employee locally and send a WorkOS invitation.
      * The WorkOS user will be created when the user accepts the invitation.
      *
-     * @param array{email: string, first_name: string, last_name: string, role: string} $data
+     * @param  array{email: string, first_name: string, last_name: string, role: string}  $data
      *
      * @throws WorkOSException
      */
@@ -33,7 +33,7 @@ class WorkOSUserService
         // Validate role before proceeding
         if (! in_array($data['role'] ?? null, self::VALID_EMPLOYEE_ROLES, true)) {
             throw new WorkOSException(
-                "Invalid role '{$data['role']}'. Must be one of: " . implode(', ', self::VALID_EMPLOYEE_ROLES),
+                "Invalid role '{$data['role']}'. Must be one of: ".implode(', ', self::VALID_EMPLOYEE_ROLES),
                 'invalid_role'
             );
         }
@@ -219,7 +219,7 @@ class WorkOSUserService
     /**
      * Update a user in WorkOS and locally.
      *
-     * @param array{email?: string, first_name?: string, last_name?: string, role?: string} $data
+     * @param  array{email?: string, first_name?: string, last_name?: string, role?: string}  $data
      *
      * @throws WorkOSException
      */

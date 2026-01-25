@@ -18,6 +18,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const expandedRows = ref({});
 
 const dialogVisible = ref(false);
 const editingId = ref<number | null>(null);
@@ -239,23 +240,25 @@ function getStoreCode(storeId: number): string {
         </div>
 
         <DataTable
+            v-model:expandedRows="expandedRows"
             :value="employeeStores"
             dataKey="id"
             striped-rows
             size="small"
             :loading="loading"
-            class="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
+            class="overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
         >
             <template #empty>
                 <div class="p-4 text-center text-muted-foreground">
                     No store assignments found. Click "Add Assignment" to assign this employee to a store.
                 </div>
             </template>
+            <Column expander style="width: 3rem" class="!pr-0 md:hidden" />
             <Column field="store_id" header="Store">
                 <template #body="{ data }">
                     <div class="flex items-center gap-2">
                         <span class="font-medium">{{ getStoreName(data.store_id) }}</span>
-                        <Tag :value="getStoreCode(data.store_id)" severity="secondary" class="!text-xs" />
+                        <Tag :value="getStoreCode(data.store_id)" severity="secondary" class="!text-xs hidden sm:inline-flex" />
                     </div>
                 </template>
             </Column>
@@ -274,7 +277,7 @@ function getStoreCode(storeId: number): string {
                             :value="`+${(data.permissions_with_labels || []).length - 3}`"
                             severity="info"
                             class="!text-xs"
-                            v-tooltip.top="(data.permissions_with_labels || []).slice(3).map(p => p.label).join(', ')"
+                            v-tooltip.top="(data.permissions_with_labels || []).slice(3).map((p: { key: string; label: string }) => p.label).join(', ')"
                         />
                         <span v-if="!(data.permissions_with_labels || []).length" class="text-muted-foreground text-sm">
                             No permissions
@@ -287,7 +290,7 @@ function getStoreCode(storeId: number): string {
                     <Tag :value="data.active ? 'Active' : 'Inactive'" :severity="data.active ? 'success' : 'secondary'" />
                 </template>
             </Column>
-            <Column header="" class="w-32 !pr-4">
+            <Column header="" class="w-32 !pr-4 hidden sm:table-cell">
                 <template #body="{ data }">
                     <div class="flex justify-end gap-1">
                         <Button
@@ -321,6 +324,56 @@ function getStoreCode(storeId: number): string {
                     </div>
                 </template>
             </Column>
+            <template #expansion="{ data }">
+                <div class="grid gap-3 p-3 text-sm sm:hidden">
+                    <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                        <span class="shrink-0 text-muted-foreground">Store Code</span>
+                        <span class="text-right">{{ getStoreCode(data.store_id) }}</span>
+                    </div>
+                    <div class="flex flex-col gap-2 border-b border-sidebar-border/50 pb-2">
+                        <span class="shrink-0 text-muted-foreground">Permissions</span>
+                        <div class="flex flex-wrap gap-1">
+                            <Tag
+                                v-for="perm in (data.permissions_with_labels || [])"
+                                :key="perm.key"
+                                :value="perm.label"
+                                severity="secondary"
+                                class="!text-xs"
+                            />
+                            <span v-if="!(data.permissions_with_labels || []).length" class="text-muted-foreground text-sm">
+                                No permissions
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-1 pt-1">
+                        <Button
+                            icon="pi pi-pencil"
+                            label="Edit"
+                            severity="secondary"
+                            text
+                            size="small"
+                            @click="openEditDialog(data)"
+                        />
+                        <Button
+                            v-if="data.active"
+                            icon="pi pi-ban"
+                            label="Deactivate"
+                            severity="warn"
+                            text
+                            size="small"
+                            @click="confirmDeactivateAssignment(data)"
+                        />
+                        <Button
+                            icon="pi pi-trash"
+                            label="Remove"
+                            severity="danger"
+                            text
+                            size="small"
+                            @click="confirmRemoveAssignment(data)"
+                        />
+                    </div>
+                </div>
+            </template>
         </DataTable>
 
         <Dialog

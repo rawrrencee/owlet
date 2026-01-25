@@ -11,7 +11,7 @@ import Select from 'primevue/select';
 import Tag from 'primevue/tag';
 import { useConfirm } from 'primevue/useconfirm';
 import { onMounted, reactive, ref } from 'vue';
-import { type EmployeeHierarchyData, type OrgChartNode, type SubordinateInfo } from '@/types';
+import { type EmployeeHierarchyData, type SubordinateInfo } from '@/types';
 
 interface Props {
     employeeId: number;
@@ -23,6 +23,7 @@ const loading = ref(true);
 const saving = ref(false);
 const hierarchyData = ref<EmployeeHierarchyData | null>(null);
 const selectedSubordinateId = ref<number | null>(null);
+const expandedRows = ref({});
 
 const visibilityForm = reactive<{ visible_sections: string[] }>({
     visible_sections: [],
@@ -176,18 +177,20 @@ function getTierColor(tier: number): string {
 
             <!-- Subordinates Table -->
             <DataTable
+                v-model:expandedRows="expandedRows"
                 :value="hierarchyData?.subordinates ?? []"
                 dataKey="id"
                 striped-rows
                 size="small"
                 :loading="loading"
-                class="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
+                class="overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
             >
                 <template #empty>
                     <div class="p-4 text-center text-muted-foreground">
                         No subordinates assigned. Use the dropdown above to add subordinates.
                     </div>
                 </template>
+                <Column expander style="width: 3rem" class="!pr-0 sm:hidden" />
                 <Column header="">
                     <template #body="{ data }">
                         <div class="flex items-center gap-3">
@@ -218,7 +221,7 @@ function getTierColor(tier: number): string {
                         {{ data.email ?? '-' }}
                     </template>
                 </Column>
-                <Column header="" class="w-20">
+                <Column header="" class="w-20 hidden sm:table-cell">
                     <template #body="{ data }">
                         <div class="flex justify-end">
                             <Button
@@ -233,6 +236,24 @@ function getTierColor(tier: number): string {
                         </div>
                     </template>
                 </Column>
+                <template #expansion="{ data }">
+                    <div class="grid gap-3 p-3 text-sm sm:hidden">
+                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                            <span class="shrink-0 text-muted-foreground">Email</span>
+                            <span class="text-right">{{ data.email ?? '-' }}</span>
+                        </div>
+                        <div class="flex justify-end gap-1 pt-1">
+                            <Button
+                                icon="pi pi-trash"
+                                label="Remove"
+                                severity="danger"
+                                text
+                                size="small"
+                                @click="confirmRemoveSubordinate(data)"
+                            />
+                        </div>
+                    </div>
+                </template>
             </DataTable>
         </div>
 

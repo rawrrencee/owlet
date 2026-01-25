@@ -6,7 +6,7 @@ use App\Models\EmployeeCompany;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
-class StoreEmployeeCompanyRequest extends FormRequest
+class StoreCompanyEmployeeRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -19,7 +19,7 @@ class StoreEmployeeCompanyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'company_id' => ['required', 'exists:companies,id'],
+            'employee_id' => ['required', 'exists:employees,id'],
             'designation_id' => ['nullable', 'exists:designations,id'],
             'levy_amount' => ['nullable', 'numeric', 'min:0'],
             'status' => ['required', 'string', 'in:FT,PT,CT,CA'],
@@ -36,8 +36,8 @@ class StoreEmployeeCompanyRequest extends FormRequest
                 return;
             }
 
-            $companyId = $this->input('company_id');
-            $employeeId = $this->route('employee')->id;
+            $employeeId = $this->input('employee_id');
+            $companyId = $this->route('company')->id;
 
             // Check if an active assignment already exists
             $existingAssignment = EmployeeCompany::where('employee_id', $employeeId)
@@ -46,7 +46,7 @@ class StoreEmployeeCompanyRequest extends FormRequest
                 ->exists();
 
             if ($existingAssignment) {
-                $validator->errors()->add('company_id', 'This employee already has an active assignment to this company.');
+                $validator->errors()->add('employee_id', 'This employee already has an active assignment to this company.');
             }
         });
     }

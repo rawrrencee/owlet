@@ -12,6 +12,10 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable, SoftDeletes;
 
+    protected $appends = [
+        'display_name',
+    ];
+
     protected $fillable = [
         'name',
         'email',
@@ -89,5 +93,23 @@ class User extends Authenticatable
     public function hasRole(string $role): bool
     {
         return $this->role === $role;
+    }
+
+    /**
+     * Get the display name, preferring Employee/Customer name over User name.
+     *
+     * Priority: Employee's full_name > Customer's full_name > User's name
+     */
+    public function getDisplayNameAttribute(): string
+    {
+        if ($this->employee_id && $this->relationLoaded('employee') && $this->employee) {
+            return $this->employee->full_name;
+        }
+
+        if ($this->customer_id && $this->relationLoaded('customer') && $this->customer) {
+            return $this->customer->full_name;
+        }
+
+        return $this->name;
     }
 }

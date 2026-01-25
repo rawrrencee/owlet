@@ -18,6 +18,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const expandedRows = ref({});
 
 const dialogVisible = ref(false);
 const editingId = ref<number | null>(null);
@@ -283,17 +284,19 @@ function viewDocumentInDialog() {
         </div>
 
         <DataTable
+            v-model:expandedRows="expandedRows"
             :value="insurances"
             dataKey="id"
             striped-rows
             size="small"
-            class="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
+            class="overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
         >
             <template #empty>
                 <div class="p-4 text-center text-muted-foreground">
                     No insurances found. Click "Add Insurance" to add a new insurance.
                 </div>
             </template>
+            <Column expander style="width: 3rem" class="!pr-0 sm:hidden" />
             <Column field="title" header="Title">
                 <template #body="{ data }">
                     <span class="font-medium">{{ data.title }}</span>
@@ -314,7 +317,7 @@ function viewDocumentInDialog() {
                     {{ formatDate(data.start_date) }}
                 </template>
             </Column>
-            <Column field="end_date" header="End Date" class="hidden lg:table-cell">
+            <Column field="end_date" header="End Date" class="hidden xl:table-cell">
                 <template #body="{ data }">
                     {{ formatDate(data.end_date) }}
                 </template>
@@ -324,7 +327,7 @@ function viewDocumentInDialog() {
                     <Tag :value="data.is_active ? 'Active' : 'Expired'" :severity="data.is_active ? 'success' : 'secondary'" />
                 </template>
             </Column>
-            <Column header="Doc" class="w-12">
+            <Column header="Doc" class="w-12 hidden sm:table-cell">
                 <template #body="{ data }">
                     <Button
                         v-if="data.has_document"
@@ -338,7 +341,7 @@ function viewDocumentInDialog() {
                     />
                 </template>
             </Column>
-            <Column header="" class="w-32 !pr-4">
+            <Column header="" class="w-32 !pr-4 hidden sm:table-cell">
                 <template #body="{ data }">
                     <div class="flex justify-end gap-1">
                         <Button
@@ -362,6 +365,59 @@ function viewDocumentInDialog() {
                     </div>
                 </template>
             </Column>
+            <template #expansion="{ data }">
+                <div class="grid gap-3 p-3 text-sm sm:hidden">
+                    <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                        <span class="shrink-0 text-muted-foreground">Insurer</span>
+                        <span class="text-right">{{ data.insurer_name }}</span>
+                    </div>
+                    <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                        <span class="shrink-0 text-muted-foreground">Policy #</span>
+                        <span class="text-right font-mono">{{ data.policy_number }}</span>
+                    </div>
+                    <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                        <span class="shrink-0 text-muted-foreground">Start Date</span>
+                        <span class="text-right">{{ formatDate(data.start_date) }}</span>
+                    </div>
+                    <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                        <span class="shrink-0 text-muted-foreground">End Date</span>
+                        <span class="text-right">{{ formatDate(data.end_date) }}</span>
+                    </div>
+                    <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                        <span class="shrink-0 text-muted-foreground">Document</span>
+                        <span class="text-right">
+                            <Button
+                                v-if="data.has_document"
+                                icon="pi pi-file"
+                                label="View"
+                                severity="secondary"
+                                text
+                                size="small"
+                                @click="viewDocument(data)"
+                            />
+                            <span v-else>-</span>
+                        </span>
+                    </div>
+                    <div class="flex justify-end gap-1 pt-1">
+                        <Button
+                            icon="pi pi-pencil"
+                            label="Edit"
+                            severity="secondary"
+                            text
+                            size="small"
+                            @click="openEditDialog(data)"
+                        />
+                        <Button
+                            icon="pi pi-trash"
+                            label="Remove"
+                            severity="danger"
+                            text
+                            size="small"
+                            @click="confirmRemoveInsurance(data)"
+                        />
+                    </div>
+                </div>
+            </template>
         </DataTable>
 
         <Dialog

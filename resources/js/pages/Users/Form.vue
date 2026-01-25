@@ -67,13 +67,30 @@ const { goBack } = useSmartBack('/users');
 const isEditing = computed(() => !!props.employee);
 const pageTitle = computed(() => (isEditing.value ? 'Edit User' : 'Create User'));
 const hasWorkOSAccount = computed(() => !!props.workosUser);
+const isPendingConfirmation = computed(() => !props.workosUser && !!props.employee?.pending_email);
+const isResendingInvitation = ref(false);
+
+function resendInvitation() {
+    if (!props.employee || isResendingInvitation.value) return;
+
+    isResendingInvitation.value = true;
+    router.post(`/users/${props.employee.id}/resend-invitation`, {}, {
+        preserveScroll: true,
+        onFinish: () => {
+            isResendingInvitation.value = false;
+        },
+    });
+}
 
 // Check if current user is admin (for showing hierarchy tab)
 const page = usePage<AppPageProps>();
 const isAdmin = computed(() => page.props.auth.user.role === 'admin');
 
-// Active tab for edit mode
-const activeTab = ref('basic');
+// Active tab for edit mode - initialize from URL query param if provided
+const urlParams = new URLSearchParams(window.location.search);
+const initialTab = urlParams.get('tab') ?? 'basic';
+const validTabs = ['basic', 'companies', 'contracts', 'insurances', 'stores', 'hierarchy'];
+const activeTab = ref(validTabs.includes(initialTab) ? initialTab : 'basic');
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -88,7 +105,7 @@ const form = useForm({
     first_name: props.employee?.first_name ?? props.workosUser?.firstName ?? '',
     last_name: props.employee?.last_name ?? props.workosUser?.lastName ?? '',
     chinese_name: props.employee?.chinese_name ?? '',
-    email: props.workosUser?.email ?? '',
+    email: props.workosUser?.email ?? props.employee?.pending_email ?? '',
     employee_number: props.employee?.employee_number ?? '',
     nric: props.employee?.nric ?? '',
     phone: props.employee?.phone ?? '',
@@ -391,7 +408,7 @@ function cancel() {
 
                                     <div class="grid gap-4 sm:grid-cols-2">
                                         <div class="flex flex-col gap-2">
-                                            <label for="email" class="font-medium">Email</label>
+                                            <label for="email" class="font-medium">Email <span class="text-red-500">*</span></label>
                                             <InputText
                                                 id="email"
                                                 v-model="form.email"
@@ -400,6 +417,7 @@ function cancel() {
                                                 placeholder="john.doe@example.com"
                                                 size="small"
                                                 fluid
+                                                required
                                             />
                                             <small v-if="form.errors.email" class="text-red-500">
                                                 {{ form.errors.email }}
@@ -950,7 +968,24 @@ function cancel() {
                                             This user is managed via WorkOS. Changes to name and role will sync to WorkOS.
                                         </Message>
 
-                                        <Message v-if="!hasWorkOSAccount" severity="warn" :closable="false">
+                                        <Message v-if="isPendingConfirmation" severity="warn" :closable="false">
+                                            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                                <span>
+                                                    This account is pending confirmation. An invitation was sent to
+                                                    <strong>{{ employee?.pending_email }}</strong>.
+                                                </span>
+                                                <Button
+                                                    label="Resend Invitation"
+                                                    icon="pi pi-send"
+                                                    size="small"
+                                                    severity="warn"
+                                                    :loading="isResendingInvitation"
+                                                    @click="resendInvitation"
+                                                />
+                                            </div>
+                                        </Message>
+
+                                        <Message v-else-if="!hasWorkOSAccount" severity="warn" :closable="false">
                                             This employee does not have a WorkOS account. Only local employee data will be updated.
                                         </Message>
 

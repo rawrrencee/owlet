@@ -108,6 +108,11 @@ function navigateToCreate() {
     router.get('/companies/create');
 }
 
+function navigateToView(company: Company) {
+    if (isDeleted(company)) return;
+    router.get(`/companies/${company.id}`);
+}
+
 function navigateToEdit(company: Company) {
     router.get(`/companies/${company.id}/edit`);
 }
@@ -226,9 +231,10 @@ function onPage(event: { page: number }) {
                 :total-records="companies.total"
                 :first="((companies.current_page - 1) * 15)"
                 @page="onPage"
+                @row-click="(e) => navigateToView(e.data)"
                 striped-rows
                 size="small"
-                class="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
+                class="cursor-pointer rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
             >
                 <template #empty>
                     <div class="p-4 text-center text-muted-foreground">

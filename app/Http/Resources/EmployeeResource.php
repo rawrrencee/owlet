@@ -54,6 +54,8 @@ class EmployeeResource extends JsonResource
                 ->values()
                 ->all()),
             'is_deleted' => $this->trashed(),
+            'pending_email' => $this->pending_email,
+            'pending_role' => $this->pending_role,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

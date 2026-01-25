@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
@@ -7,20 +7,24 @@ import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
 import Divider from 'primevue/divider';
 import Image from 'primevue/image';
+import Message from 'primevue/message';
+import OrganizationChart from 'primevue/organizationchart';
 import Tab from 'primevue/tab';
 import TabList from 'primevue/tablist';
 import TabPanel from 'primevue/tabpanel';
 import TabPanels from 'primevue/tabpanels';
 import Tabs from 'primevue/tabs';
 import Tag from 'primevue/tag';
-import { reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import { useSmartBack } from '@/composables/useSmartBack';
 import AppLayout from '@/layouts/AppLayout.vue';
 import {
+    type AppPageProps,
     type BreadcrumbItem,
     type Employee,
     type EmployeeCompany,
     type EmployeeContract,
+    type EmployeeHierarchyData,
     type EmployeeInsurance,
     type EmployeeStore,
     type WorkOSUser,
@@ -39,6 +43,74 @@ interface Props {
 const props = defineProps<Props>();
 
 const { goBack } = useSmartBack('/users');
+
+// Check if current user is admin (for showing hierarchy tab)
+const page = usePage<AppPageProps>();
+const isAdmin = computed(() => page.props.auth.user.role === 'admin');
+
+// Hierarchy data for org chart
+const hierarchyLoading = ref(true);
+const hierarchyData = ref<EmployeeHierarchyData | null>(null);
+
+async function fetchHierarchyData() {
+    if (!isAdmin.value) return;
+
+    hierarchyLoading.value = true;
+    try {
+        const response = await fetch(`/users/${props.employee.id}/hierarchy`, {
+            headers: {
+                Accept: 'application/json',
+            },
+        });
+        const data = await response.json();
+        hierarchyData.value = data;
+    } catch (error) {
+        console.error('Failed to fetch hierarchy data:', error);
+    } finally {
+        hierarchyLoading.value = false;
+    }
+}
+
+onMounted(() => {
+    if (isAdmin.value) {
+        fetchHierarchyData();
+    }
+});
+
+function getHierarchyInitials(name: string): string {
+    const words = name.split(' ');
+    if (words.length >= 2) {
+        return (words[0].charAt(0) + words[1].charAt(0)).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+}
+
+function getTierColor(tier: number): string {
+    const colors: Record<number, string> = {
+        1: 'secondary',
+        2: 'info',
+        3: 'warn',
+        4: 'success',
+        5: 'danger',
+    };
+    return colors[tier] || 'secondary';
+}
+
+// Pending confirmation status
+const isPendingConfirmation = computed(() => !props.workosUser && !!props.employee.pending_email);
+const isResendingInvitation = ref(false);
+
+function resendInvitation() {
+    if (isResendingInvitation.value) return;
+
+    isResendingInvitation.value = true;
+    router.post(`/users/${props.employee.id}/resend-invitation`, {}, {
+        preserveScroll: true,
+        onFinish: () => {
+            isResendingInvitation.value = false;
+        },
+    });
+}
 
 // Active tab state
 const activeTab = ref('basic');
@@ -107,7 +179,7 @@ function viewInsuranceDocument(insurance: EmployeeInsurance) {
 }
 
 function navigateToEdit() {
-    router.get(`/users/${props.employee.id}/edit`);
+    router.get(`/users/${props.employee.id}/edit`, { tab: activeTab.value });
 }
 </script>
 
@@ -153,10 +225,29 @@ function navigateToEdit() {
                                 <Tab value="contracts">Contracts</Tab>
                                 <Tab value="insurances">Insurances</Tab>
                                 <Tab value="stores">Stores</Tab>
+                                <Tab v-if="isAdmin" value="hierarchy">Hierarchy</Tab>
                             </TabList>
                             <TabPanels>
                                 <TabPanel value="basic">
                                     <div class="flex flex-col gap-6 pt-4">
+                                        <!-- Pending Confirmation Banner -->
+                                        <Message v-if="isPendingConfirmation" severity="warn" :closable="false">
+                                            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                                <span>
+                                                    This account is pending confirmation. An invitation was sent to
+                                                    <strong>{{ employee.pending_email }}</strong>.
+                                                </span>
+                                                <Button
+                                                    label="Resend Invitation"
+                                                    icon="pi pi-send"
+                                                    size="small"
+                                                    severity="warn"
+                                                    :loading="isResendingInvitation"
+                                                    @click="resendInvitation"
+                                                />
+                                            </div>
+                                        </Message>
+
                                         <!-- Profile Header -->
                                         <div class="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
                                             <Image
@@ -176,7 +267,9 @@ function navigateToEdit() {
                                             <div class="flex flex-col gap-1 text-center sm:text-left">
                                                 <h2 class="text-xl font-semibold">{{ employee.first_name }} {{ employee.last_name }}</h2>
                                                 <p v-if="employee.chinese_name" class="text-muted-foreground">{{ employee.chinese_name }}</p>
-                                                <p v-if="workosUser?.email" class="text-muted-foreground">{{ workosUser.email }}</p>
+                                                <p v-if="workosUser?.email || employee.pending_email" class="text-muted-foreground">
+                                                    {{ workosUser?.email ?? employee.pending_email }}
+                                                </p>
                                                 <p v-if="employee.employee_number" class="text-sm text-muted-foreground">Employee #{{ employee.employee_number }}</p>
                                             </div>
                                         </div>
@@ -702,6 +795,63 @@ function navigateToEdit() {
                                             </DataTable>
                                         </template>
                                         <p v-else class="text-muted-foreground">No store assignments.</p>
+                                    </div>
+                                </TabPanel>
+
+                                <TabPanel v-if="isAdmin" value="hierarchy">
+                                    <div class="pt-4">
+                                        <div class="flex flex-col gap-4">
+                                            <div>
+                                                <h3 class="text-lg font-medium">Organization Chart</h3>
+                                                <p class="text-sm text-muted-foreground">
+                                                    Visual representation of this employee's position in the hierarchy.
+                                                </p>
+                                            </div>
+                                            <div v-if="hierarchyLoading" class="flex items-center justify-center p-8">
+                                                <i class="pi pi-spin pi-spinner text-2xl text-muted-foreground"></i>
+                                            </div>
+                                            <div v-else-if="hierarchyData?.subtree?.length" class="overflow-x-auto rounded-lg border border-sidebar-border/50 p-4">
+                                                <OrganizationChart
+                                                    v-for="node in hierarchyData.subtree"
+                                                    :key="node.key"
+                                                    :value="node"
+                                                    collapsible
+                                                >
+                                                    <template #employee="{ node: chartNode }">
+                                                        <div class="flex flex-col items-center gap-2 p-2">
+                                                            <Avatar
+                                                                v-if="chartNode.data.profile_picture_url"
+                                                                :image="chartNode.data.profile_picture_url"
+                                                                shape="circle"
+                                                                size="normal"
+                                                            />
+                                                            <Avatar
+                                                                v-else
+                                                                :label="getHierarchyInitials(chartNode.data.name)"
+                                                                shape="circle"
+                                                                size="normal"
+                                                                class="bg-primary/10 text-primary"
+                                                            />
+                                                            <div class="text-center">
+                                                                <div class="text-sm font-medium">{{ chartNode.data.name }}</div>
+                                                                <div v-if="chartNode.data.designation" class="text-xs text-muted-foreground">
+                                                                    {{ chartNode.data.designation }}
+                                                                </div>
+                                                            </div>
+                                                            <Tag
+                                                                :value="`Tier ${chartNode.data.tier}`"
+                                                                :severity="getTierColor(chartNode.data.tier)"
+                                                                class="!text-xs"
+                                                            />
+                                                        </div>
+                                                    </template>
+                                                </OrganizationChart>
+                                            </div>
+                                            <div v-else class="rounded-lg border border-dashed border-sidebar-border/50 p-6 text-center text-muted-foreground">
+                                                <i class="pi pi-sitemap mb-2 text-2xl"></i>
+                                                <p>No subordinates in hierarchy.</p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </TabPanel>
                             </TabPanels>

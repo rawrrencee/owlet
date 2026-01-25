@@ -32,6 +32,8 @@ export interface Employee {
     profile_picture_url: string | null;
     is_deleted?: boolean;
     external_avatar_url: string | null;
+    pending_email: string | null;
+    pending_role: string | null;
     user?: {
         id: number;
         email: string;

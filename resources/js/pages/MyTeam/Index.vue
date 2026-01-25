@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
+import Button from 'primevue/button';
 import Card from 'primevue/card';
-import Divider from 'primevue/divider';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import InputText from 'primevue/inputtext';
+import OrganizationChart from 'primevue/organizationchart';
 import Tag from 'primevue/tag';
-import Tree from 'primevue/tree';
 import { computed, ref } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type AvailableSections, type BreadcrumbItem, type SubordinateInfo } from '@/types';
@@ -26,27 +26,28 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const searchQuery = ref('');
-const expandedKeys = ref<Record<string, boolean>>({});
+const collapsedKeys = ref<Record<string, boolean>>({});
 
-// Convert subordinates to tree nodes for PrimeVue Tree component
-interface TreeNode {
+// OrgChart node structure for PrimeVue
+interface OrgChartNode {
     key: string;
-    label: string;
+    type: string;
     data: SubordinateInfo;
-    children?: TreeNode[];
+    children: OrgChartNode[];
 }
 
-function convertToTreeNodes(subordinates: SubordinateInfo[]): TreeNode[] {
+// Convert subordinates to OrgChart nodes
+function convertToOrgChartNodes(subordinates: SubordinateInfo[]): OrgChartNode[] {
     return subordinates.map((sub) => ({
         key: String(sub.id),
-        label: sub.name,
+        type: 'subordinate',
         data: sub,
-        children: sub.subordinates ? convertToTreeNodes(sub.subordinates) : undefined,
+        children: sub.subordinates ? convertToOrgChartNodes(sub.subordinates) : [],
     }));
 }
 
-// Filter tree nodes based on search
-function filterTreeNodes(nodes: TreeNode[], query: string): TreeNode[] {
+// Filter org chart nodes based on search
+function filterNodes(nodes: OrgChartNode[], query: string): OrgChartNode[] {
     if (!query.trim()) return nodes;
 
     const lowerQuery = query.toLowerCase();
@@ -58,21 +59,28 @@ function filterTreeNodes(nodes: TreeNode[], query: string): TreeNode[] {
                 (node.data.employee_number?.toLowerCase().includes(lowerQuery) ?? false) ||
                 (node.data.email?.toLowerCase().includes(lowerQuery) ?? false);
 
-            const filteredChildren = node.children ? filterTreeNodes(node.children, query) : [];
+            const filteredChildren = filterNodes(node.children, query);
 
             if (matchesSearch || filteredChildren.length > 0) {
                 return {
                     ...node,
-                    children: filteredChildren.length > 0 ? filteredChildren : node.children,
+                    children: filteredChildren,
                 };
             }
             return null;
         })
-        .filter((node): node is TreeNode => node !== null);
+        .filter((node): node is OrgChartNode => node !== null);
 }
 
-const treeNodes = computed(() => convertToTreeNodes(props.subordinates));
-const filteredTreeNodes = computed(() => filterTreeNodes(treeNodes.value, searchQuery.value));
+const orgChartNodes = computed(() => convertToOrgChartNodes(props.subordinates));
+const filteredOrgChartNodes = computed(() => filterNodes(orgChartNodes.value, searchQuery.value));
+
+// Check if any subordinate has nested subordinates (to show/hide expand buttons)
+function hasNestedSubordinates(subs: SubordinateInfo[]): boolean {
+    return subs.some((s) => s.subordinates && s.subordinates.length > 0);
+}
+
+const showExpandCollapseButtons = computed(() => hasNestedSubordinates(props.subordinates));
 
 function getInitials(name: string): string {
     const words = name.split(' ');
@@ -87,21 +95,25 @@ function canViewSection(section: string): boolean {
 }
 
 function expandAll() {
+    collapsedKeys.value = {};
+}
+
+function collapseAll() {
     const keys: Record<string, boolean> = {};
-    function collectKeys(nodes: TreeNode[]) {
+    function collectKeys(nodes: OrgChartNode[]) {
         for (const node of nodes) {
-            keys[node.key] = true;
-            if (node.children) {
+            if (node.children.length > 0) {
+                keys[node.key] = true;
                 collectKeys(node.children);
             }
         }
     }
-    collectKeys(treeNodes.value);
-    expandedKeys.value = keys;
+    collectKeys(orgChartNodes.value);
+    collapsedKeys.value = keys;
 }
 
-function collapseAll() {
-    expandedKeys.value = {};
+function navigateToSubordinate(employeeId: number) {
+    router.visit(`/my-team/${employeeId}`);
 }
 </script>
 
@@ -125,37 +137,40 @@ function collapseAll() {
                         fluid
                     />
                 </IconField>
-                <div class="flex items-center gap-2">
-                    <button
-                        type="button"
-                        class="rounded px-3 py-1.5 text-sm text-muted-foreground hover:bg-surface-100 dark:hover:bg-surface-700"
+                <div v-if="showExpandCollapseButtons" class="flex items-center gap-2">
+                    <Button
+                        label="Expand All"
+                        icon="pi pi-plus"
+                        severity="secondary"
+                        size="small"
+                        text
                         @click="expandAll"
-                    >
-                        Expand All
-                    </button>
-                    <button
-                        type="button"
-                        class="rounded px-3 py-1.5 text-sm text-muted-foreground hover:bg-surface-100 dark:hover:bg-surface-700"
+                    />
+                    <Button
+                        label="Collapse All"
+                        icon="pi pi-minus"
+                        severity="secondary"
+                        size="small"
+                        text
                         @click="collapseAll"
-                    >
-                        Collapse All
-                    </button>
+                    />
                 </div>
             </div>
 
-            <!-- Team Tree -->
-            <Card v-if="filteredTreeNodes.length > 0">
-                <template #content>
-                    <Tree
-                        :value="filteredTreeNodes"
-                        v-model:expandedKeys="expandedKeys"
-                        selectionMode="single"
-                        class="w-full border-none"
-                    >
-                        <template #default="{ node }">
-                            <div class="flex flex-1 flex-col gap-3 py-2 sm:flex-row sm:items-start sm:gap-4">
-                                <!-- Avatar and Basic Info -->
-                                <div class="flex items-center gap-3">
+            <!-- Organisation Chart -->
+            <div v-if="filteredOrgChartNodes.length > 0" class="flex flex-col gap-6 overflow-x-auto">
+                <Card v-for="rootNode in filteredOrgChartNodes" :key="rootNode.key" class="min-w-max">
+                    <template #content>
+                        <OrganizationChart
+                            :value="rootNode"
+                            v-model:collapsedKeys="collapsedKeys"
+                            collapsible
+                        >
+                            <template #subordinate="{ node }">
+                                <div
+                                    class="flex cursor-pointer flex-col items-center gap-2 p-3 transition-colors hover:bg-surface-100 dark:hover:bg-surface-700"
+                                    @click="navigateToSubordinate(node.data.id)"
+                                >
                                     <Avatar
                                         v-if="node.data.profile_picture_url"
                                         :image="node.data.profile_picture_url"
@@ -169,40 +184,48 @@ function collapseAll() {
                                         size="large"
                                         class="bg-primary/10 text-primary"
                                     />
-                                    <div class="flex flex-col">
-                                        <span class="font-semibold">{{ node.data.name }}</span>
-                                        <div class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                                            <span v-if="node.data.employee_number">{{ node.data.employee_number }}</span>
-                                            <span v-if="node.data.email">{{ node.data.email }}</span>
+                                    <div class="text-center">
+                                        <div class="font-semibold">{{ node.data.name }}</div>
+                                        <div v-if="node.data.employee_number" class="text-sm text-muted-foreground">
+                                            {{ node.data.employee_number }}
                                         </div>
-                                        <span v-if="node.data.phone" class="text-sm text-muted-foreground">
-                                            {{ node.data.phone }}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <!-- Conditional Info Based on Visibility -->
-                                <div class="ml-14 flex flex-col gap-2 sm:ml-0 sm:flex-1 sm:flex-row sm:items-center sm:justify-end sm:gap-4">
-                                    <!-- Companies -->
-                                    <div v-if="canViewSection('companies') && node.data.companies?.length" class="flex flex-wrap gap-1">
-                                        <Tag
-                                            v-for="company in node.data.companies"
-                                            :key="company.id"
-                                            :value="company.name"
-                                            severity="info"
-                                            class="!text-xs"
-                                        />
+                                        <div v-if="node.data.email" class="text-xs text-muted-foreground">
+                                            {{ node.data.email }}
+                                        </div>
                                     </div>
 
-                                    <!-- Stores -->
-                                    <div v-if="canViewSection('stores') && node.data.stores?.length" class="flex flex-wrap gap-1">
-                                        <Tag
-                                            v-for="store in node.data.stores"
-                                            :key="store.id"
-                                            :value="store.name"
-                                            severity="secondary"
-                                            class="!text-xs"
-                                        />
+                                    <!-- Companies/Stores Tags -->
+                                    <div class="flex flex-wrap justify-center gap-1">
+                                        <template v-if="canViewSection('companies') && node.data.companies?.length">
+                                            <Tag
+                                                v-for="company in node.data.companies.slice(0, 2)"
+                                                :key="company.id"
+                                                :value="company.name"
+                                                severity="info"
+                                                class="!text-xs"
+                                            />
+                                            <Tag
+                                                v-if="node.data.companies.length > 2"
+                                                :value="`+${node.data.companies.length - 2}`"
+                                                severity="info"
+                                                class="!text-xs"
+                                            />
+                                        </template>
+                                        <template v-if="canViewSection('stores') && node.data.stores?.length">
+                                            <Tag
+                                                v-for="store in node.data.stores.slice(0, 2)"
+                                                :key="store.id"
+                                                :value="store.name"
+                                                severity="secondary"
+                                                class="!text-xs"
+                                            />
+                                            <Tag
+                                                v-if="node.data.stores.length > 2"
+                                                :value="`+${node.data.stores.length - 2}`"
+                                                severity="secondary"
+                                                class="!text-xs"
+                                            />
+                                        </template>
                                     </div>
 
                                     <!-- Subordinate Count -->
@@ -213,11 +236,35 @@ function collapseAll() {
                                         class="!text-xs"
                                     />
                                 </div>
-                            </div>
-                        </template>
-                    </Tree>
-                </template>
-            </Card>
+                            </template>
+                            <!-- Default template fallback for any nodes without type -->
+                            <template #default="{ node }">
+                                <div
+                                    class="flex cursor-pointer flex-col items-center gap-2 p-3 transition-colors hover:bg-surface-100 dark:hover:bg-surface-700"
+                                    @click="navigateToSubordinate(node.data?.id)"
+                                >
+                                    <Avatar
+                                        v-if="node.data?.profile_picture_url"
+                                        :image="node.data.profile_picture_url"
+                                        shape="circle"
+                                        size="large"
+                                    />
+                                    <Avatar
+                                        v-else
+                                        :label="node.data?.name ? getInitials(node.data.name) : '?'"
+                                        shape="circle"
+                                        size="large"
+                                        class="bg-primary/10 text-primary"
+                                    />
+                                    <div class="text-center">
+                                        <div class="font-semibold">{{ node.data?.name ?? node.label ?? 'Unknown' }}</div>
+                                    </div>
+                                </div>
+                            </template>
+                        </OrganizationChart>
+                    </template>
+                </Card>
+            </div>
 
             <!-- Empty State -->
             <div v-else class="flex flex-1 flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-sidebar-border/70 p-8 dark:border-sidebar-border">
@@ -228,6 +275,13 @@ function collapseAll() {
                         {{ searchQuery ? 'No team members match your search.' : 'You don\'t have any subordinates assigned.' }}
                     </p>
                 </div>
+                <Button
+                    v-if="searchQuery"
+                    label="Clear Search"
+                    severity="secondary"
+                    size="small"
+                    @click="searchQuery = ''"
+                />
             </div>
 
             <!-- Legend -->

@@ -12,12 +12,21 @@ import ToggleSwitch from 'primevue/toggleswitch';
 import { useConfirm } from 'primevue/useconfirm';
 import { computed, reactive, ref } from 'vue';
 import { employmentStatusOptions } from '@/constants/company';
-import { type Company, type Designation, type EmployeeCompany } from '@/types/company';
+import { type Designation, type EmployeeCompany } from '@/types/company';
+import { type Employee } from '@/types/employee';
+
+interface EmployeeCompanyWithEmployee extends EmployeeCompany {
+    employee?: {
+        id: number;
+        first_name: string;
+        last_name: string;
+    };
+}
 
 interface Props {
-    employeeId: number;
-    employeeCompanies: EmployeeCompany[];
-    companies: Company[];
+    companyId: number;
+    companyEmployees: EmployeeCompanyWithEmployee[];
+    employees: Employee[];
     designations: Designation[];
 }
 
@@ -29,7 +38,7 @@ const editingId = ref<number | null>(null);
 const saving = ref(false);
 
 const form = reactive({
-    company_id: null as number | null,
+    employee_id: null as number | null,
     designation_id: null as number | null,
     status: 'FT' as string,
     levy_amount: 0,
@@ -42,10 +51,10 @@ const formErrors = reactive<Record<string, string>>({});
 
 const confirm = useConfirm();
 
-const companyOptions = computed(() =>
-    props.companies.map((c) => ({
-        label: c.company_name,
-        value: c.id,
+const employeeOptions = computed(() =>
+    props.employees.map((e) => ({
+        label: `${e.first_name} ${e.last_name}`,
+        value: e.id,
     })),
 );
 
@@ -62,7 +71,7 @@ function formatDate(dateString: string | null): string {
 }
 
 function resetForm() {
-    form.company_id = null;
+    form.employee_id = null;
     form.designation_id = null;
     form.status = 'FT';
     form.levy_amount = 0;
@@ -78,10 +87,10 @@ function openAddDialog() {
     dialogVisible.value = true;
 }
 
-function openEditDialog(ec: EmployeeCompany) {
+function openEditDialog(ec: EmployeeCompanyWithEmployee) {
     resetForm();
     editingId.value = ec.id;
-    form.company_id = ec.company_id;
+    form.employee_id = ec.employee_id;
     form.designation_id = ec.designation_id;
     form.status = ec.status;
     form.levy_amount = Number(ec.levy_amount) || 0;
@@ -101,7 +110,7 @@ function saveAssignment() {
     Object.keys(formErrors).forEach((key) => delete formErrors[key]);
 
     const data = {
-        company_id: form.company_id,
+        employee_id: form.employee_id,
         designation_id: form.designation_id,
         status: form.status,
         levy_amount: form.levy_amount,
@@ -111,8 +120,8 @@ function saveAssignment() {
     };
 
     const url = editingId.value
-        ? `/users/${props.employeeId}/companies/${editingId.value}`
-        : `/users/${props.employeeId}/companies`;
+        ? `/companies/${props.companyId}/employees/${editingId.value}`
+        : `/companies/${props.companyId}/employees`;
 
     const method = editingId.value ? 'put' : 'post';
 
@@ -130,9 +139,10 @@ function saveAssignment() {
     });
 }
 
-function confirmEndAssignment(ec: EmployeeCompany) {
+function confirmEndAssignment(ec: EmployeeCompanyWithEmployee) {
+    const employeeName = ec.employee ? `${ec.employee.first_name} ${ec.employee.last_name}` : 'this employee';
     confirm.require({
-        message: `Are you sure you want to end the assignment at "${ec.company?.company_name}"? This will set the left date to today.`,
+        message: `Are you sure you want to end the assignment for "${employeeName}"? This will set the left date to today.`,
         header: 'End Assignment',
         icon: 'pi pi-exclamation-triangle',
         rejectLabel: 'Cancel',
@@ -147,7 +157,7 @@ function confirmEndAssignment(ec: EmployeeCompany) {
         },
         accept: () => {
             router.put(
-                `/users/${props.employeeId}/companies/${ec.id}`,
+                `/companies/${props.companyId}/employees/${ec.id}`,
                 { left_date: new Date().toISOString().split('T')[0] },
                 { preserveScroll: true },
             );
@@ -155,9 +165,10 @@ function confirmEndAssignment(ec: EmployeeCompany) {
     });
 }
 
-function confirmRemoveAssignment(ec: EmployeeCompany) {
+function confirmRemoveAssignment(ec: EmployeeCompanyWithEmployee) {
+    const employeeName = ec.employee ? `${ec.employee.first_name} ${ec.employee.last_name}` : 'this employee';
     confirm.require({
-        message: `Are you sure you want to remove the assignment at "${ec.company?.company_name}"? This action cannot be undone.`,
+        message: `Are you sure you want to remove the assignment for "${employeeName}"? This action cannot be undone.`,
         header: 'Remove Assignment',
         icon: 'pi pi-exclamation-triangle',
         rejectLabel: 'Cancel',
@@ -171,24 +182,31 @@ function confirmRemoveAssignment(ec: EmployeeCompany) {
             size: 'small',
         },
         accept: () => {
-            router.delete(`/users/${props.employeeId}/companies/${ec.id}`, {
+            router.delete(`/companies/${props.companyId}/employees/${ec.id}`, {
                 preserveScroll: true,
             });
         },
     });
+}
+
+function getEmployeeName(ec: EmployeeCompanyWithEmployee): string {
+    if (ec.employee) {
+        return `${ec.employee.first_name} ${ec.employee.last_name}`;
+    }
+    return '-';
 }
 </script>
 
 <template>
     <div class="flex flex-col gap-4">
         <div class="flex items-center justify-between">
-            <h3 class="text-lg font-medium">Company Assignments</h3>
-            <Button label="Add Assignment" icon="pi pi-plus" size="small" @click="openAddDialog" />
+            <h3 class="text-lg font-medium">Employees</h3>
+            <Button label="Add Employee" icon="pi pi-plus" size="small" @click="openAddDialog" />
         </div>
 
         <DataTable
             v-model:expandedRows="expandedRows"
-            :value="employeeCompanies"
+            :value="companyEmployees"
             dataKey="id"
             striped-rows
             size="small"
@@ -196,13 +214,13 @@ function confirmRemoveAssignment(ec: EmployeeCompany) {
         >
             <template #empty>
                 <div class="p-4 text-center text-muted-foreground">
-                    No company assignments found. Click "Add Assignment" to assign this employee to a company.
+                    No employees assigned to this company. Click "Add Employee" to assign employees.
                 </div>
             </template>
             <Column expander style="width: 3rem" class="!pr-0 sm:hidden" />
-            <Column field="company.company_name" header="Company">
+            <Column header="Employee">
                 <template #body="{ data }">
-                    <span class="font-medium">{{ data.company?.company_name ?? '-' }}</span>
+                    <span class="font-medium">{{ getEmployeeName(data) }}</span>
                 </template>
             </Column>
             <Column field="designation.designation_name" header="Designation" class="hidden md:table-cell">
@@ -306,35 +324,36 @@ function confirmRemoveAssignment(ec: EmployeeCompany) {
 
         <Dialog
             v-model:visible="dialogVisible"
-            :header="editingId ? 'Edit Assignment' : 'Add Company Assignment'"
+            :header="editingId ? 'Edit Employee Assignment' : 'Add Employee to Company'"
             :modal="true"
             :closable="!saving"
             class="w-full max-w-lg"
         >
             <form @submit.prevent="saveAssignment" class="flex flex-col gap-4">
                 <div class="flex flex-col gap-2">
-                    <label for="ec_company_id" class="font-medium">Company *</label>
+                    <label for="ce_employee_id" class="font-medium">Employee *</label>
                     <Select
-                        id="ec_company_id"
-                        v-model="form.company_id"
-                        :options="companyOptions"
+                        id="ce_employee_id"
+                        v-model="form.employee_id"
+                        :options="employeeOptions"
                         option-label="label"
                         option-value="value"
-                        :invalid="!!formErrors.company_id"
-                        placeholder="Select company"
+                        :invalid="!!formErrors.employee_id"
+                        placeholder="Select employee"
                         filter
                         size="small"
                         fluid
+                        :disabled="!!editingId"
                     />
-                    <small v-if="formErrors.company_id" class="text-red-500">
-                        {{ formErrors.company_id }}
+                    <small v-if="formErrors.employee_id" class="text-red-500">
+                        {{ formErrors.employee_id }}
                     </small>
                 </div>
 
                 <div class="flex flex-col gap-2">
-                    <label for="ec_designation_id" class="font-medium">Designation</label>
+                    <label for="ce_designation_id" class="font-medium">Designation</label>
                     <Select
-                        id="ec_designation_id"
+                        id="ce_designation_id"
                         v-model="form.designation_id"
                         :options="designationOptions"
                         option-label="label"
@@ -353,9 +372,9 @@ function confirmRemoveAssignment(ec: EmployeeCompany) {
 
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div class="flex flex-col gap-2">
-                        <label for="ec_status" class="font-medium">Employment Status *</label>
+                        <label for="ce_status" class="font-medium">Employment Status *</label>
                         <Select
-                            id="ec_status"
+                            id="ce_status"
                             v-model="form.status"
                             :options="[...employmentStatusOptions]"
                             option-label="label"
@@ -370,9 +389,9 @@ function confirmRemoveAssignment(ec: EmployeeCompany) {
                     </div>
 
                     <div class="flex flex-col gap-2">
-                        <label for="ec_levy_amount" class="font-medium">Levy Amount</label>
+                        <label for="ce_levy_amount" class="font-medium">Levy Amount</label>
                         <InputNumber
-                            id="ec_levy_amount"
+                            id="ce_levy_amount"
                             v-model="form.levy_amount"
                             :invalid="!!formErrors.levy_amount"
                             mode="currency"
@@ -391,9 +410,9 @@ function confirmRemoveAssignment(ec: EmployeeCompany) {
 
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div class="flex flex-col gap-2">
-                        <label for="ec_commencement_date" class="font-medium">Start Date *</label>
+                        <label for="ce_commencement_date" class="font-medium">Start Date *</label>
                         <DatePicker
-                            id="ec_commencement_date"
+                            id="ce_commencement_date"
                             v-model="form.commencement_date"
                             :invalid="!!formErrors.commencement_date"
                             dateFormat="yy-mm-dd"
@@ -407,9 +426,9 @@ function confirmRemoveAssignment(ec: EmployeeCompany) {
                     </div>
 
                     <div class="flex flex-col gap-2">
-                        <label for="ec_left_date" class="font-medium">End Date</label>
+                        <label for="ce_left_date" class="font-medium">End Date</label>
                         <DatePicker
-                            id="ec_left_date"
+                            id="ce_left_date"
                             v-model="form.left_date"
                             :invalid="!!formErrors.left_date"
                             dateFormat="yy-mm-dd"
@@ -438,7 +457,7 @@ function confirmRemoveAssignment(ec: EmployeeCompany) {
                         @click="dialogVisible = false"
                         :disabled="saving"
                     />
-                    <Button type="submit" :label="editingId ? 'Save Changes' : 'Add Assignment'" size="small" :loading="saving" />
+                    <Button type="submit" :label="editingId ? 'Save Changes' : 'Add Employee'" size="small" :loading="saving" />
                 </div>
             </form>
         </Dialog>

@@ -36,6 +36,7 @@ Route::middleware([
 
     // My Team - for employees with subordinates (staff or admin)
     Route::get('my-team', [MyTeamController::class, 'index'])->name('my-team.index');
+    Route::get('my-team/{employee}', [MyTeamController::class, 'show'])->name('my-team.show');
 
     Route::middleware('admin')->group(function () {
         Route::get('users', [UserController::class, 'index'])->name('users.index');
@@ -48,6 +49,7 @@ Route::middleware([
         Route::delete('users/{employee}/profile-picture', [UserController::class, 'deleteProfilePicture'])->name('users.delete-profile-picture');
         Route::delete('users/{employee}', [UserController::class, 'destroy'])->name('users.destroy');
         Route::post('users/{employee}/restore', [UserController::class, 'restore'])->name('users.restore')->withTrashed();
+        Route::post('users/{employee}/resend-invitation', [UserController::class, 'resendInvitation'])->name('users.resend-invitation');
 
         Route::get('customers/create', [UserController::class, 'createCustomer'])->name('customers.create');
         Route::post('customers', [UserController::class, 'storeCustomer'])->name('customers.store');
@@ -57,11 +59,17 @@ Route::middleware([
         Route::delete('customers/{customer}', [UserController::class, 'destroyCustomer'])->name('customers.destroy');
 
         // Companies
-        Route::resource('companies', CompanyController::class)->except(['show']);
+        Route::resource('companies', CompanyController::class);
         Route::post('companies/{company}/restore', [CompanyController::class, 'restore'])->name('companies.restore')->withTrashed();
         Route::get('companies/{company}/logo', [CompanyController::class, 'showLogo'])->name('companies.logo');
         Route::post('companies/{company}/logo', [CompanyController::class, 'uploadLogo'])->name('companies.upload-logo');
         Route::delete('companies/{company}/logo', [CompanyController::class, 'deleteLogo'])->name('companies.delete-logo');
+
+        // Company-Employee assignments (manage employees from company side)
+        Route::get('companies/{company}/employees', [CompanyController::class, 'employees'])->name('companies.employees.index');
+        Route::post('companies/{company}/employees', [CompanyController::class, 'addEmployee'])->name('companies.employees.store');
+        Route::put('companies/{company}/employees/{employeeCompany}', [CompanyController::class, 'updateEmployee'])->name('companies.employees.update');
+        Route::delete('companies/{company}/employees/{employeeCompany}', [CompanyController::class, 'removeEmployee'])->name('companies.employees.destroy');
 
         // Designations
         Route::resource('designations', DesignationController::class)->except(['show']);

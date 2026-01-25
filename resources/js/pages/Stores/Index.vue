@@ -264,7 +264,7 @@ function onPage(event: { page: number }) {
                 @row-click="onRowClick"
                 striped-rows
                 size="small"
-                class="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border [&_.p-datatable-tbody>tr]:cursor-pointer"
+                class="overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border [&_.p-datatable-tbody>tr]:cursor-pointer"
             >
                 <template #empty>
                     <div class="p-4 text-center text-muted-foreground">
