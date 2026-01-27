@@ -61,6 +61,14 @@ class Store extends Model
     }
 
     /**
+     * Get all timecards for this store.
+     */
+    public function timecards(): HasMany
+    {
+        return $this->hasMany(Timecard::class);
+    }
+
+    /**
      * Mutator to ensure store_code is always uppercase.
      */
     public function setStoreCodeAttribute(string $value): void

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Toast from 'primevue/toast';
+import FloatingClockPanel from '@/components/timecards/FloatingClockPanel.vue';
 import { useAdminGuard } from '@/composables/useAdminGuard';
 import { useFlashToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/app/AppSidebarLayout.vue';
@@ -25,4 +26,6 @@ useAdminGuard();
     <AppLayout :breadcrumbs="breadcrumbs">
         <slot />
     </AppLayout>
+    <!-- Floating clock panel for time tracking -->
+    <FloatingClockPanel />
 </template>

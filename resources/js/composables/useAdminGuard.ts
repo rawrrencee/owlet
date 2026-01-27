@@ -15,6 +15,7 @@ const ADMIN_ROUTE_PREFIXES = [
     '/stores',
     '/documents',
     '/organisation-chart',
+    '/management/timecards',
 ];
 
 /**

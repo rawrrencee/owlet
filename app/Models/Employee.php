@@ -248,6 +248,24 @@ class Employee extends Model
     }
 
     /**
+     * Get all timecards for this employee.
+     */
+    public function timecards(): HasMany
+    {
+        return $this->hasMany(Timecard::class);
+    }
+
+    /**
+     * Get the current in-progress timecard for today.
+     */
+    public function currentTimecard(): HasOne
+    {
+        return $this->hasOne(Timecard::class)
+            ->where('status', Timecard::STATUS_IN_PROGRESS)
+            ->whereDate('start_date', today());
+    }
+
+    /**
      * Get the profile picture URL with fallbacks.
      *
      * Priority: local profile_picture > external_avatar_url > User.avatar

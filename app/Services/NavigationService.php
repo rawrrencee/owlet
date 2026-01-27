@@ -11,17 +11,25 @@ class NavigationService
         $sections = [];
 
         // Platform section - always visible
+        $platformItems = [
+            ['title' => 'Dashboard', 'href' => '/dashboard', 'icon' => 'LayoutGrid'],
+        ];
+
+        // Add My Timecards for all authenticated users with employee record
+        if ($user->employee) {
+            $platformItems[] = ['title' => 'My Timecards', 'href' => '/timecards', 'icon' => 'Clock'];
+        }
+
         $sections[] = [
             'title' => 'Platform',
-            'items' => [
-                ['title' => 'Dashboard', 'href' => '/dashboard', 'icon' => 'LayoutGrid'],
-            ],
+            'items' => $platformItems,
         ];
 
         // My Tools section - for employees with subordinates
         $myToolsItems = [];
         if ($user->employee?->hasSubordinates()) {
             $myToolsItems[] = ['title' => 'My Team', 'href' => '/my-team', 'icon' => 'UsersRound'];
+            $myToolsItems[] = ['title' => 'Team Timecards', 'href' => '/my-team-timecards', 'icon' => 'ClipboardList'];
         }
 
         if (! empty($myToolsItems)) {
@@ -37,6 +45,7 @@ class NavigationService
         if ($user->isAdmin()) {
             $managementItems[] = ['title' => 'Users', 'href' => '/users', 'icon' => 'Users'];
             $managementItems[] = ['title' => 'Documents', 'href' => '/documents', 'icon' => 'Folder'];
+            $managementItems[] = ['title' => 'Timecards', 'href' => '/management/timecards', 'icon' => 'CalendarClock'];
             $managementItems[] = ['title' => 'Companies', 'href' => '/companies', 'icon' => 'Building2'];
             $managementItems[] = ['title' => 'Designations', 'href' => '/designations', 'icon' => 'BadgeCheck'];
             $managementItems[] = ['title' => 'Organisation Chart', 'href' => '/organisation-chart', 'icon' => 'Network'];

@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\TimecardController as AdminTimecardController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DesignationController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EmployeeCompanyController;
@@ -8,8 +10,10 @@ use App\Http\Controllers\EmployeeContractController;
 use App\Http\Controllers\EmployeeInsuranceController;
 use App\Http\Controllers\EmployeeStoreController;
 use App\Http\Controllers\MyTeamController;
+use App\Http\Controllers\MyTeamTimecardController;
 use App\Http\Controllers\OrganisationChartController;
 use App\Http\Controllers\StoreController;
+use App\Http\Controllers\TimecardController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -21,9 +25,7 @@ Route::middleware([
     'auth',
     ValidateSessionWithWorkOS::class,
 ])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Profile picture serving route (needs auth but not admin)
     Route::get('users/{employee}/profile-picture', [UserController::class, 'showProfilePicture'])->name('users.profile-picture');
@@ -37,6 +39,20 @@ Route::middleware([
     // My Team - for employees with subordinates (staff or admin)
     Route::get('my-team', [MyTeamController::class, 'index'])->name('my-team.index');
     Route::get('my-team/{employee}', [MyTeamController::class, 'show'])->name('my-team.show');
+
+    // Employee Timecards (self-service)
+    Route::get('timecards', [TimecardController::class, 'index'])->name('timecards.index');
+    Route::get('timecards/current', [TimecardController::class, 'current'])->name('timecards.current');
+    Route::post('timecards/clock-in', [TimecardController::class, 'clockIn'])->name('timecards.clock-in');
+    Route::post('timecards/{timecard}/clock-out', [TimecardController::class, 'clockOut'])->name('timecards.clock-out');
+    Route::post('timecards/{timecard}/start-break', [TimecardController::class, 'startBreak'])->name('timecards.start-break');
+    Route::post('timecards/{timecard}/end-break', [TimecardController::class, 'endBreak'])->name('timecards.end-break');
+    Route::get('timecards/{date}', [TimecardController::class, 'show'])->name('timecards.show');
+
+    // Team Timecards - for employees with subordinates
+    Route::get('my-team-timecards', [MyTeamTimecardController::class, 'index'])->name('my-team-timecards.index');
+    Route::get('my-team-timecards/{employee}', [MyTeamTimecardController::class, 'show'])->name('my-team-timecards.show');
+    Route::get('my-team-timecards/{employee}/{date}', [MyTeamTimecardController::class, 'showDate'])->name('my-team-timecards.show-date');
 
     Route::middleware('admin')->group(function () {
         Route::get('users', [UserController::class, 'index'])->name('users.index');
@@ -128,6 +144,23 @@ Route::middleware([
         Route::post('users/{employee}/hierarchy', [OrganisationChartController::class, 'addSubordinate'])->name('users.hierarchy.store');
         Route::delete('users/{employee}/hierarchy/{subordinate}', [OrganisationChartController::class, 'removeSubordinate'])->name('users.hierarchy.destroy');
         Route::put('users/{employee}/hierarchy/visibility', [OrganisationChartController::class, 'updateVisibility'])->name('users.hierarchy.visibility');
+
+        // Management - Timecards
+        Route::prefix('management')->name('management.')->group(function () {
+            Route::get('timecards', [AdminTimecardController::class, 'index'])->name('timecards.index');
+            Route::get('timecards/create', [AdminTimecardController::class, 'create'])->name('timecards.create');
+            Route::post('timecards', [AdminTimecardController::class, 'store'])->name('timecards.store');
+            Route::get('timecards/date/{date}', [AdminTimecardController::class, 'byDate'])->name('timecards.by-date');
+            Route::get('timecards/employee/{employee}', [AdminTimecardController::class, 'byEmployee'])->name('timecards.by-employee');
+            Route::get('timecards/{timecard}', [AdminTimecardController::class, 'show'])->name('timecards.show');
+            Route::get('timecards/{timecard}/edit', [AdminTimecardController::class, 'edit'])->name('timecards.edit');
+            Route::put('timecards/{timecard}', [AdminTimecardController::class, 'update'])->name('timecards.update');
+            Route::delete('timecards/{timecard}', [AdminTimecardController::class, 'destroy'])->name('timecards.destroy');
+            // Timecard Details CRUD
+            Route::post('timecards/{timecard}/details', [AdminTimecardController::class, 'storeDetail'])->name('timecards.details.store');
+            Route::put('timecards/{timecard}/details/{detail}', [AdminTimecardController::class, 'updateDetail'])->name('timecards.details.update');
+            Route::delete('timecards/{timecard}/details/{detail}', [AdminTimecardController::class, 'destroyDetail'])->name('timecards.details.destroy');
+        });
 
         // Documents
         Route::get('documents', [DocumentController::class, 'index'])->name('documents.index');
