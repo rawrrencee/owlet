@@ -91,7 +91,7 @@ function navigateToEmployee(employeeId: number) {
                         size="small"
                         @click="goBack"
                     />
-                    <h1 class="text-2xl font-semibold">{{ company.company_name }}</h1>
+                    <h1 class="heading-lg">{{ company.company_name }}</h1>
                     <Tag v-if="company.is_deleted" value="Deleted" severity="danger" />
                     <Tag
                         v-else
@@ -190,7 +190,7 @@ function navigateToEmployee(employeeId: number) {
                                         dataKey="id"
                                         size="small"
                                         stripedRows
-                                        class="cursor-pointer rounded-lg border border-sidebar-border/70"
+                                        class="cursor-pointer rounded-lg border border-border"
                                         @row-click="(e) => e.data.employee && navigateToEmployee(e.data.employee.id)"
                                     >
                                         <Column expander style="width: 3rem" class="!pr-0 lg:hidden" />
@@ -244,15 +244,15 @@ function navigateToEmployee(employeeId: number) {
                                         </Column>
                                         <template #expansion="{ data }">
                                             <div class="grid gap-3 p-3 text-sm lg:hidden">
-                                                <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2 md:hidden">
+                                                <div class="flex justify-between gap-4 border-b border-border pb-2 md:hidden">
                                                     <span class="shrink-0 text-muted-foreground">Designation</span>
                                                     <span class="text-right">{{ data.designation?.designation_name ?? '-' }}</span>
                                                 </div>
-                                                <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2 sm:hidden">
+                                                <div class="flex justify-between gap-4 border-b border-border pb-2 sm:hidden">
                                                     <span class="shrink-0 text-muted-foreground">Type</span>
                                                     <span class="text-right">{{ data.status_label }}</span>
                                                 </div>
-                                                <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                                                <div class="flex justify-between gap-4 border-b border-border pb-2">
                                                     <span class="shrink-0 text-muted-foreground">Start Date</span>
                                                     <span class="text-right">{{ formatDate(data.commencement_date) }}</span>
                                                 </div>

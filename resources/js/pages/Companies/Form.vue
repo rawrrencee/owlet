@@ -103,7 +103,7 @@ function cancel() {
                     size="small"
                     @click="cancel"
                 />
-                <h1 class="text-2xl font-semibold">{{ pageTitle }}</h1>
+                <h1 class="heading-lg">{{ pageTitle }}</h1>
             </div>
 
             <div class="mx-auto w-full max-w-4xl">

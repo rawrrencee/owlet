@@ -198,7 +198,7 @@ function navigateToEdit() {
                         size="small"
                         @click="goBack"
                     />
-                    <h1 class="text-2xl font-semibold">{{ employee.first_name }} {{ employee.last_name }}</h1>
+                    <h1 class="heading-lg">{{ employee.first_name }} {{ employee.last_name }}</h1>
                     <Tag v-if="employee.is_deleted" value="Deleted" severity="danger" />
                     <Tag
                         v-else
@@ -457,7 +457,7 @@ function navigateToEdit() {
                                                 dataKey="id"
                                                 size="small"
                                                 stripedRows
-                                                class="rounded-lg border border-sidebar-border/70"
+                                                class="rounded-lg border border-border"
                                             >
                                                 <Column expander style="width: 3rem" class="!pr-0 lg:hidden" />
                                                 <Column field="company.company_name" header="Company">
@@ -500,23 +500,23 @@ function navigateToEdit() {
                                                 </Column>
                                                 <template #expansion="{ data }">
                                                     <div class="grid gap-3 p-3 text-sm lg:hidden">
-                                                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2 md:hidden">
+                                                        <div class="flex justify-between gap-4 border-b border-border pb-2 md:hidden">
                                                             <span class="shrink-0 text-muted-foreground">Designation</span>
                                                             <span class="text-right">{{ data.designation?.designation_name ?? '-' }}</span>
                                                         </div>
-                                                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2 sm:hidden">
+                                                        <div class="flex justify-between gap-4 border-b border-border pb-2 sm:hidden">
                                                             <span class="shrink-0 text-muted-foreground">Type</span>
                                                             <span class="text-right">{{ data.status_label ?? getStatusLabel(data.status) }}</span>
                                                         </div>
-                                                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2 xl:hidden">
+                                                        <div class="flex justify-between gap-4 border-b border-border pb-2 xl:hidden">
                                                             <span class="shrink-0 text-muted-foreground">Levy Amount</span>
                                                             <span class="text-right">{{ formatCurrency(data.levy_amount) }}</span>
                                                         </div>
-                                                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                                                        <div class="flex justify-between gap-4 border-b border-border pb-2">
                                                             <span class="shrink-0 text-muted-foreground">Start Date</span>
                                                             <span class="text-right">{{ formatDate(data.commencement_date) }}</span>
                                                         </div>
-                                                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2 xl:hidden">
+                                                        <div class="flex justify-between gap-4 border-b border-border pb-2 xl:hidden">
                                                             <span class="shrink-0 text-muted-foreground">End Date</span>
                                                             <span class="text-right">{{ formatDate(data.left_date) }}</span>
                                                         </div>
@@ -542,7 +542,7 @@ function navigateToEdit() {
                                                 dataKey="id"
                                                 size="small"
                                                 stripedRows
-                                                class="rounded-lg border border-sidebar-border/70"
+                                                class="rounded-lg border border-border"
                                             >
                                                 <Column expander style="width: 3rem" class="!pr-0 lg:hidden" />
                                                 <Column field="company.company_name" header="Company">
@@ -599,23 +599,23 @@ function navigateToEdit() {
                                                 </Column>
                                                 <template #expansion="{ data }">
                                                     <div class="grid gap-3 p-3 text-sm lg:hidden">
-                                                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2 sm:hidden">
+                                                        <div class="flex justify-between gap-4 border-b border-border pb-2 sm:hidden">
                                                             <span class="shrink-0 text-muted-foreground">Start Date</span>
                                                             <span class="text-right">{{ formatDate(data.start_date) }}</span>
                                                         </div>
-                                                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2 md:hidden">
+                                                        <div class="flex justify-between gap-4 border-b border-border pb-2 md:hidden">
                                                             <span class="shrink-0 text-muted-foreground">End Date</span>
                                                             <span class="text-right">{{ formatDate(data.end_date) }}</span>
                                                         </div>
-                                                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                                                        <div class="flex justify-between gap-4 border-b border-border pb-2">
                                                             <span class="shrink-0 text-muted-foreground">Salary</span>
                                                             <span class="text-right">{{ formatCurrency(data.salary_amount) }}</span>
                                                         </div>
-                                                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2 xl:hidden">
+                                                        <div class="flex justify-between gap-4 border-b border-border pb-2 xl:hidden">
                                                             <span class="shrink-0 text-muted-foreground">Annual Leave</span>
                                                             <span class="text-right">{{ getLeaveDisplay(data.annual_leave_entitled, data.annual_leave_taken) }}</span>
                                                         </div>
-                                                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2 xl:hidden">
+                                                        <div class="flex justify-between gap-4 border-b border-border pb-2 xl:hidden">
                                                             <span class="shrink-0 text-muted-foreground">Sick Leave</span>
                                                             <span class="text-right">{{ getLeaveDisplay(data.sick_leave_entitled, data.sick_leave_taken) }}</span>
                                                         </div>
@@ -641,7 +641,7 @@ function navigateToEdit() {
                                                 dataKey="id"
                                                 size="small"
                                                 stripedRows
-                                                class="rounded-lg border border-sidebar-border/70"
+                                                class="rounded-lg border border-border"
                                             >
                                                 <Column expander style="width: 3rem" class="!pr-0 lg:hidden" />
                                                 <Column field="title" header="Title">
@@ -693,19 +693,19 @@ function navigateToEdit() {
                                                 </Column>
                                                 <template #expansion="{ data }">
                                                     <div class="grid gap-3 p-3 text-sm lg:hidden">
-                                                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2 sm:hidden">
+                                                        <div class="flex justify-between gap-4 border-b border-border pb-2 sm:hidden">
                                                             <span class="shrink-0 text-muted-foreground">Insurer</span>
                                                             <span class="text-right">{{ data.insurer_name }}</span>
                                                         </div>
-                                                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2 md:hidden">
+                                                        <div class="flex justify-between gap-4 border-b border-border pb-2 md:hidden">
                                                             <span class="shrink-0 text-muted-foreground">Policy #</span>
                                                             <span class="text-right">{{ data.policy_number }}</span>
                                                         </div>
-                                                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                                                        <div class="flex justify-between gap-4 border-b border-border pb-2">
                                                             <span class="shrink-0 text-muted-foreground">Start Date</span>
                                                             <span class="text-right">{{ formatDate(data.start_date) }}</span>
                                                         </div>
-                                                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2 xl:hidden">
+                                                        <div class="flex justify-between gap-4 border-b border-border pb-2 xl:hidden">
                                                             <span class="shrink-0 text-muted-foreground">End Date</span>
                                                             <span class="text-right">{{ formatDate(data.end_date) }}</span>
                                                         </div>
@@ -731,7 +731,7 @@ function navigateToEdit() {
                                                 dataKey="id"
                                                 size="small"
                                                 stripedRows
-                                                class="rounded-lg border border-sidebar-border/70"
+                                                class="rounded-lg border border-border"
                                             >
                                                 <Column expander style="width: 3rem" class="!pr-0 md:hidden" />
                                                 <Column field="store.store_name" header="Store">
@@ -810,7 +810,7 @@ function navigateToEdit() {
                                             <div v-if="hierarchyLoading" class="flex items-center justify-center p-8">
                                                 <i class="pi pi-spin pi-spinner text-2xl text-muted-foreground"></i>
                                             </div>
-                                            <div v-else-if="hierarchyData?.subtree?.length" class="overflow-x-auto rounded-lg border border-sidebar-border/50 p-4">
+                                            <div v-else-if="hierarchyData?.subtree?.length" class="overflow-x-auto rounded-lg border border-border p-4">
                                                 <OrganizationChart
                                                     v-for="node in hierarchyData.subtree"
                                                     :key="node.key"
@@ -847,7 +847,7 @@ function navigateToEdit() {
                                                     </template>
                                                 </OrganizationChart>
                                             </div>
-                                            <div v-else class="rounded-lg border border-dashed border-sidebar-border/50 p-6 text-center text-muted-foreground">
+                                            <div v-else class="rounded-lg border border-dashed border-border p-6 text-center text-muted-foreground">
                                                 <i class="pi pi-sitemap mb-2 text-2xl"></i>
                                                 <p>No subordinates in hierarchy.</p>
                                             </div>

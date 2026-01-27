@@ -76,7 +76,7 @@ function getEmployeeInitials(name: string): string {
                         size="small"
                         @click="goBack"
                     />
-                    <h1 class="text-2xl font-semibold">{{ store.store_name }}</h1>
+                    <h1 class="heading-lg">{{ store.store_name }}</h1>
                     <Tag
                         :value="store.active ? 'Active' : 'Inactive'"
                         :severity="store.active ? 'success' : 'danger'"
@@ -195,7 +195,7 @@ function getEmployeeInitials(name: string): string {
                                         dataKey="id"
                                         size="small"
                                         stripedRows
-                                        class="rounded-lg border border-sidebar-border/70"
+                                        class="rounded-lg border border-border"
                                     >
                                         <Column expander style="width: 3rem" class="!pr-0 md:hidden" />
                                         <Column field="employee_name" header="Name">
@@ -263,7 +263,7 @@ function getEmployeeInitials(name: string): string {
                                         </Column>
                                         <template #expansion="{ data }">
                                             <div class="grid gap-3 p-3 text-sm md:hidden">
-                                                <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2 sm:hidden">
+                                                <div class="flex justify-between gap-4 border-b border-border pb-2 sm:hidden">
                                                     <span class="shrink-0 text-muted-foreground">Employee #</span>
                                                     <span class="text-right">{{ data.employee_number ?? '-' }}</span>
                                                 </div>

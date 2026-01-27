@@ -136,7 +136,7 @@ function submitForm() {
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex items-center gap-4">
                     <Button icon="pi pi-arrow-left" severity="secondary" text rounded size="small" @click="router.visit(indexUrl)" />
-                    <h1 class="text-2xl font-semibold">Create Insurance</h1>
+                    <h1 class="heading-lg">Create Insurance</h1>
                 </div>
             </div>
 
@@ -174,7 +174,7 @@ function submitForm() {
                                         dataKey="id"
                                         striped-rows
                                         size="small"
-                                        class="rounded-lg border border-sidebar-border/70 dark:border-sidebar-border"
+                                        class="rounded-lg border border-border "
                                     >
                                         <Column field="title" header="Title" style="width: 30%">
                                             <template #body="{ data }">
@@ -217,7 +217,7 @@ function submitForm() {
                             <!-- Show message if employee selected but no insurances -->
                             <div v-else-if="selectedEmployee && (!employeeInsurances || employeeInsurances.length === 0)">
                                 <Divider />
-                                <div class="rounded-lg border border-sidebar-border/70 bg-surface-50 p-3 text-center text-sm text-muted-foreground dark:bg-surface-900">
+                                <div class="rounded-lg border border-border bg-muted p-3 text-center text-sm text-muted-foreground ">
                                     {{ selectedEmployee.first_name }} {{ selectedEmployee.last_name }} has no existing insurances.
                                 </div>
                                 <Divider />
@@ -323,7 +323,7 @@ function submitForm() {
                             <!-- Document Upload -->
                             <div class="flex flex-col gap-2">
                                 <label class="font-medium">Document Upload</label>
-                                <div class="rounded-lg border border-sidebar-border/70 p-3 dark:border-sidebar-border">
+                                <div class="rounded-lg border border-border p-3 ">
                                     <div class="flex flex-col gap-2">
                                         <div class="flex items-center gap-2">
                                             <input
@@ -336,7 +336,7 @@ function submitForm() {
                                             />
                                             <label
                                                 for="insurance-file-upload"
-                                                class="cursor-pointer rounded border border-sidebar-border bg-surface-50 px-3 py-1.5 text-sm hover:bg-surface-100 dark:bg-surface-800 dark:hover:bg-surface-700"
+                                                class="cursor-pointer rounded border border-border bg-muted px-3 py-1.5 text-sm hover:bg-surface-100 dark:bg-surface-800 dark:hover:bg-surface-700"
                                             >
                                                 <i class="pi pi-upload mr-2"></i>
                                                 {{ selectedFile ? selectedFile.name : 'Choose file' }}

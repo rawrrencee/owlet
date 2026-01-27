@@ -183,7 +183,7 @@ function getTierColor(tier: number): string {
                 striped-rows
                 size="small"
                 :loading="loading"
-                class="overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
+                class="overflow-hidden rounded-xl border border-border dark:border-border"
             >
                 <template #empty>
                     <div class="p-4 text-center text-muted-foreground">
@@ -238,7 +238,7 @@ function getTierColor(tier: number): string {
                 </Column>
                 <template #expansion="{ data }">
                     <div class="grid gap-3 p-3 text-sm sm:hidden">
-                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                        <div class="flex justify-between gap-4 border-b border-border pb-2">
                             <span class="shrink-0 text-muted-foreground">Email</span>
                             <span class="text-right">{{ data.email ?? '-' }}</span>
                         </div>
@@ -267,7 +267,7 @@ function getTierColor(tier: number): string {
                     Choose what information this employee can see about their subordinates in "My Team".
                 </p>
             </div>
-            <div class="flex flex-col gap-3 rounded-lg border border-sidebar-border/50 p-4">
+            <div class="flex flex-col gap-3 rounded-lg border border-border p-4">
                 <div
                     v-for="(label, key) in hierarchyData?.available_sections ?? {}"
                     :key="key"
@@ -297,7 +297,7 @@ function getTierColor(tier: number): string {
                     Visual representation of this employee's position in the hierarchy.
                 </p>
             </div>
-            <div v-if="hierarchyData?.subtree?.length" class="overflow-x-auto rounded-lg border border-sidebar-border/50 p-4">
+            <div v-if="hierarchyData?.subtree?.length" class="overflow-x-auto rounded-lg border border-border p-4">
                 <OrganizationChart
                     v-for="node in hierarchyData.subtree"
                     :key="node.key"
@@ -334,7 +334,7 @@ function getTierColor(tier: number): string {
                     </template>
                 </OrganizationChart>
             </div>
-            <div v-else-if="!loading" class="rounded-lg border border-dashed border-sidebar-border/50 p-6 text-center text-muted-foreground">
+            <div v-else-if="!loading" class="rounded-lg border border-dashed border-border p-6 text-center text-muted-foreground">
                 <i class="pi pi-sitemap mb-2 text-2xl"></i>
                 <p>No subordinates in hierarchy.</p>
             </div>

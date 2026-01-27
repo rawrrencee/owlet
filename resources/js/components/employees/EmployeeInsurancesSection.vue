@@ -289,7 +289,7 @@ function viewDocumentInDialog() {
             dataKey="id"
             striped-rows
             size="small"
-            class="overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
+            class="overflow-hidden rounded-xl border border-border dark:border-border"
         >
             <template #empty>
                 <div class="p-4 text-center text-muted-foreground">
@@ -367,23 +367,23 @@ function viewDocumentInDialog() {
             </Column>
             <template #expansion="{ data }">
                 <div class="grid gap-3 p-3 text-sm sm:hidden">
-                    <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                    <div class="flex justify-between gap-4 border-b border-border pb-2">
                         <span class="shrink-0 text-muted-foreground">Insurer</span>
                         <span class="text-right">{{ data.insurer_name }}</span>
                     </div>
-                    <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                    <div class="flex justify-between gap-4 border-b border-border pb-2">
                         <span class="shrink-0 text-muted-foreground">Policy #</span>
                         <span class="text-right font-mono">{{ data.policy_number }}</span>
                     </div>
-                    <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                    <div class="flex justify-between gap-4 border-b border-border pb-2">
                         <span class="shrink-0 text-muted-foreground">Start Date</span>
                         <span class="text-right">{{ formatDate(data.start_date) }}</span>
                     </div>
-                    <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                    <div class="flex justify-between gap-4 border-b border-border pb-2">
                         <span class="shrink-0 text-muted-foreground">End Date</span>
                         <span class="text-right">{{ formatDate(data.end_date) }}</span>
                     </div>
-                    <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                    <div class="flex justify-between gap-4 border-b border-border pb-2">
                         <span class="shrink-0 text-muted-foreground">Document</span>
                         <span class="text-right">
                             <Button
@@ -528,7 +528,7 @@ function viewDocumentInDialog() {
                 <!-- Document Upload -->
                 <div class="flex flex-col gap-2">
                     <label class="font-medium">Document Upload</label>
-                    <div class="rounded-lg border border-sidebar-border/70 p-3 dark:border-sidebar-border">
+                    <div class="rounded-lg border border-border p-3 dark:border-border">
                         <!-- Show existing document if present (only when editing) -->
                         <div v-if="editingId && currentEditingInsurance?.document_url" class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
@@ -569,7 +569,7 @@ function viewDocumentInDialog() {
                                 />
                                 <label
                                     for="insurance-file-upload"
-                                    class="cursor-pointer rounded border border-sidebar-border bg-surface-50 px-3 py-1.5 text-sm hover:bg-surface-100 dark:bg-surface-800 dark:hover:bg-surface-700"
+                                    class="cursor-pointer rounded border border-border bg-surface-50 px-3 py-1.5 text-sm hover:bg-surface-100 dark:bg-surface-800 dark:hover:bg-surface-700"
                                 >
                                     <i class="pi pi-upload mr-2"></i>
                                     {{ selectedFile ? selectedFile.name : 'Choose file' }}

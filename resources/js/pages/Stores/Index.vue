@@ -195,7 +195,7 @@ function onPage(event: { page: number }) {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <h1 class="text-2xl font-semibold">Stores</h1>
+                <h1 class="heading-lg">Stores</h1>
                 <Button
                     label="Create Store"
                     icon="pi pi-plus"
@@ -205,7 +205,7 @@ function onPage(event: { page: number }) {
             </div>
 
             <!-- Filter Section -->
-            <div class="flex flex-col gap-3 rounded-lg border border-sidebar-border/70 bg-surface-50 p-3 dark:border-sidebar-border dark:bg-surface-900 sm:flex-row sm:items-center">
+            <div class="filter-section flex flex-col gap-3 sm:flex-row sm:items-center">
                 <IconField class="flex-1">
                     <InputIcon class="pi pi-search" />
                     <InputText
@@ -264,7 +264,7 @@ function onPage(event: { page: number }) {
                 @row-click="onRowClick"
                 striped-rows
                 size="small"
-                class="overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border [&_.p-datatable-tbody>tr]:cursor-pointer"
+                class="overflow-hidden rounded-lg border border-border  [&_.p-datatable-tbody>tr]:cursor-pointer"
             >
                 <template #empty>
                     <div class="p-4 text-center text-muted-foreground">
@@ -361,19 +361,19 @@ function onPage(event: { page: number }) {
                 </Column>
                 <template #expansion="{ data }">
                     <div class="grid gap-3 p-3 text-sm md:hidden">
-                        <div class="flex justify-between border-b border-sidebar-border/50 pb-2">
+                        <div class="flex justify-between border-b border-border pb-2">
                             <span class="text-muted-foreground">Company</span>
                             <span>{{ data.company?.company_name ?? '-' }}</span>
                         </div>
-                        <div class="flex justify-between border-b border-sidebar-border/50 pb-2">
+                        <div class="flex justify-between border-b border-border pb-2">
                             <span class="text-muted-foreground">Email</span>
                             <span>{{ data.email ?? '-' }}</span>
                         </div>
-                        <div class="flex justify-between border-b border-sidebar-border/50 pb-2">
+                        <div class="flex justify-between border-b border-border pb-2">
                             <span class="text-muted-foreground">Phone</span>
                             <span>{{ data.phone_number ?? '-' }}</span>
                         </div>
-                        <div class="flex justify-between border-b border-sidebar-border/50 pb-2">
+                        <div class="flex justify-between border-b border-border pb-2">
                             <span class="text-muted-foreground">Website</span>
                             <span>{{ data.website ?? '-' }}</span>
                         </div>

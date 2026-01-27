@@ -246,7 +246,7 @@ function getStoreCode(storeId: number): string {
             striped-rows
             size="small"
             :loading="loading"
-            class="overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
+            class="overflow-hidden rounded-xl border border-border dark:border-border"
         >
             <template #empty>
                 <div class="p-4 text-center text-muted-foreground">
@@ -326,11 +326,11 @@ function getStoreCode(storeId: number): string {
             </Column>
             <template #expansion="{ data }">
                 <div class="grid gap-3 p-3 text-sm sm:hidden">
-                    <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                    <div class="flex justify-between gap-4 border-b border-border pb-2">
                         <span class="shrink-0 text-muted-foreground">Store Code</span>
                         <span class="text-right">{{ getStoreCode(data.store_id) }}</span>
                     </div>
-                    <div class="flex flex-col gap-2 border-b border-sidebar-border/50 pb-2">
+                    <div class="flex flex-col gap-2 border-b border-border pb-2">
                         <span class="shrink-0 text-muted-foreground">Permissions</span>
                         <div class="flex flex-wrap gap-1">
                             <Tag
@@ -399,7 +399,7 @@ function getStoreCode(storeId: number): string {
                         size="small"
                         fluid
                     />
-                    <div v-else class="flex items-center gap-2 rounded border border-sidebar-border/50 bg-surface-50 px-3 py-2 dark:bg-surface-800">
+                    <div v-else class="flex items-center gap-2 rounded border border-border bg-surface-50 px-3 py-2 dark:bg-surface-800">
                         <span class="font-medium">{{ getStoreName(form.store_id!) }}</span>
                         <Tag :value="getStoreCode(form.store_id!)" severity="secondary" class="!text-xs" />
                     </div>
@@ -421,7 +421,7 @@ function getStoreCode(storeId: number): string {
                     <div
                         v-for="(permissions, group) in availablePermissions"
                         :key="group"
-                        class="rounded border border-sidebar-border/50 p-3"
+                        class="rounded border border-border p-3"
                     >
                         <div class="mb-2 flex items-center gap-2">
                             <Checkbox

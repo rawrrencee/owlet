@@ -347,12 +347,12 @@ function goBack() {
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex items-center gap-3">
                     <Button icon="pi pi-arrow-left" severity="secondary" text rounded size="small" @click="goBack" v-tooltip.top="'Back to Chart'" />
-                    <h1 class="text-2xl font-semibold">Edit Organisation Chart</h1>
+                    <h1 class="heading-lg">Edit Organisation Chart</h1>
                 </div>
             </div>
 
             <!-- Filter Section -->
-            <div class="flex flex-col gap-3 rounded-lg border border-sidebar-border/70 bg-surface-50 p-3 dark:border-sidebar-border dark:bg-surface-900 sm:flex-row sm:items-center">
+            <div class="filter-section flex flex-col gap-3 sm:flex-row sm:items-center">
                 <IconField class="flex-1">
                     <InputIcon class="pi pi-search" />
                     <InputText v-model="searchQuery" placeholder="Search by name, designation, company..." size="small" fluid />
@@ -391,7 +391,7 @@ function goBack() {
                 size="small"
                 scrollable
                 scroll-height="flex"
-                class="flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
+                class="flex-1 overflow-hidden rounded-lg border border-border "
                 @row-click="(e) => openEditDialog(e.data)"
             >
                 <template #empty>
@@ -498,7 +498,7 @@ function goBack() {
         >
             <div class="flex flex-col gap-4">
                 <!-- Employee Info (Read Only) -->
-                <div class="flex items-center gap-3 rounded-lg border border-sidebar-border/50 bg-surface-50 p-3 dark:bg-surface-800">
+                <div class="flex items-center gap-3 rounded-lg border border-border bg-muted p-3 dark:bg-surface-800">
                     <Image
                         v-if="editingEmployee?.profile_picture_url"
                         :src="editingEmployee.profile_picture_url"
@@ -541,7 +541,7 @@ function goBack() {
                         <div
                             v-for="manager in employeeManagers"
                             :key="manager.id"
-                            class="flex items-center justify-between rounded-lg border border-sidebar-border/50 bg-surface-50 px-3 py-2 dark:bg-surface-800"
+                            class="flex items-center justify-between rounded-lg border border-border bg-muted px-3 py-2 dark:bg-surface-800"
                         >
                             <div class="flex items-center gap-2">
                                 <Image
@@ -577,7 +577,7 @@ function goBack() {
                             />
                         </div>
                     </div>
-                    <div v-else class="rounded-lg border border-dashed border-sidebar-border/50 py-4 text-center text-sm text-muted-foreground">
+                    <div v-else class="rounded-lg border border-dashed border-border py-4 text-center text-sm text-muted-foreground">
                         No managers assigned
                     </div>
                 </div>
@@ -631,7 +631,7 @@ function goBack() {
                 </p>
 
                 <!-- Selected Employees Preview -->
-                <div class="max-h-32 overflow-y-auto rounded-lg border border-sidebar-border/50 bg-surface-50 p-2 dark:bg-surface-800">
+                <div class="max-h-32 overflow-y-auto rounded-lg border border-border bg-muted p-2 dark:bg-surface-800">
                     <div class="flex flex-wrap gap-1">
                         <Tag
                             v-for="emp in selectedEmployees.slice(0, 10)"

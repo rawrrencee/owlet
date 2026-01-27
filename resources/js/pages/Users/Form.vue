@@ -317,7 +317,7 @@ function cancel() {
                     size="small"
                     @click="cancel"
                 />
-                <h1 class="text-2xl font-semibold">{{ pageTitle }}</h1>
+                <h1 class="heading-lg">{{ pageTitle }}</h1>
             </div>
 
             <div class="mx-auto w-full max-w-4xl">
@@ -904,7 +904,7 @@ function cancel() {
                             <Divider />
 
                             <!-- Available After Creation Notice -->
-                            <div class="rounded-lg border border-dashed border-surface-300 bg-surface-50 p-4 dark:border-surface-600 dark:bg-surface-800/50">
+                            <div class="rounded-lg border border-dashed border-surface-300 bg-muted p-4 dark:border-surface-600 dark:bg-surface-800/50">
                                 <h3 class="mb-3 text-sm font-medium text-muted-foreground">Available After Creation</h3>
                                 <p class="mb-4 text-sm text-muted-foreground">
                                     The following sections will be available once the employee is created:

@@ -83,7 +83,7 @@ function viewDocument() {
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex items-center gap-4">
                     <Button icon="pi pi-arrow-left" severity="secondary" text rounded size="small" @click="goBack" />
-                    <h1 class="text-2xl font-semibold">Insurance Details</h1>
+                    <h1 class="heading-lg">Insurance Details</h1>
                     <Tag :value="insurance.is_active ? 'Active' : 'Expired'" :severity="insurance.is_active ? 'success' : 'secondary'" />
                 </div>
                 <div class="flex gap-2">

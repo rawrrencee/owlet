@@ -57,7 +57,7 @@ function cancel() {
                     size="small"
                     @click="cancel"
                 />
-                <h1 class="text-2xl font-semibold">{{ pageTitle }}</h1>
+                <h1 class="heading-lg">{{ pageTitle }}</h1>
             </div>
 
             <div class="mx-auto w-full max-w-2xl">
@@ -146,7 +146,7 @@ function cancel() {
                                 </small>
                             </div>
 
-                            <div v-if="isEditing && customer" class="border-t border-sidebar-border/70 pt-4">
+                            <div v-if="isEditing && customer" class="border-t border-border pt-4">
                                 <h3 class="mb-3 text-sm font-medium text-muted-foreground">Customer Info</h3>
                                 <div class="grid gap-2 text-sm">
                                     <div class="flex justify-between">

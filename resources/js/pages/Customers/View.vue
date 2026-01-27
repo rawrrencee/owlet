@@ -55,7 +55,7 @@ function navigateBack() {
                         size="small"
                         @click="navigateBack"
                     />
-                    <h1 class="text-2xl font-semibold">{{ customer.first_name }} {{ customer.last_name }}</h1>
+                    <h1 class="heading-lg">{{ customer.first_name }} {{ customer.last_name }}</h1>
                 </div>
                 <Button
                     label="Edit"

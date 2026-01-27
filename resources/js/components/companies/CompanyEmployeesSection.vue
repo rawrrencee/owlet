@@ -210,7 +210,7 @@ function getEmployeeName(ec: EmployeeCompanyWithEmployee): string {
             dataKey="id"
             striped-rows
             size="small"
-            class="overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
+            class="overflow-hidden rounded-xl border border-border dark:border-border"
         >
             <template #empty>
                 <div class="p-4 text-center text-muted-foreground">
@@ -279,15 +279,15 @@ function getEmployeeName(ec: EmployeeCompanyWithEmployee): string {
             </Column>
             <template #expansion="{ data }">
                 <div class="grid gap-3 p-3 text-sm sm:hidden">
-                    <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                    <div class="flex justify-between gap-4 border-b border-border pb-2">
                         <span class="shrink-0 text-muted-foreground">Designation</span>
                         <span class="text-right">{{ data.designation?.designation_name ?? '-' }}</span>
                     </div>
-                    <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                    <div class="flex justify-between gap-4 border-b border-border pb-2">
                         <span class="shrink-0 text-muted-foreground">Type</span>
                         <span class="text-right">{{ data.status_label }}</span>
                     </div>
-                    <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                    <div class="flex justify-between gap-4 border-b border-border pb-2">
                         <span class="shrink-0 text-muted-foreground">Start Date</span>
                         <span class="text-right">{{ formatDate(data.commencement_date) }}</span>
                     </div>

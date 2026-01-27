@@ -88,7 +88,7 @@ function getStatusLabel(status: string): string {
                         size="small"
                         @click="goBack"
                     />
-                    <h1 class="text-2xl font-semibold">{{ employee.first_name }} {{ employee.last_name }}</h1>
+                    <h1 class="heading-lg">{{ employee.first_name }} {{ employee.last_name }}</h1>
                     <Tag
                         :value="employee.termination_date ? 'Terminated' : 'Active'"
                         :severity="employee.termination_date ? 'danger' : 'success'"
@@ -232,7 +232,7 @@ function getStatusLabel(status: string): string {
                                                 dataKey="id"
                                                 size="small"
                                                 stripedRows
-                                                class="rounded-lg border border-sidebar-border/70"
+                                                class="rounded-lg border border-border"
                                             >
                                                 <Column expander style="width: 3rem" class="!pr-0 lg:hidden" />
                                                 <Column field="company.company_name" header="Company">
@@ -265,11 +265,11 @@ function getStatusLabel(status: string): string {
                                                 </Column>
                                                 <template #expansion="{ data }">
                                                     <div class="grid gap-3 p-3 text-sm lg:hidden">
-                                                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2 md:hidden">
+                                                        <div class="flex justify-between gap-4 border-b border-border pb-2 md:hidden">
                                                             <span class="shrink-0 text-muted-foreground">Designation</span>
                                                             <span class="text-right">{{ data.designation?.designation_name ?? '-' }}</span>
                                                         </div>
-                                                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2 sm:hidden">
+                                                        <div class="flex justify-between gap-4 border-b border-border pb-2 sm:hidden">
                                                             <span class="shrink-0 text-muted-foreground">Type</span>
                                                             <span class="text-right">{{ data.status_label ?? getStatusLabel(data.status) }}</span>
                                                         </div>
@@ -295,7 +295,7 @@ function getStatusLabel(status: string): string {
                                                 dataKey="id"
                                                 size="small"
                                                 stripedRows
-                                                class="rounded-lg border border-sidebar-border/70"
+                                                class="rounded-lg border border-border"
                                             >
                                                 <Column expander style="width: 3rem" class="!pr-0 md:hidden" />
                                                 <Column field="store.store_name" header="Store">

@@ -284,7 +284,7 @@ function getInitials(employeeId: number): string {
             striped-rows
             size="small"
             :loading="loading"
-            class="overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
+            class="overflow-hidden rounded-xl border border-border dark:border-border"
         >
             <template #empty>
                 <div class="p-4 text-center text-muted-foreground">
@@ -406,7 +406,7 @@ function getInitials(employeeId: number): string {
                     />
                     <div
                         v-else
-                        class="flex items-center gap-2 rounded border border-sidebar-border/50 bg-surface-50 px-3 py-2 dark:bg-surface-800"
+                        class="flex items-center gap-2 rounded border border-border bg-surface-50 px-3 py-2 dark:bg-surface-800"
                     >
                         <span class="font-medium">{{ getEmployeeName(form.employee_id!) }}</span>
                         <span v-if="getEmployeeNumber(form.employee_id!)" class="text-xs text-muted-foreground">
@@ -431,7 +431,7 @@ function getInitials(employeeId: number): string {
                     <div
                         v-for="(permissions, group) in availablePermissions"
                         :key="group"
-                        class="rounded border border-sidebar-border/50 p-3"
+                        class="rounded border border-border p-3"
                     >
                         <div class="mb-2 flex items-center gap-2">
                             <Checkbox

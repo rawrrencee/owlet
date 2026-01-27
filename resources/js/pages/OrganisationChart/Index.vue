@@ -103,7 +103,7 @@ function collapseAll() {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <h1 class="text-2xl font-semibold">Organisation Chart</h1>
+                <h1 class="heading-lg">Organisation Chart</h1>
                 <Button
                     label="Edit Chart"
                     icon="pi pi-pencil"
@@ -113,7 +113,7 @@ function collapseAll() {
             </div>
 
             <!-- Filter Section -->
-            <div class="flex flex-col gap-3 rounded-lg border border-sidebar-border/70 bg-surface-50 p-3 dark:border-sidebar-border dark:bg-surface-900 sm:flex-row sm:items-center">
+            <div class="filter-section flex flex-col gap-3 sm:flex-row sm:items-center">
                 <IconField class="flex-1">
                     <InputIcon class="pi pi-search" />
                     <InputText
@@ -193,7 +193,7 @@ function collapseAll() {
             </div>
 
             <!-- Empty State -->
-            <div v-else class="flex flex-1 flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-sidebar-border/70 p-8 dark:border-sidebar-border">
+            <div v-else class="flex flex-1 flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-border p-8 ">
                 <i class="pi pi-sitemap text-4xl text-muted-foreground"></i>
                 <div class="text-center">
                     <h3 class="font-medium">No employees in hierarchy</h3>

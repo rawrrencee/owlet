@@ -207,7 +207,7 @@ function navigateToCreate() {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <h1 class="text-2xl font-semibold">Documents</h1>
+                <h1 class="heading-lg">Documents</h1>
                 <Button
                     :label="type === 'contracts' ? 'Create Contract' : 'Create Insurance'"
                     icon="pi pi-plus"
@@ -225,7 +225,7 @@ function navigateToCreate() {
 
             <!-- Filter Section -->
             <div
-                class="flex flex-col gap-3 rounded-lg border border-sidebar-border/70 bg-surface-50 p-3 dark:border-sidebar-border dark:bg-surface-900 sm:flex-row sm:items-center"
+                class="filter-section flex flex-col gap-3 sm:flex-row sm:items-center"
             >
                 <IconField class="flex-1">
                     <InputIcon class="pi pi-search" />
@@ -290,7 +290,7 @@ function navigateToCreate() {
                 striped-rows
                 size="small"
                 tableLayout="fixed"
-                class="overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border [&_.p-datatable-tbody>tr]:cursor-pointer"
+                class="overflow-hidden rounded-lg border border-border  [&_.p-datatable-tbody>tr]:cursor-pointer"
             >
                 <template #empty>
                     <div class="p-4 text-center text-muted-foreground">No contracts found.</div>
@@ -369,19 +369,19 @@ function navigateToCreate() {
                 </Column>
                 <template #expansion="{ data }">
                     <div class="grid gap-3 p-3 text-sm sm:hidden">
-                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                        <div class="flex justify-between gap-4 border-b border-border pb-2">
                             <span class="shrink-0 text-muted-foreground">Company</span>
                             <span class="text-right">{{ data.company?.company_name ?? '-' }}</span>
                         </div>
-                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                        <div class="flex justify-between gap-4 border-b border-border pb-2">
                             <span class="shrink-0 text-muted-foreground">Start Date</span>
                             <span class="text-right">{{ formatDate(data.start_date) }}</span>
                         </div>
-                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                        <div class="flex justify-between gap-4 border-b border-border pb-2">
                             <span class="shrink-0 text-muted-foreground">End Date</span>
                             <span class="text-right">{{ formatDate(data.end_date) }}</span>
                         </div>
-                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                        <div class="flex justify-between gap-4 border-b border-border pb-2">
                             <span class="shrink-0 text-muted-foreground">Document</span>
                             <span class="text-right">
                                 <i v-if="data.has_document" class="pi pi-file text-primary" />
@@ -418,7 +418,7 @@ function navigateToCreate() {
                 striped-rows
                 size="small"
                 tableLayout="fixed"
-                class="overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border [&_.p-datatable-tbody>tr]:cursor-pointer"
+                class="overflow-hidden rounded-lg border border-border  [&_.p-datatable-tbody>tr]:cursor-pointer"
             >
                 <template #empty>
                     <div class="p-4 text-center text-muted-foreground">No insurances found.</div>
@@ -502,23 +502,23 @@ function navigateToCreate() {
                 </Column>
                 <template #expansion="{ data }">
                     <div class="grid gap-3 p-3 text-sm sm:hidden">
-                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                        <div class="flex justify-between gap-4 border-b border-border pb-2">
                             <span class="shrink-0 text-muted-foreground">Title</span>
                             <span class="text-right">{{ data.title }}</span>
                         </div>
-                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                        <div class="flex justify-between gap-4 border-b border-border pb-2">
                             <span class="shrink-0 text-muted-foreground">Insurer</span>
                             <span class="text-right">{{ data.insurer_name }}</span>
                         </div>
-                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                        <div class="flex justify-between gap-4 border-b border-border pb-2">
                             <span class="shrink-0 text-muted-foreground">Start Date</span>
                             <span class="text-right">{{ formatDate(data.start_date) }}</span>
                         </div>
-                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                        <div class="flex justify-between gap-4 border-b border-border pb-2">
                             <span class="shrink-0 text-muted-foreground">End Date</span>
                             <span class="text-right">{{ formatDate(data.end_date) }}</span>
                         </div>
-                        <div class="flex justify-between gap-4 border-b border-sidebar-border/50 pb-2">
+                        <div class="flex justify-between gap-4 border-b border-border pb-2">
                             <span class="shrink-0 text-muted-foreground">Document</span>
                             <span class="text-right">
                                 <i v-if="data.has_document" class="pi pi-file text-primary" />
