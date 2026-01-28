@@ -8,14 +8,15 @@ import DataTable from 'primevue/datatable';
 import Divider from 'primevue/divider';
 import Image from 'primevue/image';
 import Tag from 'primevue/tag';
-import { ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useSmartBack } from '@/composables/useSmartBack';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type EmployeeStoreView, type Store } from '@/types';
+import { type BreadcrumbItem, type EmployeeStoreView, type Store, type StoreCurrency } from '@/types';
 
 interface Props {
     store: Store;
     employeeStores: EmployeeStoreView[];
+    storeCurrencies: StoreCurrency[];
 }
 
 const props = defineProps<Props>();
@@ -23,6 +24,40 @@ const props = defineProps<Props>();
 const { goBack } = useSmartBack('/stores');
 
 const expandedEmployeeRows = ref({});
+const expandedCurrencyRows = ref({});
+
+// Clear expanded rows when viewport reaches breakpoint where all columns are visible
+function handleResize() {
+    const width = window.innerWidth;
+    // lg breakpoint (1024px) - all currency columns visible
+    if (width >= 1024) {
+        expandedCurrencyRows.value = {};
+    }
+    // md breakpoint (768px) - all employee columns visible
+    if (width >= 768) {
+        expandedEmployeeRows.value = {};
+    }
+}
+
+onMounted(() => {
+    window.addEventListener('resize', handleResize);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('resize', handleResize);
+});
+
+function formatExchangeRate(rate: number | string | null): string {
+    if (rate === null || rate === undefined) return '-';
+    const num = typeof rate === 'string' ? parseFloat(rate) : rate;
+    // Format with up to 4 decimal places, remove trailing zeros
+    return parseFloat(num.toFixed(4)).toString();
+}
+
+const defaultCurrency = computed(() => {
+    const defaultSc = props.storeCurrencies.find((sc) => sc.is_default);
+    return defaultSc?.currency ?? null;
+});
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -170,19 +205,89 @@ function getEmployeeInitials(name: string): string {
                                 <h3 class="mb-4 text-lg font-medium">Tax Settings</h3>
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div class="flex flex-col gap-1">
-                                        <span class="text-sm text-muted-foreground">Include Tax</span>
-                                        <Tag
-                                            :value="store.include_tax ? 'Yes' : 'No'"
-                                            :severity="store.include_tax ? 'success' : 'secondary'"
-                                            class="w-fit"
-                                        />
-                                    </div>
-                                    <div v-if="store.include_tax" class="flex flex-col gap-1">
                                         <span class="text-sm text-muted-foreground">Tax Percentage</span>
                                         <span>{{ formatPercentage(store.tax_percentage) }}</span>
                                     </div>
+                                    <div class="flex flex-col gap-1">
+                                        <span class="text-sm text-muted-foreground">Tax Inclusive Pricing</span>
+                                        <span>{{ store.include_tax ? 'Prices include tax' : 'Tax added to prices' }}</span>
+                                    </div>
                                 </div>
                             </div>
+
+                            <!-- Store Currencies -->
+                            <template v-if="storeCurrencies && storeCurrencies.length > 0">
+                                <Divider />
+                                <div>
+                                    <h3 class="mb-4 text-lg font-medium">Currencies</h3>
+                                    <DataTable
+                                        v-model:expandedRows="expandedCurrencyRows"
+                                        :value="storeCurrencies"
+                                        dataKey="id"
+                                        size="small"
+                                        stripedRows
+                                        class="rounded-lg border border-border"
+                                    >
+                                        <Column expander style="width: 3rem" class="!pr-0 lg:hidden" />
+                                        <Column field="currency.code" header="Code">
+                                            <template #body="{ data }">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="font-medium">{{ data.currency?.code }}</span>
+                                                    <Tag v-if="data.is_default" value="Default" severity="info" class="!text-xs" />
+                                                </div>
+                                            </template>
+                                        </Column>
+                                        <Column field="currency.name" header="Name" class="hidden sm:table-cell">
+                                            <template #body="{ data }">
+                                                {{ data.currency?.name ?? '-' }}
+                                            </template>
+                                        </Column>
+                                        <Column field="currency.symbol" header="Symbol" class="hidden md:table-cell">
+                                            <template #body="{ data }">
+                                                {{ data.currency?.symbol ?? '-' }}
+                                            </template>
+                                        </Column>
+                                        <Column field="exchange_rate" class="hidden lg:table-cell">
+                                            <template #header>
+                                                <span v-tooltip.top="defaultCurrency ? `Rate relative to ${defaultCurrency.code}` : 'Rate relative to default currency'">
+                                                    Exchange Rate
+                                                    <i class="pi pi-info-circle ml-1 text-xs text-muted-foreground"></i>
+                                                </span>
+                                            </template>
+                                            <template #body="{ data }">
+                                                {{ formatExchangeRate(data.exchange_rate) }}
+                                            </template>
+                                        </Column>
+                                        <template #expansion="{ data }">
+                                            <div class="grid gap-3 p-3 text-sm lg:hidden">
+                                                <div class="flex justify-between gap-4 border-b border-border pb-2 sm:hidden">
+                                                    <span class="shrink-0 text-muted-foreground">Name</span>
+                                                    <span class="text-right">{{ data.currency?.name ?? '-' }}</span>
+                                                </div>
+                                                <div class="flex justify-between gap-4 border-b border-border pb-2 md:hidden">
+                                                    <span class="shrink-0 text-muted-foreground">Symbol</span>
+                                                    <span class="text-right">{{ data.currency?.symbol ?? '-' }}</span>
+                                                </div>
+                                                <div class="flex justify-between gap-4">
+                                                    <span class="shrink-0 text-muted-foreground">
+                                                        Exchange Rate
+                                                        <span v-if="defaultCurrency" class="text-xs">(vs {{ defaultCurrency.code }})</span>
+                                                    </span>
+                                                    <span class="text-right">{{ formatExchangeRate(data.exchange_rate) }}</span>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </DataTable>
+                                </div>
+                            </template>
+
+                            <template v-else>
+                                <Divider />
+                                <div>
+                                    <h3 class="mb-4 text-lg font-medium">Currencies</h3>
+                                    <p class="text-muted-foreground">No currencies assigned to this store.</p>
+                                </div>
+                            </template>
 
                             <!-- Assigned Employees -->
                             <template v-if="employeeStores && employeeStores.length > 0">
@@ -245,7 +350,7 @@ function getEmployeeInitials(name: string): string {
                                                         :value="`+${data.permissions_with_labels.length - 3}`"
                                                         severity="info"
                                                         class="!text-xs"
-                                                        v-tooltip.top="data.permissions_with_labels.slice(3).map(p => p.label).join(', ')"
+                                                        v-tooltip.top="data.permissions_with_labels.slice(3).map((p: any) => p.label).join(', ')"
                                                     />
                                                     <span v-if="!data.permissions_with_labels.length" class="text-muted-foreground">
                                                         No permissions

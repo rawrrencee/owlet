@@ -277,7 +277,7 @@ function getStoreCode(storeId: number): string {
                             :value="`+${(data.permissions_with_labels || []).length - 3}`"
                             severity="info"
                             class="!text-xs"
-                            v-tooltip.top="(data.permissions_with_labels || []).slice(3).map((p: { key: string; label: string }) => p.label).join(', ')"
+                            v-tooltip.top="(data.permissions_with_labels || []).slice(3).map((p: any) => p.label).join(', ')"
                         />
                         <span v-if="!(data.permissions_with_labels || []).length" class="text-muted-foreground text-sm">
                             No permissions

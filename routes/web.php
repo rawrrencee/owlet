@@ -125,6 +125,13 @@ Route::middleware([
         Route::put('stores/{store}/employees/{employeeStore}', [StoreController::class, 'updateEmployee'])->name('stores.employees.update');
         Route::delete('stores/{store}/employees/{employeeStore}', [StoreController::class, 'removeEmployee'])->name('stores.employees.destroy');
 
+        // Store-Currency assignments (manage currencies from store side)
+        Route::get('stores/{store}/currencies', [StoreController::class, 'currencies'])->name('stores.currencies.index');
+        Route::post('stores/{store}/currencies', [StoreController::class, 'addCurrency'])->name('stores.currencies.store');
+        Route::put('stores/{store}/currencies/{storeCurrency}', [StoreController::class, 'updateCurrency'])->name('stores.currencies.update');
+        Route::delete('stores/{store}/currencies/{storeCurrency}', [StoreController::class, 'removeCurrency'])->name('stores.currencies.destroy');
+        Route::post('stores/{store}/currencies/{storeCurrency}/set-default', [StoreController::class, 'setDefaultCurrency'])->name('stores.currencies.set-default');
+
         // Employee-Store assignments
         Route::get('users/{employee}/stores', [EmployeeStoreController::class, 'index'])->name('users.stores.index');
         Route::post('users/{employee}/stores', [EmployeeStoreController::class, 'store'])->name('users.stores.store');

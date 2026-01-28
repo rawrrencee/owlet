@@ -39,7 +39,9 @@ function toggleMonthPicker(event: Event) {
     monthPickerPopover.value.toggle(event);
 }
 
-function handleMonthSelect(date: Date) {
+function handleMonthSelect(value: Date | Date[] | (Date | null)[] | null | undefined) {
+    const date = Array.isArray(value) ? value[0] : value;
+    if (!date) return;
     const newMonth = new Date(date.getFullYear(), date.getMonth(), 1);
     currentMonth.value = newMonth;
     monthPickerDate.value = newMonth;

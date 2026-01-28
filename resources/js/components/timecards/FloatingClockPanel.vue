@@ -6,13 +6,14 @@ import Drawer from 'primevue/drawer';
 import Tag from 'primevue/tag';
 import { computed, onMounted, ref, watch } from 'vue';
 import type { Timecard, TimecardStore } from '@/types/timecard';
+import type { AppPageProps } from '@/types';
 import ClockWidget from './ClockWidget.vue';
 
-interface PageProps {
+type PageProps = AppPageProps<{
     currentTimecard?: Timecard | null;
     isOnBreak?: boolean;
     employeeStores?: TimecardStore[];
-}
+}>;
 
 const page = usePage<PageProps>();
 

@@ -106,7 +106,7 @@ export interface TeamTimecardDayData {
     total_hours: number;
 }
 
-export interface SubordinateInfo {
+export interface TimecardSubordinateInfo {
     id: number;
     name: string;
     employee_number: string | null;

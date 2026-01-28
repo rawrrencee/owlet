@@ -318,6 +318,25 @@ function onPage(event: { page: number }) {
                         {{ data.email ?? '-' }}
                     </template>
                 </Column>
+                <Column field="default_currency" header="Currency" class="hidden lg:table-cell">
+                    <template #body="{ data }">
+                        <div class="flex items-center gap-1">
+                            <Tag
+                                v-if="data.default_currency"
+                                :value="data.default_currency.code"
+                                severity="secondary"
+                            />
+                            <Tag
+                                v-if="data.store_currencies && data.store_currencies.length > 1"
+                                :value="`+${data.store_currencies.length - 1}`"
+                                severity="info"
+                                class="!text-xs"
+                                v-tooltip.top="data.store_currencies.filter((sc: any) => !sc.is_default).map((sc: any) => sc.currency?.code).join(', ')"
+                            />
+                            <span v-if="!data.default_currency && (!data.store_currencies || data.store_currencies.length === 0)" class="text-muted-foreground">-</span>
+                        </div>
+                    </template>
+                </Column>
                 <Column field="active" header="Status">
                     <template #body="{ data }">
                         <Tag
@@ -376,6 +395,23 @@ function onPage(event: { page: number }) {
                         <div class="flex justify-between border-b border-border pb-2">
                             <span class="text-muted-foreground">Website</span>
                             <span>{{ data.website ?? '-' }}</span>
+                        </div>
+                        <div class="flex justify-between border-b border-border pb-2 lg:hidden">
+                            <span class="text-muted-foreground">Currency</span>
+                            <div class="flex items-center gap-1">
+                                <Tag
+                                    v-if="data.default_currency"
+                                    :value="data.default_currency.code"
+                                    severity="secondary"
+                                />
+                                <Tag
+                                    v-if="data.store_currencies && data.store_currencies.length > 1"
+                                    :value="`+${data.store_currencies.length - 1}`"
+                                    severity="info"
+                                    class="!text-xs"
+                                />
+                                <span v-if="!data.default_currency && (!data.store_currencies || data.store_currencies.length === 0)">-</span>
+                            </div>
                         </div>
                         <div v-if="isDeleted(data)" class="flex gap-2 pt-2">
                             <Button

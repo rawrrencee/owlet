@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Store extends Model
@@ -74,5 +75,22 @@ class Store extends Model
     public function setStoreCodeAttribute(string $value): void
     {
         $this->attributes['store_code'] = strtoupper($value);
+    }
+
+    public function currencies(): BelongsToMany
+    {
+        return $this->belongsToMany(Currency::class, 'store_currencies')
+            ->withPivot(['is_default', 'exchange_rate'])
+            ->withTimestamps();
+    }
+
+    public function storeCurrencies(): HasMany
+    {
+        return $this->hasMany(StoreCurrency::class);
+    }
+
+    public function defaultStoreCurrency(): HasOne
+    {
+        return $this->hasOne(StoreCurrency::class)->where('is_default', true);
     }
 }

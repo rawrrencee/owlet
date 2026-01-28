@@ -263,6 +263,8 @@ function getInitials(employeeId: number): string {
     const last = emp.last_name?.charAt(0)?.toUpperCase() ?? '';
     return `${first}${last}`;
 }
+
+const expandedRows = ref({});
 </script>
 
 <template>
@@ -279,6 +281,7 @@ function getInitials(employeeId: number): string {
         </div>
 
         <DataTable
+            v-model:expandedRows="expandedRows"
             :value="storeEmployees"
             dataKey="id"
             striped-rows
@@ -291,12 +294,13 @@ function getInitials(employeeId: number): string {
                     No employees assigned to this store. Click "Add Employee" to assign an employee.
                 </div>
             </template>
+            <Column expander style="width: 3rem" class="!pr-0 md:hidden" />
             <Column field="employee_id" header="Employee">
                 <template #body="{ data }">
                     <div class="flex items-center gap-3">
                         <Image
                             v-if="getProfilePictureUrl(data)"
-                            :src="getProfilePictureUrl(data)"
+                            :src="getProfilePictureUrl(data) ?? undefined"
                             :alt="getEmployeeName(data.employee_id)"
                             image-class="!h-8 !w-8 rounded-full object-cover cursor-pointer"
                             :pt="{ root: { class: 'rounded-full overflow-hidden shrink-0' }, previewMask: { class: 'rounded-full' } }"
@@ -345,7 +349,7 @@ function getInitials(employeeId: number): string {
                     <Tag :value="data.active ? 'Active' : 'Inactive'" :severity="data.active ? 'success' : 'secondary'" />
                 </template>
             </Column>
-            <Column header="" class="w-32 !pr-4">
+            <Column header="" class="hidden w-32 !pr-4 md:table-cell">
                 <template #body="{ data }">
                     <div class="flex justify-end gap-1">
                         <Button
@@ -379,6 +383,52 @@ function getInitials(employeeId: number): string {
                     </div>
                 </template>
             </Column>
+            <template #expansion="{ data }">
+                <div class="grid gap-3 p-3 text-sm md:hidden">
+                    <div class="flex flex-col gap-2">
+                        <span class="shrink-0 text-muted-foreground">Permissions</span>
+                        <div class="flex flex-wrap gap-1">
+                            <Tag
+                                v-for="perm in (data.permissions_with_labels || [])"
+                                :key="perm.key"
+                                :value="perm.label"
+                                severity="secondary"
+                                class="!text-xs"
+                            />
+                            <span v-if="!(data.permissions_with_labels || []).length" class="text-muted-foreground">
+                                No permissions
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-1 pt-1">
+                        <Button
+                            icon="pi pi-pencil"
+                            label="Edit"
+                            severity="secondary"
+                            text
+                            size="small"
+                            @click="openEditDialog(data)"
+                        />
+                        <Button
+                            v-if="data.active"
+                            icon="pi pi-ban"
+                            label="Deactivate"
+                            severity="warn"
+                            text
+                            size="small"
+                            @click="confirmDeactivateAssignment(data)"
+                        />
+                        <Button
+                            icon="pi pi-trash"
+                            label="Remove"
+                            severity="danger"
+                            text
+                            size="small"
+                            @click="confirmRemoveAssignment(data)"
+                        />
+                    </div>
+                </div>
+            </template>
         </DataTable>
 
         <Dialog

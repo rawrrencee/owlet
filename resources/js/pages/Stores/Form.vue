@@ -16,10 +16,11 @@ import ToggleSwitch from 'primevue/toggleswitch';
 import { computed, ref } from 'vue';
 import ImageSelect from '@/components/ImageSelect.vue';
 import ImageUpload from '@/components/ImageUpload.vue';
+import StoreCurrenciesSection from '@/components/stores/StoreCurrenciesSection.vue';
 import StoreEmployeesSection from '@/components/stores/StoreEmployeesSection.vue';
 import { useSmartBack } from '@/composables/useSmartBack';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type Company, type Store } from '@/types';
+import { type BreadcrumbItem, type Company, type Currency, type Store } from '@/types';
 
 interface EmployeeOption {
     id: number;
@@ -32,6 +33,7 @@ interface Props {
     store: Store | null;
     companies: Company[];
     employees?: EmployeeOption[];
+    currencies?: Currency[];
 }
 
 const props = defineProps<Props>();
@@ -67,7 +69,7 @@ const form = useForm({
     website: props.store?.website ?? '',
     active: props.store?.active ?? true,
     include_tax: props.store?.include_tax ?? false,
-    tax_percentage: props.store?.tax_percentage ?? 0,
+    tax_percentage: Number(props.store?.tax_percentage ?? 0),
     logo: null as File | null,
 });
 
@@ -295,12 +297,7 @@ function cancel() {
                             <div>
                                 <h3 class="mb-4 text-lg font-medium">Tax Settings</h3>
                                 <div class="flex flex-col gap-4">
-                                    <div class="flex items-center gap-3">
-                                        <ToggleSwitch v-model="form.include_tax" />
-                                        <span>Include Tax in Prices</span>
-                                    </div>
-
-                                    <div v-if="form.include_tax" class="flex flex-col gap-2">
+                                    <div class="flex flex-col gap-2">
                                         <label for="tax_percentage" class="font-medium">Tax Percentage (%)</label>
                                         <InputNumber
                                             id="tax_percentage"
@@ -317,6 +314,16 @@ function cancel() {
                                         <small v-if="form.errors.tax_percentage" class="text-red-500">
                                             {{ form.errors.tax_percentage }}
                                         </small>
+                                    </div>
+
+                                    <div class="flex items-center gap-3">
+                                        <ToggleSwitch v-model="form.include_tax" />
+                                        <div class="flex flex-col">
+                                            <span>Tax Inclusive Pricing</span>
+                                            <small class="text-muted-foreground">
+                                                {{ form.include_tax ? 'Prices already include tax' : 'Tax will be added to prices' }}
+                                            </small>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -361,6 +368,7 @@ function cancel() {
                             <TabList>
                                 <Tab value="basic">Basic Info</Tab>
                                 <Tab value="employees">Assigned Employees</Tab>
+                                <Tab value="currencies">Currencies</Tab>
                             </TabList>
                             <TabPanels>
                                 <TabPanel value="basic">
@@ -551,12 +559,7 @@ function cancel() {
                                         <div>
                                             <h3 class="mb-4 text-lg font-medium">Tax Settings</h3>
                                             <div class="flex flex-col gap-4">
-                                                <div class="flex items-center gap-3">
-                                                    <ToggleSwitch v-model="form.include_tax" />
-                                                    <span>Include Tax in Prices</span>
-                                                </div>
-
-                                                <div v-if="form.include_tax" class="flex flex-col gap-2">
+                                                <div class="flex flex-col gap-2">
                                                     <label for="edit_tax_percentage" class="font-medium">Tax Percentage (%)</label>
                                                     <InputNumber
                                                         id="edit_tax_percentage"
@@ -573,6 +576,16 @@ function cancel() {
                                                     <small v-if="form.errors.tax_percentage" class="text-red-500">
                                                         {{ form.errors.tax_percentage }}
                                                     </small>
+                                                </div>
+
+                                                <div class="flex items-center gap-3">
+                                                    <ToggleSwitch v-model="form.include_tax" />
+                                                    <div class="flex flex-col">
+                                                        <span>Tax Inclusive Pricing</span>
+                                                        <small class="text-muted-foreground">
+                                                            {{ form.include_tax ? 'Prices already include tax' : 'Tax will be added to prices' }}
+                                                        </small>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -614,6 +627,15 @@ function cancel() {
                                             v-if="store && employees"
                                             :store-id="store.id"
                                             :employees="employees"
+                                        />
+                                    </div>
+                                </TabPanel>
+                                <TabPanel value="currencies">
+                                    <div class="pt-4">
+                                        <StoreCurrenciesSection
+                                            v-if="store && currencies"
+                                            :store-id="store.id"
+                                            :currencies="currencies"
                                         />
                                     </div>
                                 </TabPanel>

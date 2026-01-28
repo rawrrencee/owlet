@@ -1,5 +1,6 @@
 export * from './auth';
 export * from './company';
+export * from './currency';
 export * from './customer';
 export * from './employee';
 export * from './hierarchy';

@@ -38,6 +38,9 @@ const selectedCompany = ref<number | null>(null);
 // Selection state for bulk operations
 const selectedEmployees = ref<EmployeeWithManagers[]>([]);
 
+// Expanded rows for mobile view
+const expandedRows = ref({});
+
 // Dialog state
 const editDialogVisible = ref(false);
 const bulkDialogVisible = ref(false);
@@ -264,12 +267,12 @@ function openBulkDialog() {
 }
 
 function closeBulkDialog() {
-    bulkDialogVisible.value = false;
-    bulkResult.value = null;
     // If there were successful assignments, clear selection and refresh
     if (bulkResult.value?.success?.length) {
         selectedEmployees.value = [];
     }
+    bulkDialogVisible.value = false;
+    bulkResult.value = null;
 }
 
 async function bulkAssign() {
@@ -385,6 +388,7 @@ function goBack() {
             <!-- Employees DataTable -->
             <DataTable
                 v-model:selection="selectedEmployees"
+                v-model:expandedRows="expandedRows"
                 :value="filteredEmployees"
                 data-key="id"
                 striped-rows
@@ -402,6 +406,7 @@ function goBack() {
                 </template>
 
                 <Column selection-mode="multiple" header-style="width: 3rem" :exportable="false" />
+                <Column expander style="width: 3rem" class="!pr-0 md:hidden" />
 
                 <Column field="name" header="Employee">
                     <template #body="{ data }">
@@ -472,7 +477,7 @@ function goBack() {
                     </template>
                 </Column>
 
-                <Column header="" style="width: 4rem" :exportable="false">
+                <Column header="" style="width: 4rem" :exportable="false" class="hidden md:table-cell">
                     <template #body="{ data }">
                         <Button
                             icon="pi pi-pencil"
@@ -485,6 +490,28 @@ function goBack() {
                         />
                     </template>
                 </Column>
+                <template #expansion="{ data }">
+                    <div class="grid gap-3 p-3 text-sm md:hidden">
+                        <div class="flex justify-between gap-4 border-b border-border pb-2">
+                            <span class="shrink-0 text-muted-foreground">Company</span>
+                            <span class="text-right">{{ data.company ?? '-' }}</span>
+                        </div>
+                        <div class="flex justify-between gap-4 border-b border-border pb-2 lg:hidden">
+                            <span class="shrink-0 text-muted-foreground">Designation</span>
+                            <span class="text-right">{{ data.designation ?? '-' }}</span>
+                        </div>
+                        <div class="flex justify-end gap-1 pt-1">
+                            <Button
+                                icon="pi pi-pencil"
+                                label="Edit Managers"
+                                severity="secondary"
+                                text
+                                size="small"
+                                @click="openEditDialog(data)"
+                            />
+                        </div>
+                    </div>
+                </template>
             </DataTable>
         </div>
 
