@@ -33,10 +33,10 @@ class TimecardResource extends JsonResource
                 'name' => $this->store->store_name,
                 'store_code' => $this->store->store_code,
             ] : null,
-            'details' => $this->whenLoaded('details', fn () => TimecardDetailResource::collection($this->details)),
+            'details' => $this->whenLoaded('details', fn () => TimecardDetailResource::collection($this->details)->resolve()),
             'current_detail' => $this->when(
                 $this->relationLoaded('details'),
-                fn () => $this->getCurrentDetail() ? new TimecardDetailResource($this->getCurrentDetail()) : null
+                fn () => $this->getCurrentDetail() ? (new TimecardDetailResource($this->getCurrentDetail()))->resolve() : null
             ),
             'created_by' => $this->whenLoaded('createdByEmployee', fn () => [
                 'id' => $this->createdByEmployee->id,

@@ -27,6 +27,12 @@ class StoreTimecardRequest extends FormRequest
                 Timecard::STATUS_COMPLETED,
                 Timecard::STATUS_EXPIRED,
             ])],
+            // Optional time entries
+            'start_time' => ['nullable', 'date'],
+            'end_time' => ['nullable', 'date', 'after:start_time'],
+            'breaks' => ['nullable', 'array'],
+            'breaks.*.start_time' => ['required_with:breaks', 'date'],
+            'breaks.*.end_time' => ['required_with:breaks', 'date', 'after:breaks.*.start_time'],
         ];
     }
 
@@ -41,6 +47,8 @@ class StoreTimecardRequest extends FormRequest
             'date.date' => 'Please enter a valid date.',
             'status.required' => 'Please select a status.',
             'status.in' => 'The selected status is invalid.',
+            'end_time.after' => 'End time must be after start time.',
+            'breaks.*.end_time.after' => 'Break end time must be after break start time.',
         ];
     }
 }

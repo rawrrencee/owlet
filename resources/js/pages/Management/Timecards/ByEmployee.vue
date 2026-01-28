@@ -26,13 +26,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 function handleDateClick(date: string) {
-    // Navigate to the date view filtered by employee
-    // Or directly to the timecard if there's only one
-    const dayData = props.monthlyData[date];
-    if (dayData?.stores?.length === 1) {
-        // Could navigate directly to edit if desired
-    }
-    router.visit(`/management/timecards/date/${date}`);
+    // Navigate to the date view with this employee highlighted
+    router.visit(`/management/timecards/date/${date}?highlight_employee=${props.employee.id}`);
 }
 
 function handleMonthChange(month: Date) {

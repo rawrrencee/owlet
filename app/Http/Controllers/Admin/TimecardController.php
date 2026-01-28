@@ -177,6 +177,24 @@ class TimecardController extends Controller
         $store = Store::findOrFail($request->store_id);
         $date = Carbon::parse($request->date);
 
+        // Check if time entries were provided
+        $hasTimeEntries = $request->filled('start_time');
+
+        if ($hasTimeEntries) {
+            $timecard = $this->timecardService->createTimecardWithDetails(
+                $employee,
+                $store,
+                $date,
+                $user->employee,
+                $request->start_time,
+                $request->end_time,
+                $request->breaks ?? []
+            );
+
+            return redirect()->route('management.timecards.show', $timecard)
+                ->with('success', 'Timecard created with time entries.');
+        }
+
         $timecard = $this->timecardService->getOrCreateTimecard(
             $employee,
             $store,
@@ -196,7 +214,7 @@ class TimecardController extends Controller
         $timecard->load(['employee', 'store', 'details', 'createdByEmployee', 'updatedByEmployee']);
 
         return Inertia::render('Management/Timecards/Show', [
-            'timecard' => new TimecardResource($timecard),
+            'timecard' => (new TimecardResource($timecard))->resolve(),
         ]);
     }
 
@@ -217,7 +235,7 @@ class TimecardController extends Controller
             ]);
 
         return Inertia::render('Management/Timecards/Edit', [
-            'timecard' => new TimecardResource($timecard),
+            'timecard' => (new TimecardResource($timecard))->resolve(),
             'stores' => $stores,
             'statuses' => [
                 ['value' => Timecard::STATUS_IN_PROGRESS, 'label' => 'In Progress'],

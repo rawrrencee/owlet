@@ -7,9 +7,16 @@ import TimecardCalendar from '@/components/timecards/TimecardCalendar.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem, CalendarDayData, Timecard, TimecardStore } from '@/types';
 
+interface MonthlyStats {
+    total_hours: number;
+    days_worked: number;
+    daily_average: number;
+}
+
 interface Props {
     month: string;
     monthlyData: Record<string, CalendarDayData>;
+    monthlyStats: MonthlyStats;
     currentTimecard: Timecard | null;
     isOnBreak: boolean;
     stores: TimecardStore[];
@@ -33,6 +40,20 @@ function handleMonthChange(month: Date) {
     const monthString = month.toISOString().split('T')[0];
     router.get('/timecards', { month: monthString }, { preserveState: true });
 }
+
+function formatHours(hours: number): string {
+    if (hours === 0) return '0h';
+    const h = Math.floor(hours);
+    const m = Math.round((hours - h) * 60);
+    if (h === 0) return `${m}m`;
+    if (m === 0) return `${h}h`;
+    return `${h}h ${m}m`;
+}
+
+const monthDisplayName = computed(() => {
+    const date = new Date(props.month);
+    return date.toLocaleString('default', { month: 'long', year: 'numeric' });
+});
 </script>
 
 <template>
@@ -43,13 +64,44 @@ function handleMonthChange(month: Date) {
             <h1 class="heading-lg">My Timecards</h1>
 
             <div class="grid gap-4 lg:grid-cols-3">
-                <!-- Clock Widget -->
-                <div class="lg:col-span-1">
+                <!-- Clock Widget and Stats -->
+                <div class="flex flex-col gap-4 lg:col-span-1">
                     <ClockWidget
                         :current-timecard="currentTimecard"
                         :is-on-break="isOnBreak"
                         :stores="stores"
                     />
+
+                    <!-- Monthly Stats -->
+                    <Card>
+                        <template #content>
+                            <div class="flex flex-col gap-3">
+                                <h3 class="text-sm font-medium text-muted-foreground">
+                                    {{ monthDisplayName }} Summary
+                                </h3>
+                                <div class="grid grid-cols-3 gap-3">
+                                    <div class="flex flex-col items-center rounded-lg bg-green-50 p-3 dark:bg-green-900/20">
+                                        <span class="text-xl font-bold text-green-600 dark:text-green-400">
+                                            {{ formatHours(monthlyStats.total_hours) }}
+                                        </span>
+                                        <span class="text-xs text-muted-foreground">Total</span>
+                                    </div>
+                                    <div class="flex flex-col items-center rounded-lg bg-muted/50 p-3">
+                                        <span class="text-xl font-bold">
+                                            {{ monthlyStats.days_worked }}
+                                        </span>
+                                        <span class="text-xs text-muted-foreground">Days</span>
+                                    </div>
+                                    <div class="flex flex-col items-center rounded-lg bg-muted/50 p-3">
+                                        <span class="text-xl font-bold">
+                                            {{ formatHours(monthlyStats.daily_average) }}
+                                        </span>
+                                        <span class="text-xs text-muted-foreground">Avg/Day</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </Card>
                 </div>
 
                 <!-- Calendar -->

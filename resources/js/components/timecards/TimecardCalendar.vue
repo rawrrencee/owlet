@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import Button from 'primevue/button';
+import DatePicker from 'primevue/datepicker';
+import Popover from 'primevue/popover';
 import { computed, ref } from 'vue';
 import type { CalendarDayData } from '@/types/timecard';
 
@@ -23,6 +25,8 @@ const emit = defineEmits<{
 }>();
 
 const currentMonth = ref(new Date(props.month));
+const monthPickerPopover = ref();
+const monthPickerDate = ref(new Date(props.month));
 
 const monthName = computed(() => {
     return currentMonth.value.toLocaleString('default', {
@@ -30,6 +34,18 @@ const monthName = computed(() => {
         year: 'numeric',
     });
 });
+
+function toggleMonthPicker(event: Event) {
+    monthPickerPopover.value.toggle(event);
+}
+
+function handleMonthSelect(date: Date) {
+    const newMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+    currentMonth.value = newMonth;
+    monthPickerDate.value = newMonth;
+    monthPickerPopover.value.hide();
+    emit('monthChange', newMonth);
+}
 
 const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -156,7 +172,22 @@ function formatHours(hours: number): string {
                 @click="previousMonth"
                 aria-label="Previous month"
             />
-            <h3 class="text-lg font-semibold">{{ monthName }}</h3>
+            <Button
+                :label="monthName"
+                text
+                size="small"
+                class="text-lg font-semibold"
+                @click="toggleMonthPicker"
+                aria-label="Select month"
+            />
+            <Popover ref="monthPickerPopover">
+                <DatePicker
+                    v-model="monthPickerDate"
+                    view="month"
+                    inline
+                    @update:model-value="handleMonthSelect"
+                />
+            </Popover>
             <Button
                 icon="pi pi-chevron-right"
                 text

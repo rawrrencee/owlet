@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
+import Divider from 'primevue/divider';
 import Tag from 'primevue/tag';
+import { computed } from 'vue';
 import TimecardSummaryCard from '@/components/timecards/TimecardSummaryCard.vue';
 import { useSmartBack } from '@/composables/useSmartBack';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -29,8 +31,36 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const page = usePage();
 
 const { goBack } = useSmartBack('/management/timecards');
+
+// Get highlight_employee from query params
+const highlightEmployeeId = computed(() => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('highlight_employee');
+    return id ? parseInt(id, 10) : null;
+});
+
+// Reorder grouped timecards to put highlighted employee first
+const orderedGroupedTimecards = computed(() => {
+    if (!highlightEmployeeId.value) {
+        return props.groupedTimecards;
+    }
+
+    const highlighted = props.groupedTimecards.filter(
+        (g) => g.employee.id === highlightEmployeeId.value
+    );
+    const others = props.groupedTimecards.filter(
+        (g) => g.employee.id !== highlightEmployeeId.value
+    );
+
+    return [...highlighted, ...others];
+});
+
+function isHighlighted(employeeId: number): boolean {
+    return highlightEmployeeId.value === employeeId;
+}
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -98,55 +128,78 @@ function navigateToCreate() {
             </div>
 
             <!-- Grouped by Employee -->
-            <div v-if="groupedTimecards.length > 0" class="flex flex-col gap-6">
-                <div
-                    v-for="group in groupedTimecards"
+            <div v-if="orderedGroupedTimecards.length > 0" class="flex flex-col gap-6">
+                <template
+                    v-for="(group, index) in orderedGroupedTimecards"
                     :key="group.employee.id"
-                    class="flex flex-col gap-3"
                 >
-                    <!-- Employee Header -->
-                    <div
-                        class="flex cursor-pointer items-center gap-3 rounded-lg bg-muted/50 p-3 transition-colors hover:bg-muted"
-                        @click="navigateToEmployee(group.employee.id)"
-                    >
-                        <Avatar
-                            v-if="group.employee.profile_picture_url"
-                            :image="group.employee.profile_picture_url"
-                            shape="circle"
-                        />
-                        <Avatar
-                            v-else
-                            :label="getInitials(group.employee.name)"
-                            shape="circle"
-                            class="bg-primary/10 text-primary"
-                        />
-                        <div class="flex-1">
-                            <p class="font-semibold">{{ group.employee.name }}</p>
-                            <p
-                                v-if="group.employee.employee_number"
-                                class="text-sm text-muted-foreground"
-                            >
-                                #{{ group.employee.employee_number }}
-                            </p>
-                        </div>
-                        <Tag
-                            :value="formatHours(group.total_hours)"
-                            severity="success"
-                        />
-                        <i class="pi pi-chevron-right text-muted-foreground"></i>
-                    </div>
+                    <!-- Divider after highlighted employee -->
+                    <Divider
+                        v-if="highlightEmployeeId && index === 1"
+                        class="my-2"
+                    />
 
-                    <!-- Timecards -->
-                    <div class="ml-4 flex flex-col gap-3 border-l-2 border-muted pl-4">
-                        <TimecardSummaryCard
-                            v-for="timecard in group.timecards.data"
-                            :key="timecard.id"
-                            :timecard="timecard"
-                            :show-link="true"
-                            :link-url="`/management/timecards/${timecard.id}`"
-                        />
+                    <div
+                        class="flex flex-col gap-3 rounded-lg p-2 transition-all"
+                        :class="{
+                            'bg-primary/5 ring-2 ring-primary': isHighlighted(group.employee.id),
+                            'opacity-75': highlightEmployeeId && !isHighlighted(group.employee.id),
+                        }"
+                    >
+                        <!-- Employee Header -->
+                        <div
+                            class="flex cursor-pointer items-center gap-3 rounded-lg p-3 transition-colors"
+                            :class="{
+                                'bg-primary/10 hover:bg-primary/15': isHighlighted(group.employee.id),
+                                'bg-muted/50 hover:bg-muted': !isHighlighted(group.employee.id),
+                            }"
+                            @click="navigateToEmployee(group.employee.id)"
+                        >
+                            <Avatar
+                                v-if="group.employee.profile_picture_url"
+                                :image="group.employee.profile_picture_url"
+                                shape="circle"
+                            />
+                            <Avatar
+                                v-else
+                                :label="getInitials(group.employee.name)"
+                                shape="circle"
+                                class="bg-primary/10 text-primary"
+                            />
+                            <div class="flex-1">
+                                <p class="font-semibold">{{ group.employee.name }}</p>
+                                <p
+                                    v-if="group.employee.employee_number"
+                                    class="text-sm text-muted-foreground"
+                                >
+                                    #{{ group.employee.employee_number }}
+                                </p>
+                            </div>
+                            <Tag
+                                :value="formatHours(group.total_hours)"
+                                severity="success"
+                            />
+                            <i class="pi pi-chevron-right text-muted-foreground"></i>
+                        </div>
+
+                        <!-- Timecards -->
+                        <div
+                            class="ml-4 flex flex-col gap-3 border-l-2 pl-4"
+                            :class="{
+                                'border-primary': isHighlighted(group.employee.id),
+                                'border-muted': !isHighlighted(group.employee.id),
+                            }"
+                        >
+                            <TimecardSummaryCard
+                                v-for="timecard in group.timecards.data"
+                                :key="timecard.id"
+                                :timecard="timecard"
+                                :show-link="true"
+                                :link-url="`/management/timecards/${timecard.id}`"
+                            />
+                        </div>
                     </div>
-                </div>
+                </template>
             </div>
 
             <!-- Empty State -->

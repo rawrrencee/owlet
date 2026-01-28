@@ -168,6 +168,28 @@ class TimecardService
     }
 
     /**
+     * Get monthly statistics for an employee.
+     *
+     * @return array{total_hours: float, days_worked: int, daily_average: float}
+     */
+    public function getMonthlyStats(Employee $employee, CarbonInterface $month): array
+    {
+        $timecards = Timecard::where('employee_id', $employee->id)
+            ->forMonth($month)
+            ->get();
+
+        $totalHours = (float) $timecards->sum('hours_worked');
+        $daysWorked = $timecards->groupBy(fn (Timecard $t) => $t->start_date->toDateString())->count();
+        $dailyAverage = $daysWorked > 0 ? round($totalHours / $daysWorked, 2) : 0;
+
+        return [
+            'total_hours' => round($totalHours, 2),
+            'days_worked' => $daysWorked,
+            'daily_average' => $dailyAverage,
+        ];
+    }
+
+    /**
      * Get monthly timecards for an employee grouped by date.
      *
      * @return Collection<string, array{date: string, stores: array, total_hours: float}>
@@ -268,6 +290,67 @@ class TimecardService
             'hours_worked' => 0,
             'created_by' => $creator->id,
         ]);
+    }
+
+    /**
+     * Create a timecard with optional time details and breaks.
+     */
+    public function createTimecardWithDetails(
+        Employee $employee,
+        Store $store,
+        CarbonInterface $date,
+        Employee $creator,
+        ?string $startTime = null,
+        ?string $endTime = null,
+        array $breaks = []
+    ): Timecard {
+        return DB::transaction(function () use ($employee, $store, $date, $creator, $startTime, $endTime, $breaks) {
+            $start = $startTime ? Carbon::parse($startTime) : $date->copy()->startOfDay();
+            $end = $endTime ? Carbon::parse($endTime) : null;
+
+            $timecard = Timecard::create([
+                'employee_id' => $employee->id,
+                'store_id' => $store->id,
+                'status' => $end ? Timecard::STATUS_COMPLETED : Timecard::STATUS_IN_PROGRESS,
+                'start_date' => $start,
+                'end_date' => $end,
+                'hours_worked' => 0,
+                'created_by' => $creator->id,
+            ]);
+
+            // Create work detail
+            if ($startTime) {
+                $workHours = $end ? round($start->diffInMinutes($end) / 60, 2) : null;
+
+                TimecardDetail::create([
+                    'timecard_id' => $timecard->id,
+                    'type' => TimecardDetail::TYPE_WORK,
+                    'start_date' => $start,
+                    'end_date' => $end,
+                    'hours' => $workHours,
+                ]);
+
+                // Create break details
+                foreach ($breaks as $break) {
+                    $breakStart = Carbon::parse($break['start_time']);
+                    $breakEnd = Carbon::parse($break['end_time']);
+                    $breakHours = round($breakStart->diffInMinutes($breakEnd) / 60, 2);
+
+                    TimecardDetail::create([
+                        'timecard_id' => $timecard->id,
+                        'type' => TimecardDetail::TYPE_BREAK,
+                        'start_date' => $breakStart,
+                        'end_date' => $breakEnd,
+                        'hours' => $breakHours,
+                    ]);
+                }
+
+                // Recalculate total work hours (excluding breaks)
+                $this->recalculateHours($timecard);
+            }
+
+            return $timecard->fresh(['details', 'store', 'employee']);
+        });
     }
 
     /**

@@ -38,6 +38,9 @@ class TimecardController extends Controller
         // Get monthly timecard data for calendar
         $monthlyData = $this->timecardService->getMonthlyTimecards($employee, $month);
 
+        // Get monthly stats
+        $monthlyStats = $this->timecardService->getMonthlyStats($employee, $month);
+
         // Get current timecard state for clock widget
         $currentState = $this->timecardService->getCurrentTimecardState($employee);
 
@@ -54,6 +57,7 @@ class TimecardController extends Controller
         return Inertia::render('Timecards/Index', [
             'month' => $month->toDateString(),
             'monthlyData' => $monthlyData,
+            'monthlyStats' => $monthlyStats,
             'currentTimecard' => $currentState['timecard']
                 ? (new TimecardResource($currentState['timecard']))->resolve()
                 : null,
@@ -132,8 +136,7 @@ class TimecardController extends Controller
 
         $this->timecardService->clockIn($employee, $store, $employee);
 
-        return redirect()->route('timecards.index')
-            ->with('success', "Clocked in at {$store->store_name}.");
+        return back()->with('success', "Clocked in at {$store->store_name}.");
     }
 
     /**
@@ -155,8 +158,7 @@ class TimecardController extends Controller
 
         $this->timecardService->clockOut($timecard, $employee);
 
-        return redirect()->route('timecards.index')
-            ->with('success', 'Clocked out successfully.');
+        return back()->with('success', 'Clocked out successfully.');
     }
 
     /**
