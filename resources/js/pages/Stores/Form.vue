@@ -20,7 +20,7 @@ import StoreCurrenciesSection from '@/components/stores/StoreCurrenciesSection.v
 import StoreEmployeesSection from '@/components/stores/StoreEmployeesSection.vue';
 import { useSmartBack } from '@/composables/useSmartBack';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type Company, type Currency, type Store } from '@/types';
+import { type BreadcrumbItem, type Company, type Country, type Currency, type Store } from '@/types';
 
 interface EmployeeOption {
     id: number;
@@ -34,6 +34,7 @@ interface Props {
     companies: Company[];
     employees?: EmployeeOption[];
     currencies?: Currency[];
+    countries?: Country[];
 }
 
 const props = defineProps<Props>();
@@ -57,6 +58,10 @@ const companyOptions = computed(() => [
     ...props.companies.map(c => ({ label: c.company_name, value: c.id })),
 ]);
 
+const countryOptions = computed(() =>
+    (props.countries ?? []).map((c) => ({ label: c.name, value: c.id })),
+);
+
 const form = useForm({
     store_name: props.store?.store_name ?? '',
     store_code: props.store?.store_code ?? '',
@@ -66,6 +71,7 @@ const form = useForm({
     mobile_number: props.store?.mobile_number ?? '',
     address_1: props.store?.address_1 ?? '',
     address_2: props.store?.address_2 ?? '',
+    country_id: props.store?.country_id ?? null,
     website: props.store?.website ?? '',
     active: props.store?.active ?? true,
     include_tax: props.store?.include_tax ?? false,
@@ -286,6 +292,26 @@ function cancel() {
                                         />
                                         <small v-if="form.errors.address_2" class="text-red-500">
                                             {{ form.errors.address_2 }}
+                                        </small>
+                                    </div>
+
+                                    <div class="flex flex-col gap-2">
+                                        <label for="country_id" class="font-medium">Country</label>
+                                        <Select
+                                            id="country_id"
+                                            v-model="form.country_id"
+                                            :options="countryOptions"
+                                            option-label="label"
+                                            option-value="value"
+                                            :invalid="!!form.errors.country_id"
+                                            placeholder="Select country"
+                                            filter
+                                            show-clear
+                                            size="small"
+                                            fluid
+                                        />
+                                        <small v-if="form.errors.country_id" class="text-red-500">
+                                            {{ form.errors.country_id }}
                                         </small>
                                     </div>
                                 </div>
@@ -548,6 +574,26 @@ function cancel() {
                                                     />
                                                     <small v-if="form.errors.address_2" class="text-red-500">
                                                         {{ form.errors.address_2 }}
+                                                    </small>
+                                                </div>
+
+                                                <div class="flex flex-col gap-2">
+                                                    <label for="edit_country_id" class="font-medium">Country</label>
+                                                    <Select
+                                                        id="edit_country_id"
+                                                        v-model="form.country_id"
+                                                        :options="countryOptions"
+                                                        option-label="label"
+                                                        option-value="value"
+                                                        :invalid="!!form.errors.country_id"
+                                                        placeholder="Select country"
+                                                        filter
+                                                        show-clear
+                                                        size="small"
+                                                        fluid
+                                                    />
+                                                    <small v-if="form.errors.country_id" class="text-red-500">
+                                                        {{ form.errors.country_id }}
                                                     </small>
                                                 </div>
                                             </div>

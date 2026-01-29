@@ -16,6 +16,8 @@ class StoreResource extends JsonResource
             'company_id' => $this->company_id,
             'address_1' => $this->address_1,
             'address_2' => $this->address_2,
+            'country_id' => $this->country_id,
+            'country_name' => $this->whenLoaded('country', fn () => $this->country?->name),
             'email' => $this->email,
             'phone_number' => $this->phone_number,
             'mobile_number' => $this->mobile_number,

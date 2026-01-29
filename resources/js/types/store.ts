@@ -1,4 +1,5 @@
 import type { Company } from './company';
+import type { Country } from './country';
 import type { Currency, StoreCurrency } from './currency';
 
 export interface Store {
@@ -8,6 +9,9 @@ export interface Store {
     company_id: number | null;
     address_1: string | null;
     address_2: string | null;
+    country_id: number | null;
+    country_name?: string | null;
+    country?: Country;
     email: string | null;
     phone_number: string | null;
     mobile_number: string | null;

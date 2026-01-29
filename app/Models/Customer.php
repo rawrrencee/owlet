@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -20,6 +21,8 @@ class Customer extends Model
         'date_of_birth',
         'gender',
         'race',
+        'country_id',
+        'nationality_id',
         'company_name',
         'discount_percentage',
         'loyalty_points',
@@ -51,5 +54,15 @@ class Customer extends Model
     public function hasUserAccount(): bool
     {
         return $this->user()->exists();
+    }
+
+    public function country(): BelongsTo
+    {
+        return $this->belongsTo(Country::class);
+    }
+
+    public function nationalityCountry(): BelongsTo
+    {
+        return $this->belongsTo(Country::class, 'nationality_id');
     }
 }

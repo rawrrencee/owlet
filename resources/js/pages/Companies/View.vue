@@ -172,7 +172,8 @@ function navigateToEmployee(employeeId: number) {
                                 <div class="flex flex-col gap-1">
                                     <span v-if="company.address_1">{{ company.address_1 }}</span>
                                     <span v-if="company.address_2">{{ company.address_2 }}</span>
-                                    <span v-if="!company.address_1 && !company.address_2" class="text-muted-foreground">
+                                    <span v-if="company.country_name">{{ company.country_name }}</span>
+                                    <span v-if="!company.address_1 && !company.address_2 && !company.country_name" class="text-muted-foreground">
                                         No address provided
                                     </span>
                                 </div>

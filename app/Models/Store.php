@@ -20,6 +20,7 @@ class Store extends Model
         'company_id',
         'address_1',
         'address_2',
+        'country_id',
         'email',
         'phone_number',
         'mobile_number',
@@ -92,5 +93,10 @@ class Store extends Model
     public function defaultStoreCurrency(): HasOne
     {
         return $this->hasOne(StoreCurrency::class)->where('is_default', true);
+    }
+
+    public function country(): BelongsTo
+    {
+        return $this->belongsTo(Country::class);
     }
 }

@@ -25,19 +25,13 @@ import EmployeeStoresSection from '@/components/employees/EmployeeStoresSection.
 import ImageSelect from '@/components/ImageSelect.vue';
 import ImageUpload from '@/components/ImageUpload.vue';
 import { useSmartBack } from '@/composables/useSmartBack';
-import {
-    countries,
-    countryOptions,
-    nationalities,
-    nationalityOptions,
-    relationships,
-    relationshipOptions,
-} from '@/constants/employee';
+import { relationships, relationshipOptions } from '@/constants/employee';
 import AppLayout from '@/layouts/AppLayout.vue';
 import {
     type AppPageProps,
     type BreadcrumbItem,
     type Company,
+    type Country,
     type Designation,
     type Employee,
     type EmployeeCompany,
@@ -57,6 +51,7 @@ interface Props {
     companies?: Company[];
     designations?: Designation[];
     stores?: Store[];
+    countries?: Country[];
 }
 
 const props = defineProps<Props>();
@@ -116,10 +111,12 @@ const form = useForm({
     state: props.employee?.state ?? '',
     postal_code: props.employee?.postal_code ?? '',
     country: props.employee?.country ?? '',
+    country_id: props.employee?.country_id ?? null,
     date_of_birth: props.employee?.date_of_birth ? new Date(props.employee.date_of_birth) : null,
     gender: props.employee?.gender ?? '',
     race: props.employee?.race ?? '',
     nationality: props.employee?.nationality ?? '',
+    nationality_id: props.employee?.nationality_id ?? null,
     residency_status: props.employee?.residency_status ?? '',
     pr_conversion_date: props.employee?.pr_conversion_date ? new Date(props.employee.pr_conversion_date) : null,
     emergency_name: props.employee?.emergency_name ?? '',
@@ -217,17 +214,7 @@ const isOtherValue = (value: string | null | undefined, list: readonly string[])
     return value && !list.includes(value);
 };
 
-// Track custom "Other" values for fields with Other option
-const nationalitySelection = ref(
-    isOtherValue(props.employee?.nationality, nationalities) ? 'Other' : (props.employee?.nationality ?? ''),
-);
-const nationalityOther = ref(isOtherValue(props.employee?.nationality, nationalities) ? props.employee?.nationality : '');
-
-const countrySelection = ref(
-    isOtherValue(props.employee?.country, countries) ? 'Other' : (props.employee?.country ?? ''),
-);
-const countryOther = ref(isOtherValue(props.employee?.country, countries) ? props.employee?.country : '');
-
+// Track custom "Other" value for emergency relationship (country/nationality now use database)
 const relationshipSelection = ref(
     isOtherValue(props.employee?.emergency_relationship, relationships)
         ? 'Other'
@@ -235,6 +222,15 @@ const relationshipSelection = ref(
 );
 const relationshipOther = ref(
     isOtherValue(props.employee?.emergency_relationship, relationships) ? props.employee?.emergency_relationship : '',
+);
+
+// Computed options from countries prop
+const countryOptions = computed(() =>
+    (props.countries ?? []).map((c) => ({ label: c.name, value: c.id })),
+);
+
+const nationalityOptions = computed(() =>
+    (props.countries ?? []).map((c) => ({ label: c.nationality_name, value: c.id })),
 );
 
 // Watch isActive toggle and update termination_date accordingly
@@ -259,11 +255,8 @@ function submit() {
     isSubmitting = true;
 
     // Transform dates to ISO strings for the backend
-    // Use custom "Other" values when selected
     form.transform((data) => ({
         ...data,
-        nationality: nationalitySelection.value === 'Other' ? nationalityOther.value : nationalitySelection.value,
-        country: countrySelection.value === 'Other' ? countryOther.value : countrySelection.value,
         emergency_relationship:
             relationshipSelection.value === 'Other' ? relationshipOther.value : relationshipSelection.value,
         date_of_birth: data.date_of_birth ? formatDateForBackend(data.date_of_birth as Date) : null,
@@ -518,29 +511,22 @@ function cancel() {
 
                                     <div class="grid gap-4 sm:grid-cols-2">
                                         <div class="flex flex-col gap-2">
-                                            <label for="nationality" class="font-medium">Nationality</label>
+                                            <label for="nationality_id" class="font-medium">Nationality</label>
                                             <Select
-                                                id="nationality"
-                                                v-model="nationalitySelection"
+                                                id="nationality_id"
+                                                v-model="form.nationality_id"
                                                 :options="nationalityOptions"
                                                 option-label="label"
                                                 option-value="value"
-                                                :invalid="!!form.errors.nationality"
+                                                :invalid="!!form.errors.nationality_id"
                                                 placeholder="Select nationality"
                                                 filter
+                                                show-clear
                                                 size="small"
                                                 fluid
                                             />
-                                            <InputText
-                                                v-if="nationalitySelection === 'Other'"
-                                                v-model="nationalityOther"
-                                                :invalid="!!form.errors.nationality"
-                                                placeholder="Enter nationality"
-                                                size="small"
-                                                fluid
-                                            />
-                                            <small v-if="form.errors.nationality" class="text-red-500">
-                                                {{ form.errors.nationality }}
+                                            <small v-if="form.errors.nationality_id" class="text-red-500">
+                                                {{ form.errors.nationality_id }}
                                             </small>
                                         </div>
 
@@ -682,29 +668,22 @@ function cancel() {
                                         </div>
 
                                         <div class="flex flex-col gap-2">
-                                            <label for="country" class="font-medium">Country</label>
+                                            <label for="country_id" class="font-medium">Country</label>
                                             <Select
-                                                id="country"
-                                                v-model="countrySelection"
+                                                id="country_id"
+                                                v-model="form.country_id"
                                                 :options="countryOptions"
                                                 option-label="label"
                                                 option-value="value"
-                                                :invalid="!!form.errors.country"
+                                                :invalid="!!form.errors.country_id"
                                                 placeholder="Select country"
                                                 filter
+                                                show-clear
                                                 size="small"
                                                 fluid
                                             />
-                                            <InputText
-                                                v-if="countrySelection === 'Other'"
-                                                v-model="countryOther"
-                                                :invalid="!!form.errors.country"
-                                                placeholder="Enter country"
-                                                size="small"
-                                                fluid
-                                            />
-                                            <small v-if="form.errors.country" class="text-red-500">
-                                                {{ form.errors.country }}
+                                            <small v-if="form.errors.country_id" class="text-red-500">
+                                                {{ form.errors.country_id }}
                                             </small>
                                         </div>
                                     </div>
@@ -1185,29 +1164,22 @@ function cancel() {
 
                                                 <div class="grid gap-4 sm:grid-cols-2">
                                                     <div class="flex flex-col gap-2">
-                                                        <label for="edit_nationality" class="font-medium">Nationality</label>
+                                                        <label for="edit_nationality_id" class="font-medium">Nationality</label>
                                                         <Select
-                                                            id="edit_nationality"
-                                                            v-model="nationalitySelection"
+                                                            id="edit_nationality_id"
+                                                            v-model="form.nationality_id"
                                                             :options="nationalityOptions"
                                                             option-label="label"
                                                             option-value="value"
-                                                            :invalid="!!form.errors.nationality"
+                                                            :invalid="!!form.errors.nationality_id"
                                                             placeholder="Select nationality"
                                                             filter
+                                                            show-clear
                                                             size="small"
                                                             fluid
                                                         />
-                                                        <InputText
-                                                            v-if="nationalitySelection === 'Other'"
-                                                            v-model="nationalityOther"
-                                                            :invalid="!!form.errors.nationality"
-                                                            placeholder="Enter nationality"
-                                                            size="small"
-                                                            fluid
-                                                        />
-                                                        <small v-if="form.errors.nationality" class="text-red-500">
-                                                            {{ form.errors.nationality }}
+                                                        <small v-if="form.errors.nationality_id" class="text-red-500">
+                                                            {{ form.errors.nationality_id }}
                                                         </small>
                                                     </div>
 
@@ -1349,29 +1321,22 @@ function cancel() {
                                                     </div>
 
                                                     <div class="flex flex-col gap-2">
-                                                        <label for="edit_country" class="font-medium">Country</label>
+                                                        <label for="edit_country_id" class="font-medium">Country</label>
                                                         <Select
-                                                            id="edit_country"
-                                                            v-model="countrySelection"
+                                                            id="edit_country_id"
+                                                            v-model="form.country_id"
                                                             :options="countryOptions"
                                                             option-label="label"
                                                             option-value="value"
-                                                            :invalid="!!form.errors.country"
+                                                            :invalid="!!form.errors.country_id"
                                                             placeholder="Select country"
                                                             filter
+                                                            show-clear
                                                             size="small"
                                                             fluid
                                                         />
-                                                        <InputText
-                                                            v-if="countrySelection === 'Other'"
-                                                            v-model="countryOther"
-                                                            :invalid="!!form.errors.country"
-                                                            placeholder="Enter country"
-                                                            size="small"
-                                                            fluid
-                                                        />
-                                                        <small v-if="form.errors.country" class="text-red-500">
-                                                            {{ form.errors.country }}
+                                                        <small v-if="form.errors.country_id" class="text-red-500">
+                                                            {{ form.errors.country_id }}
                                                         </small>
                                                     </div>
                                                 </div>

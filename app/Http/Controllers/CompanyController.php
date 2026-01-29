@@ -12,6 +12,7 @@ use App\Http\Resources\EmployeeCompanyResource;
 use App\Http\Resources\EmployeeResource;
 use App\Http\Traits\RespondsWithInertiaOrJson;
 use App\Models\Company;
+use App\Models\Country;
 use App\Models\Designation;
 use App\Models\Employee;
 use App\Models\EmployeeCompany;
@@ -84,6 +85,7 @@ class CompanyController extends Controller
     {
         return Inertia::render('Companies/Form', [
             'company' => null,
+            'countries' => Country::active()->ordered()->get(['id', 'name', 'code']),
         ]);
     }
 
@@ -112,6 +114,8 @@ class CompanyController extends Controller
 
     public function show(Request $request, Company $company): InertiaResponse|JsonResponse
     {
+        $company->load('country');
+
         // Get company's employee assignments
         $companyEmployees = $company->employeeCompanies()
             ->with(['employee', 'designation'])
@@ -133,6 +137,8 @@ class CompanyController extends Controller
 
     public function edit(Company $company): InertiaResponse
     {
+        $company->load('country');
+
         // Get all active employees for the dropdown
         $employees = Employee::whereNull('termination_date')
             ->orderBy('first_name')
@@ -153,6 +159,7 @@ class CompanyController extends Controller
             'employees' => EmployeeResource::collection($employees)->resolve(),
             'designations' => DesignationResource::collection($designations)->resolve(),
             'companyEmployees' => EmployeeCompanyResource::collection($companyEmployees)->resolve(),
+            'countries' => Country::active()->ordered()->get(['id', 'name', 'code']),
         ]);
     }
 

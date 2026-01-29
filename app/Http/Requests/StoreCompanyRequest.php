@@ -20,6 +20,7 @@ class StoreCompanyRequest extends FormRequest
             'company_name' => ['required', 'string', 'max:255'],
             'address_1' => ['nullable', 'string', 'max:255'],
             'address_2' => ['nullable', 'string', 'max:255'],
+            'country_id' => ['nullable', 'exists:countries,id'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone_number' => ['nullable', 'string', 'max:50'],
             'mobile_number' => ['nullable', 'string', 'max:50'],

@@ -15,6 +15,7 @@ use App\Http\Resources\EmployeeStoreResource;
 use App\Http\Resources\StoreResource;
 use App\Http\Traits\RespondsWithInertiaOrJson;
 use App\Models\Company;
+use App\Models\Country;
 use App\Models\Customer;
 use App\Models\Designation;
 use App\Models\Employee;
@@ -141,12 +142,13 @@ class UserController extends Controller
         return Inertia::render('Users/Form', [
             'employee' => null,
             'workosUser' => null,
+            'countries' => Country::active()->ordered()->get(['id', 'name', 'code', 'nationality_name']),
         ]);
     }
 
     public function show(Request $request, Employee $employee, WorkOSUserService $workOSUserService): InertiaResponse|JsonResponse
     {
-        $employee->load(['user', 'employeeCompanies.company', 'employeeCompanies.designation', 'contracts.company', 'insurances', 'employeeStores.store']);
+        $employee->load(['user', 'employeeCompanies.company', 'employeeCompanies.designation', 'contracts.company', 'insurances', 'employeeStores.store', 'countryOfResidence', 'nationalityCountry']);
 
         $workosUser = null;
         $workosRole = null;
@@ -215,7 +217,7 @@ class UserController extends Controller
 
     public function edit(Employee $employee, WorkOSUserService $workOSUserService): InertiaResponse
     {
-        $employee->load(['user', 'employeeCompanies.company', 'employeeCompanies.designation', 'contracts.company', 'insurances']);
+        $employee->load(['user', 'employeeCompanies.company', 'employeeCompanies.designation', 'contracts.company', 'insurances', 'countryOfResidence', 'nationalityCountry']);
 
         $workosUser = null;
         $workosRole = null;
@@ -260,6 +262,7 @@ class UserController extends Controller
             'companies' => CompanyResource::collection(Company::where('active', true)->orderBy('company_name')->get())->resolve(),
             'designations' => DesignationResource::collection(Designation::orderBy('designation_name')->get())->resolve(),
             'stores' => StoreResource::collection(Store::where('active', true)->orderBy('store_name')->get())->resolve(),
+            'countries' => Country::active()->ordered()->get(['id', 'name', 'code', 'nationality_name']),
         ]);
     }
 
@@ -279,10 +282,12 @@ class UserController extends Controller
             'state' => ['nullable', 'string', 'max:100'],
             'postal_code' => ['nullable', 'string', 'max:20'],
             'country' => ['nullable', 'string', 'max:100'],
+            'country_id' => ['nullable', 'exists:countries,id'],
             'date_of_birth' => ['nullable', 'date'],
             'gender' => ['nullable', 'string', 'in:Male,Female'],
             'race' => ['nullable', 'string', 'max:100'],
             'nationality' => ['nullable', 'string', 'max:100'],
+            'nationality_id' => ['nullable', 'exists:countries,id'],
             'residency_status' => ['nullable', 'string', 'max:50'],
             'pr_conversion_date' => ['nullable', 'date'],
             'emergency_name' => ['nullable', 'string', 'max:255'],

@@ -192,7 +192,8 @@ function getEmployeeInitials(name: string): string {
                                 <div class="flex flex-col gap-1">
                                     <span v-if="store.address_1">{{ store.address_1 }}</span>
                                     <span v-if="store.address_2">{{ store.address_2 }}</span>
-                                    <span v-if="!store.address_1 && !store.address_2" class="text-muted-foreground">
+                                    <span v-if="store.country_name">{{ store.country_name }}</span>
+                                    <span v-if="!store.address_1 && !store.address_2 && !store.country_name" class="text-muted-foreground">
                                         No address provided
                                     </span>
                                 </div>

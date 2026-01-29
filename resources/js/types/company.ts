@@ -1,8 +1,13 @@
+import type { Country } from './country';
+
 export interface Company {
     id: number;
     company_name: string;
     address_1: string | null;
     address_2: string | null;
+    country_id: number | null;
+    country_name?: string | null;
+    country?: Country;
     email: string | null;
     phone_number: string | null;
     mobile_number: string | null;

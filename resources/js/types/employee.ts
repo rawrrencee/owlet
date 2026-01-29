@@ -13,10 +13,14 @@ export interface Employee {
     state: string | null;
     postal_code: string | null;
     country: string | null;
+    country_id: number | null;
+    country_name?: string | null;
     date_of_birth: string | null;
     gender: string | null;
     race: string | null;
     nationality: string | null;
+    nationality_id: number | null;
+    nationality_name?: string | null;
     residency_status: string | null;
     pr_conversion_date: string | null;
     emergency_name: string | null;

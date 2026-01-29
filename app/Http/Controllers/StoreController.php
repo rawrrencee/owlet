@@ -16,6 +16,7 @@ use App\Http\Resources\StoreCurrencyResource;
 use App\Http\Resources\StoreResource;
 use App\Http\Traits\RespondsWithInertiaOrJson;
 use App\Models\Company;
+use App\Models\Country;
 use App\Models\Currency;
 use App\Models\Employee;
 use App\Models\EmployeeStore;
@@ -107,6 +108,7 @@ class StoreController extends Controller
         return Inertia::render('Stores/Form', [
             'store' => null,
             'companies' => CompanyResource::collection($companies)->resolve(),
+            'countries' => Country::active()->ordered()->get(['id', 'name', 'code']),
         ]);
     }
 
@@ -135,7 +137,7 @@ class StoreController extends Controller
 
     public function show(Request $request, Store $store): InertiaResponse|JsonResponse
     {
-        $store->load(['company', 'employeeStores.employee.user', 'storeCurrencies.currency', 'defaultStoreCurrency.currency']);
+        $store->load(['company', 'country', 'employeeStores.employee.user', 'storeCurrencies.currency', 'defaultStoreCurrency.currency']);
 
         if ($this->wantsJson($request)) {
             return response()->json([
@@ -161,7 +163,7 @@ class StoreController extends Controller
 
     public function edit(Store $store): InertiaResponse
     {
-        $store->load(['company', 'storeCurrencies.currency', 'defaultStoreCurrency.currency']);
+        $store->load(['company', 'country', 'storeCurrencies.currency', 'defaultStoreCurrency.currency']);
 
         $companies = Company::where('active', true)
             ->orderBy('company_name')
@@ -183,6 +185,7 @@ class StoreController extends Controller
             'companies' => CompanyResource::collection($companies)->resolve(),
             'employees' => $employees,
             'currencies' => CurrencyResource::collection($currencies)->resolve(),
+            'countries' => Country::active()->ordered()->get(['id', 'name', 'code']),
         ]);
     }
 

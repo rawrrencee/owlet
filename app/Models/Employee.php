@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -28,10 +29,12 @@ class Employee extends Model
         'state',
         'postal_code',
         'country',
+        'country_id',
         'date_of_birth',
         'gender',
         'race',
         'nationality',
+        'nationality_id',
         'residency_status',
         'pr_conversion_date',
         'emergency_name',
@@ -68,6 +71,16 @@ class Employee extends Model
     public function user(): HasOne
     {
         return $this->hasOne(User::class);
+    }
+
+    public function countryOfResidence(): BelongsTo
+    {
+        return $this->belongsTo(Country::class, 'country_id');
+    }
+
+    public function nationalityCountry(): BelongsTo
+    {
+        return $this->belongsTo(Country::class, 'nationality_id');
     }
 
     public function companies(): BelongsToMany

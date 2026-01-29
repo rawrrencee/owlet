@@ -315,7 +315,7 @@ function navigateToEdit() {
                                                 </div>
                                                 <div class="flex flex-col gap-1">
                                                     <span class="text-sm text-muted-foreground">Nationality</span>
-                                                    <span>{{ employee.nationality ?? '-' }}</span>
+                                                    <span>{{ employee.nationality_name ?? employee.nationality ?? '-' }}</span>
                                                 </div>
                                                 <div class="flex flex-col gap-1">
                                                     <span class="text-sm text-muted-foreground">Race</span>
@@ -343,8 +343,8 @@ function navigateToEdit() {
                                                 <span v-if="employee.city || employee.state || employee.postal_code">
                                                     {{ [employee.city, employee.state, employee.postal_code].filter(Boolean).join(', ') }}
                                                 </span>
-                                                <span v-if="employee.country">{{ employee.country }}</span>
-                                                <span v-if="!employee.address_1 && !employee.address_2 && !employee.city && !employee.country" class="text-muted-foreground">
+                                                <span v-if="employee.country_name || employee.country">{{ employee.country_name ?? employee.country }}</span>
+                                                <span v-if="!employee.address_1 && !employee.address_2 && !employee.city && !employee.country_name && !employee.country" class="text-muted-foreground">
                                                     No address provided
                                                 </span>
                                             </div>

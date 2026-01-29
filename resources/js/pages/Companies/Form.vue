@@ -5,6 +5,7 @@ import Card from 'primevue/card';
 import ConfirmDialog from 'primevue/confirmdialog';
 import Divider from 'primevue/divider';
 import InputText from 'primevue/inputtext';
+import Select from 'primevue/select';
 import Tab from 'primevue/tab';
 import TabList from 'primevue/tablist';
 import TabPanel from 'primevue/tabpanel';
@@ -17,7 +18,7 @@ import ImageSelect from '@/components/ImageSelect.vue';
 import ImageUpload from '@/components/ImageUpload.vue';
 import { useSmartBack } from '@/composables/useSmartBack';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type Country } from '@/types';
 import { type Company, type Designation, type EmployeeCompany } from '@/types/company';
 import { type Employee } from '@/types/employee';
 
@@ -34,6 +35,7 @@ interface Props {
     employees?: Employee[];
     designations?: Designation[];
     companyEmployees?: EmployeeCompanyWithEmployee[];
+    countries?: Country[];
 }
 
 const props = defineProps<Props>();
@@ -55,6 +57,10 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: isEditing.value ? 'Edit' : 'Create' },
 ];
 
+const countryOptions = computed(() =>
+    (props.countries ?? []).map((c) => ({ label: c.name, value: c.id })),
+);
+
 const form = useForm({
     company_name: props.company?.company_name ?? '',
     email: props.company?.email ?? '',
@@ -62,6 +68,7 @@ const form = useForm({
     mobile_number: props.company?.mobile_number ?? '',
     address_1: props.company?.address_1 ?? '',
     address_2: props.company?.address_2 ?? '',
+    country_id: props.company?.country_id ?? null,
     website: props.company?.website ?? '',
     active: props.company?.active ?? true,
     logo: null as File | null,
@@ -242,6 +249,26 @@ function cancel() {
                                         />
                                         <small v-if="form.errors.address_2" class="text-red-500">
                                             {{ form.errors.address_2 }}
+                                        </small>
+                                    </div>
+
+                                    <div class="flex flex-col gap-2">
+                                        <label for="country_id" class="font-medium">Country</label>
+                                        <Select
+                                            id="country_id"
+                                            v-model="form.country_id"
+                                            :options="countryOptions"
+                                            option-label="label"
+                                            option-value="value"
+                                            :invalid="!!form.errors.country_id"
+                                            placeholder="Select country"
+                                            filter
+                                            show-clear
+                                            size="small"
+                                            fluid
+                                        />
+                                        <small v-if="form.errors.country_id" class="text-red-500">
+                                            {{ form.errors.country_id }}
                                         </small>
                                     </div>
                                 </div>
@@ -428,6 +455,26 @@ function cancel() {
                                                     />
                                                     <small v-if="form.errors.address_2" class="text-red-500">
                                                         {{ form.errors.address_2 }}
+                                                    </small>
+                                                </div>
+
+                                                <div class="flex flex-col gap-2">
+                                                    <label for="edit_country_id" class="font-medium">Country</label>
+                                                    <Select
+                                                        id="edit_country_id"
+                                                        v-model="form.country_id"
+                                                        :options="countryOptions"
+                                                        option-label="label"
+                                                        option-value="value"
+                                                        :invalid="!!form.errors.country_id"
+                                                        placeholder="Select country"
+                                                        filter
+                                                        show-clear
+                                                        size="small"
+                                                        fluid
+                                                    />
+                                                    <small v-if="form.errors.country_id" class="text-red-500">
+                                                        {{ form.errors.country_id }}
                                                     </small>
                                                 </div>
                                             </div>

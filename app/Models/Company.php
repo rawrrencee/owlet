@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -16,6 +17,7 @@ class Company extends Model
         'company_name',
         'address_1',
         'address_2',
+        'country_id',
         'email',
         'phone_number',
         'mobile_number',
@@ -46,5 +48,10 @@ class Company extends Model
     public function activeEmployees(): BelongsToMany
     {
         return $this->employees()->whereNull('employee_companies.left_date');
+    }
+
+    public function country(): BelongsTo
+    {
+        return $this->belongsTo(Country::class);
     }
 }
