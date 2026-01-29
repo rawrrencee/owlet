@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Toast from 'primevue/toast';
 import FloatingClockPanel from '@/components/timecards/FloatingClockPanel.vue';
+import IncompleteTimecardModal from '@/components/timecards/IncompleteTimecardModal.vue';
 import { useAdminGuard } from '@/composables/useAdminGuard';
 import { useFlashToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/app/AppSidebarLayout.vue';
@@ -28,4 +29,6 @@ useAdminGuard();
     </AppLayout>
     <!-- Floating clock panel for time tracking -->
     <FloatingClockPanel />
+    <!-- Modal for resolving incomplete timecards -->
+    <IncompleteTimecardModal />
 </template>

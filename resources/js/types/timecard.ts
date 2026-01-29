@@ -24,10 +24,13 @@ export interface Timecard {
     status_label: string;
     start_date: string;
     end_date: string | null;
+    user_provided_end_date: string | null;
     hours_worked: number;
     is_in_progress: boolean;
     is_completed: boolean;
     is_expired: boolean;
+    is_incomplete: boolean;
+    is_inaccurate: boolean;
     is_on_break: boolean;
     employee?: {
         id: number;

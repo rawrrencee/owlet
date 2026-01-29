@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Resources\TimecardResource;
+use App\Models\Timecard;
 use App\Services\NavigationService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -36,20 +38,31 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user()?->load(['employee', 'customer']),
+                'user' => $user?->load(['employee', 'customer']),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
-            'navigation' => $request->user()
-                ? app(NavigationService::class)->getMainNavItems($request->user())
+            'navigation' => $user
+                ? app(NavigationService::class)->getMainNavItems($user)
                 : [],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
             ],
+            'incompleteTimecards' => fn () => $user?->employee_id
+                ? TimecardResource::collection(
+                    Timecard::where('employee_id', $user->employee_id)
+                        ->needsResolution()
+                        ->with('store')
+                        ->orderBy('start_date', 'desc')
+                        ->get()
+                )->resolve()
+                : [],
         ];
     }
 }

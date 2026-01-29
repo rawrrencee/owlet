@@ -19,6 +19,10 @@ const props = withDefaults(defineProps<Props>(), {
     compact: false,
 });
 
+const emit = defineEmits<{
+    stateChanged: [];
+}>();
+
 const selectedStore = ref<number | null>(null);
 const elapsedTime = ref('');
 let timerInterval: ReturnType<typeof setInterval> | null = null;
@@ -88,6 +92,7 @@ function clockIn() {
     clockInForm.store_id = selectedStore.value;
     clockInForm.post('/timecards/clock-in', {
         preserveScroll: true,
+        onFinish: () => emit('stateChanged'),
     });
 }
 
@@ -99,6 +104,7 @@ function clockOut() {
         {},
         {
             preserveScroll: true,
+            onFinish: () => emit('stateChanged'),
         }
     );
 }
@@ -111,6 +117,7 @@ function startBreak() {
         {},
         {
             preserveScroll: true,
+            onFinish: () => emit('stateChanged'),
         }
     );
 }
@@ -123,6 +130,7 @@ function endBreak() {
         {},
         {
             preserveScroll: true,
+            onFinish: () => emit('stateChanged'),
         }
     );
 }

@@ -20,7 +20,6 @@ const { goBack } = useSmartBack('/management/timecards');
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Management' },
     { title: 'Timecards', href: '/management/timecards' },
     { title: `Timecard #${props.timecard.id}` },
 ];

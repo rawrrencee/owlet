@@ -2,6 +2,7 @@
 
 use App\Models\Customer;
 use App\Models\Employee;
+use App\Models\Timecard;
 use App\Models\User;
 use App\Services\WorkOSRoleResolver;
 use Illuminate\Support\Facades\DB;
@@ -111,10 +112,18 @@ Route::get('authenticate', function (AuthKitAuthenticationRequest $request) {
         });
     };
 
-    return tap(
-        redirect()->intended(route('dashboard')),
-        fn () => $request->authenticate(updateUsing: $updateUsing, createUsing: $createUsing)
-    );
+    $user = $request->authenticate(updateUsing: $updateUsing, createUsing: $createUsing);
+
+    // Mark previous IN_PROGRESS timecards from past days as incomplete
+    if ($user->employee_id) {
+        Timecard::where('employee_id', $user->employee_id)
+            ->where('status', Timecard::STATUS_IN_PROGRESS)
+            ->where('is_incomplete', false)
+            ->whereDate('start_date', '<', today())
+            ->update(['is_incomplete' => true]);
+    }
+
+    return redirect()->intended(route('dashboard'));
 })->middleware(['guest']);
 
 Route::post('logout', function (AuthKitLogoutRequest $request) {

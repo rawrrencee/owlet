@@ -23,8 +23,11 @@ class Timecard extends Model
         'employee_id',
         'store_id',
         'status',
+        'is_incomplete',
+        'is_inaccurate',
         'start_date',
         'end_date',
+        'user_provided_end_date',
         'hours_worked',
         'created_by',
         'updated_by',
@@ -35,7 +38,10 @@ class Timecard extends Model
         return [
             'start_date' => 'datetime',
             'end_date' => 'datetime',
+            'user_provided_end_date' => 'datetime',
             'hours_worked' => 'decimal:2',
+            'is_incomplete' => 'boolean',
+            'is_inaccurate' => 'boolean',
         ];
     }
 
@@ -86,6 +92,17 @@ class Timecard extends Model
     public function scopeCompleted(Builder $query): Builder
     {
         return $query->where('status', self::STATUS_COMPLETED);
+    }
+
+    public function scopeIncomplete(Builder $query): Builder
+    {
+        return $query->where('is_incomplete', true);
+    }
+
+    public function scopeNeedsResolution(Builder $query): Builder
+    {
+        return $query->where('is_incomplete', true)
+            ->whereNull('user_provided_end_date');
     }
 
     public function scopeForDate(Builder $query, CarbonInterface $date): Builder

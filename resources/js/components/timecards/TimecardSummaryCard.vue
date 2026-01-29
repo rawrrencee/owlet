@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { Clock, MapPin } from 'lucide-vue-next';
+import { AlertTriangle, Clock, MapPin } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Divider from 'primevue/divider';
@@ -95,7 +95,21 @@ function formatDuration(detail: { hours: number; is_open?: boolean }): string {
                     </div>
 
                     <div class="flex flex-col items-end gap-2">
-                        <Tag :value="timecard.status_label" :severity="statusSeverity" />
+                        <div class="flex items-center gap-2">
+                            <Tag
+                                v-if="timecard.is_inaccurate"
+                                severity="warn"
+                                v-tooltip.top="'User-provided clock-out time'"
+                            >
+                                <template #default>
+                                    <div class="flex items-center gap-1">
+                                        <AlertTriangle class="h-3 w-3" />
+                                        <span>Adjusted</span>
+                                    </div>
+                                </template>
+                            </Tag>
+                            <Tag :value="timecard.status_label" :severity="statusSeverity" />
+                        </div>
                         <span class="text-lg font-bold text-green-600 dark:text-green-400">
                             {{ formatHours(timecard.hours_worked) }}
                         </span>

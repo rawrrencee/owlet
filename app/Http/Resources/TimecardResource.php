@@ -17,10 +17,13 @@ class TimecardResource extends JsonResource
             'status_label' => $this->status_label,
             'start_date' => $this->start_date?->toIso8601String(),
             'end_date' => $this->end_date?->toIso8601String(),
+            'user_provided_end_date' => $this->user_provided_end_date?->toIso8601String(),
             'hours_worked' => (float) $this->hours_worked,
             'is_in_progress' => $this->is_in_progress,
             'is_completed' => $this->is_completed,
             'is_expired' => $this->is_expired,
+            'is_incomplete' => $this->is_incomplete,
+            'is_inaccurate' => $this->is_inaccurate,
             'is_on_break' => $this->isOnBreak(),
             'employee' => $this->whenLoaded('employee', fn () => [
                 'id' => $this->employee->id,

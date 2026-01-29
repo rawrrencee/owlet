@@ -46,7 +46,6 @@ const confirm = useConfirm();
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Management' },
     { title: 'Timecards', href: '/management/timecards' },
     { title: `Edit #${props.timecard.id}` },
 ];

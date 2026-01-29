@@ -130,7 +130,7 @@ onMounted(() => {
             v-model:visible="isOpen"
             position="right"
             :modal="true"
-            class="!w-full sm:!w-[400px]"
+            class="!w-full sm:!w-[320px]"
         >
             <template #header>
                 <div class="flex w-full items-center justify-between">
@@ -152,6 +152,7 @@ onMounted(() => {
                     :current-timecard="currentTimecard"
                     :is-on-break="isOnBreak"
                     :stores="stores"
+                    @state-changed="fetchCurrentState"
                 />
                 <div v-else class="flex items-center justify-center py-12">
                     <i class="pi pi-spin pi-spinner text-3xl text-primary"></i>

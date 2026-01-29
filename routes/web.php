@@ -47,6 +47,7 @@ Route::middleware([
     Route::post('timecards/{timecard}/clock-out', [TimecardController::class, 'clockOut'])->name('timecards.clock-out');
     Route::post('timecards/{timecard}/start-break', [TimecardController::class, 'startBreak'])->name('timecards.start-break');
     Route::post('timecards/{timecard}/end-break', [TimecardController::class, 'endBreak'])->name('timecards.end-break');
+    Route::post('timecards/{timecard}/resolve-incomplete', [TimecardController::class, 'resolveIncomplete'])->name('timecards.resolve-incomplete');
     Route::get('timecards/{date}', [TimecardController::class, 'show'])->name('timecards.show');
 
     // Team Timecards - for employees with subordinates

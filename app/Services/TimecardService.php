@@ -521,4 +521,31 @@ class TimecardService
             'is_on_break' => $currentDetail?->type === TimecardDetail::TYPE_BREAK,
         ];
     }
+
+    /**
+     * Resolve an incomplete timecard with user-provided end time.
+     */
+    public function resolveIncompleteTimecard(Timecard $timecard, string $endTime, ?Employee $updatedBy = null): Timecard
+    {
+        return DB::transaction(function () use ($timecard, $endTime, $updatedBy) {
+            $endDate = Carbon::parse($endTime);
+
+            // Close all open details
+            $this->closeOpenDetails($timecard, $endDate);
+
+            // Calculate total work hours
+            $totalWorkHours = $this->calculateWorkHours($timecard);
+
+            $timecard->update([
+                'status' => Timecard::STATUS_COMPLETED,
+                'end_date' => $endDate,
+                'user_provided_end_date' => $endDate,
+                'is_inaccurate' => true,
+                'hours_worked' => $totalWorkHours,
+                'updated_by' => $updatedBy?->id,
+            ]);
+
+            return $timecard->fresh(['details', 'store', 'employee']);
+        });
+    }
 }

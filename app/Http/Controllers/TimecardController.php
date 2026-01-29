@@ -212,4 +212,34 @@ class TimecardController extends Controller
 
         return back()->with('success', 'Break ended. Back to work!');
     }
+
+    /**
+     * Resolve an incomplete timecard with user-provided end time.
+     */
+    public function resolveIncomplete(Request $request, Timecard $timecard): RedirectResponse
+    {
+        $user = $request->user();
+        $employee = $user->employee;
+
+        // Verify the timecard belongs to this employee
+        if ($timecard->employee_id !== $employee->id) {
+            abort(403, 'You can only resolve your own timecards.');
+        }
+
+        if (! $timecard->is_incomplete) {
+            return back()->with('error', 'This timecard is not marked as incomplete.');
+        }
+
+        if ($timecard->user_provided_end_date) {
+            return back()->with('error', 'This timecard has already been resolved.');
+        }
+
+        $validated = $request->validate([
+            'end_time' => ['required', 'date', 'after:' . $timecard->start_date->toIso8601String()],
+        ]);
+
+        $this->timecardService->resolveIncompleteTimecard($timecard, $validated['end_time'], $employee);
+
+        return back()->with('success', 'Timecard resolved successfully.');
+    }
 }
