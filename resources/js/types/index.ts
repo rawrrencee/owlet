@@ -1,5 +1,6 @@
 export * from './auth';
 export * from './brand';
+export * from './category';
 export * from './company';
 export * from './country';
 export * from './currency';

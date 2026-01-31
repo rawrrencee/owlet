@@ -13,6 +13,7 @@ use App\Http\Controllers\MyTeamController;
 use App\Http\Controllers\MyTeamTimecardController;
 use App\Http\Controllers\OrganisationChartController;
 use App\Http\Controllers\BrandController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\TimecardController;
 use App\Http\Controllers\UserController;
@@ -120,6 +121,14 @@ Route::middleware([
         Route::get('brands/{brand}/logo', [BrandController::class, 'showLogo'])->name('brands.logo');
         Route::post('brands/{brand}/logo', [BrandController::class, 'uploadLogo'])->name('brands.upload-logo');
         Route::delete('brands/{brand}/logo', [BrandController::class, 'deleteLogo'])->name('brands.delete-logo');
+
+        // Categories
+        Route::resource('categories', CategoryController::class);
+        Route::post('categories/{category}/restore', [CategoryController::class, 'restore'])->name('categories.restore')->withTrashed();
+        Route::post('categories/{category}/subcategories', [CategoryController::class, 'storeSubcategory'])->name('categories.subcategories.store');
+        Route::put('categories/{category}/subcategories/{subcategory}', [CategoryController::class, 'updateSubcategory'])->name('categories.subcategories.update');
+        Route::delete('categories/{category}/subcategories/{subcategory}', [CategoryController::class, 'destroySubcategory'])->name('categories.subcategories.destroy');
+        Route::post('categories/{category}/subcategories/{subcategory}/restore', [CategoryController::class, 'restoreSubcategory'])->name('categories.subcategories.restore')->withTrashed();
 
         // Stores
         Route::resource('stores', StoreController::class);
