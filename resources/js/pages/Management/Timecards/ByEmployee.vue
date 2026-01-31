@@ -3,8 +3,8 @@ import { Head, router } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
-import TimecardCalendar from '@/components/timecards/TimecardCalendar.vue';
 import BackButton from '@/components/BackButton.vue';
+import TimecardCalendar from '@/components/timecards/TimecardCalendar.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem, CalendarDayData, SubordinateInfo } from '@/types';
 

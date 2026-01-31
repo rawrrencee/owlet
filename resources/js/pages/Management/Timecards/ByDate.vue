@@ -6,8 +6,8 @@ import Card from 'primevue/card';
 import Divider from 'primevue/divider';
 import Tag from 'primevue/tag';
 import { computed } from 'vue';
-import TimecardSummaryCard from '@/components/timecards/TimecardSummaryCard.vue';
 import BackButton from '@/components/BackButton.vue';
+import TimecardSummaryCard from '@/components/timecards/TimecardSummaryCard.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem, Timecard } from '@/types';
 

@@ -17,6 +17,7 @@ import Tabs from 'primevue/tabs';
 import ToggleSwitch from 'primevue/toggleswitch';
 import { useConfirm } from 'primevue/useconfirm';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import BackButton from '@/components/BackButton.vue';
 import EmployeeCompaniesSection from '@/components/employees/EmployeeCompaniesSection.vue';
 import EmployeeContractsSection from '@/components/employees/EmployeeContractsSection.vue';
 import EmployeeHierarchySection from '@/components/employees/EmployeeHierarchySection.vue';
@@ -24,7 +25,6 @@ import EmployeeInsurancesSection from '@/components/employees/EmployeeInsurances
 import EmployeeStoresSection from '@/components/employees/EmployeeStoresSection.vue';
 import ImageSelect from '@/components/ImageSelect.vue';
 import ImageUpload from '@/components/ImageUpload.vue';
-import BackButton from '@/components/BackButton.vue';
 import { relationships, relationshipOptions } from '@/constants/employee';
 import AppLayout from '@/layouts/AppLayout.vue';
 import {

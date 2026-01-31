@@ -11,8 +11,8 @@ import Select from 'primevue/select';
 import Tag from 'primevue/tag';
 import { useConfirm } from 'primevue/useconfirm';
 import { ref } from 'vue';
-import TimecardDetailsTable from '@/components/timecards/TimecardDetailsTable.vue';
 import BackButton from '@/components/BackButton.vue';
+import TimecardDetailsTable from '@/components/timecards/TimecardDetailsTable.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem, Timecard, TimecardDetail } from '@/types';
 

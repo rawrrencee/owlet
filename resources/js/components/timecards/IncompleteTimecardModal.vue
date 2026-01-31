@@ -6,8 +6,8 @@ import DatePicker from 'primevue/datepicker';
 import Dialog from 'primevue/dialog';
 import Message from 'primevue/message';
 import { computed, ref, watch } from 'vue';
-import type { Timecard } from '@/types/timecard';
 import type { AppPageProps } from '@/types';
+import type { Timecard } from '@/types/timecard';
 
 type PageProps = AppPageProps<{
     incompleteTimecards?: Timecard[];

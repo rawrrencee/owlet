@@ -44,6 +44,7 @@ class NavigationService
         if ($user->isAdmin()) {
             $commerceItems[] = ['title' => 'Brands', 'href' => '/brands', 'icon' => 'Tag'];
             $commerceItems[] = ['title' => 'Categories', 'href' => '/categories', 'icon' => 'Layers'];
+            $commerceItems[] = ['title' => 'Suppliers', 'href' => '/suppliers', 'icon' => 'Truck'];
             $commerceItems[] = ['title' => 'Stores', 'href' => '/stores', 'icon' => 'Store'];
         }
 

@@ -5,8 +5,8 @@ import Button from 'primevue/button';
 import Drawer from 'primevue/drawer';
 import Tag from 'primevue/tag';
 import { computed, onMounted, ref, watch } from 'vue';
-import type { Timecard, TimecardStore } from '@/types/timecard';
 import type { AppPageProps } from '@/types';
+import type { Timecard, TimecardStore } from '@/types/timecard';
 import ClockWidget from './ClockWidget.vue';
 
 type PageProps = AppPageProps<{

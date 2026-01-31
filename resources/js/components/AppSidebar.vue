@@ -14,6 +14,7 @@ import {
     Network,
     Store,
     Tag,
+    Truck,
     Users,
     UsersRound,
     type LucideIcon,
@@ -48,6 +49,7 @@ const iconMap: Record<string, LucideIcon> = {
     Network,
     Store,
     Tag,
+    Truck,
     Users,
     UsersRound,
 };

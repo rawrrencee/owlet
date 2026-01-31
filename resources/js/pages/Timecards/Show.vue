@@ -3,8 +3,8 @@ import { Head, router } from '@inertiajs/vue3';
 import { ArrowLeft } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
-import TimecardSummaryCard from '@/components/timecards/TimecardSummaryCard.vue';
 import BackButton from '@/components/BackButton.vue';
+import TimecardSummaryCard from '@/components/timecards/TimecardSummaryCard.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem, Timecard } from '@/types';
 

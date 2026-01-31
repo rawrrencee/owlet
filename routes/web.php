@@ -15,6 +15,7 @@ use App\Http\Controllers\OrganisationChartController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\StoreController;
+use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\TimecardController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -129,6 +130,13 @@ Route::middleware([
         Route::put('categories/{category}/subcategories/{subcategory}', [CategoryController::class, 'updateSubcategory'])->name('categories.subcategories.update');
         Route::delete('categories/{category}/subcategories/{subcategory}', [CategoryController::class, 'destroySubcategory'])->name('categories.subcategories.destroy');
         Route::post('categories/{category}/subcategories/{subcategory}/restore', [CategoryController::class, 'restoreSubcategory'])->name('categories.subcategories.restore')->withTrashed();
+
+        // Suppliers
+        Route::resource('suppliers', SupplierController::class);
+        Route::post('suppliers/{supplier}/restore', [SupplierController::class, 'restore'])->name('suppliers.restore')->withTrashed();
+        Route::get('suppliers/{supplier}/logo', [SupplierController::class, 'showLogo'])->name('suppliers.logo');
+        Route::post('suppliers/{supplier}/logo', [SupplierController::class, 'uploadLogo'])->name('suppliers.upload-logo');
+        Route::delete('suppliers/{supplier}/logo', [SupplierController::class, 'deleteLogo'])->name('suppliers.delete-logo');
 
         // Stores
         Route::resource('stores', StoreController::class);

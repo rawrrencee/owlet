@@ -14,11 +14,11 @@ import TabPanels from 'primevue/tabpanels';
 import Tabs from 'primevue/tabs';
 import ToggleSwitch from 'primevue/toggleswitch';
 import { computed, ref } from 'vue';
+import BackButton from '@/components/BackButton.vue';
 import ImageSelect from '@/components/ImageSelect.vue';
 import ImageUpload from '@/components/ImageUpload.vue';
 import StoreCurrenciesSection from '@/components/stores/StoreCurrenciesSection.vue';
 import StoreEmployeesSection from '@/components/stores/StoreEmployeesSection.vue';
-import BackButton from '@/components/BackButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type Company, type Country, type Currency, type Store } from '@/types';
 
