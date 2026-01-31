@@ -39,6 +39,20 @@ class NavigationService
             ];
         }
 
+        // Commerce section - before Management
+        $commerceItems = [];
+        if ($user->isAdmin()) {
+            $commerceItems[] = ['title' => 'Brands', 'href' => '/brands', 'icon' => 'Tag'];
+            $commerceItems[] = ['title' => 'Stores', 'href' => '/stores', 'icon' => 'Store'];
+        }
+
+        if (! empty($commerceItems)) {
+            $sections[] = [
+                'title' => 'Commerce',
+                'items' => $commerceItems,
+            ];
+        }
+
         // Management section - only visible for admins
         $managementItems = [];
 
@@ -56,19 +70,6 @@ class NavigationService
             $sections[] = [
                 'title' => 'Management',
                 'items' => $managementItems,
-            ];
-        }
-
-        // Commerce section
-        $commerceItems = [];
-        if ($user->isAdmin()) {
-            $commerceItems[] = ['title' => 'Stores', 'href' => '/stores', 'icon' => 'Store'];
-        }
-
-        if (! empty($commerceItems)) {
-            $sections[] = [
-                'title' => 'Commerce',
-                'items' => $commerceItems,
             ];
         }
 

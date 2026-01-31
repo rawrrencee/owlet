@@ -12,6 +12,7 @@ import {
     LayoutGrid,
     Network,
     Store,
+    Tag,
     Users,
     UsersRound,
     type LucideIcon,
@@ -44,6 +45,7 @@ const iconMap: Record<string, LucideIcon> = {
     LayoutGrid,
     Network,
     Store,
+    Tag,
     Users,
     UsersRound,
 };

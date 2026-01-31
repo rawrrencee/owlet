@@ -12,6 +12,7 @@ use App\Http\Controllers\EmployeeStoreController;
 use App\Http\Controllers\MyTeamController;
 use App\Http\Controllers\MyTeamTimecardController;
 use App\Http\Controllers\OrganisationChartController;
+use App\Http\Controllers\BrandController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\TimecardController;
 use App\Http\Controllers\UserController;
@@ -112,6 +113,13 @@ Route::middleware([
         Route::delete('users/{employee}/insurances/{insurance}', [EmployeeInsuranceController::class, 'destroy'])->name('users.insurances.destroy');
         Route::post('users/{employee}/insurances/{insurance}/document', [EmployeeInsuranceController::class, 'uploadDocument'])->name('users.insurances.upload-document');
         Route::delete('users/{employee}/insurances/{insurance}/document', [EmployeeInsuranceController::class, 'deleteDocument'])->name('users.insurances.delete-document');
+
+        // Brands
+        Route::resource('brands', BrandController::class);
+        Route::post('brands/{brand}/restore', [BrandController::class, 'restore'])->name('brands.restore')->withTrashed();
+        Route::get('brands/{brand}/logo', [BrandController::class, 'showLogo'])->name('brands.logo');
+        Route::post('brands/{brand}/logo', [BrandController::class, 'uploadLogo'])->name('brands.upload-logo');
+        Route::delete('brands/{brand}/logo', [BrandController::class, 'deleteLogo'])->name('brands.delete-logo');
 
         // Stores
         Route::resource('stores', StoreController::class);
