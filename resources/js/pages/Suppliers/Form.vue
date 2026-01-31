@@ -44,7 +44,7 @@ const form = useForm({
     address_2: props.supplier?.address_2 ?? '',
     website: props.supplier?.website ?? '',
     description: props.supplier?.description ?? '',
-    active: props.supplier?.active ?? false,
+    active: props.supplier?.active ?? true,
     logo: null as File | null,
 });
 
