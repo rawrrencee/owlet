@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, router, usePage } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
@@ -31,7 +31,6 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-const page = usePage();
 
 
 // Get highlight_employee from query params

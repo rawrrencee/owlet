@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { Head, router } from '@inertiajs/vue3';
-import { ArrowLeft } from 'lucide-vue-next';
-import Button from 'primevue/button';
+import { Head } from '@inertiajs/vue3';
 import Card from 'primevue/card';
 import BackButton from '@/components/BackButton.vue';
 import TimecardSummaryCard from '@/components/timecards/TimecardSummaryCard.vue';

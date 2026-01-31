@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
-import Button from 'primevue/button';
 import Card from 'primevue/card';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';

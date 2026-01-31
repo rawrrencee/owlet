@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
-import Button from 'primevue/button';
 import Card from 'primevue/card';
 import BackButton from '@/components/BackButton.vue';
 import TimecardSummaryCard from '@/components/timecards/TimecardSummaryCard.vue';

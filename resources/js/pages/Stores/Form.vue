@@ -6,7 +6,6 @@ import ConfirmDialog from 'primevue/confirmdialog';
 import Divider from 'primevue/divider';
 import InputNumber from 'primevue/inputnumber';
 import InputText from 'primevue/inputtext';
-import Message from 'primevue/message';
 import Select from 'primevue/select';
 import Tab from 'primevue/tab';
 import TabList from 'primevue/tablist';

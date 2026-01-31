@@ -80,7 +80,7 @@ async function fetchUsers() {
             originalPermissions.value.set(user.id, [...user.permissions]);
             editedPermissions.value.set(user.id, [...user.permissions]);
         }
-    } catch (error) {
+    } catch {
         toast.add({
             severity: 'error',
             summary: 'Error',
@@ -162,7 +162,7 @@ async function saveChanges() {
 
         // Refresh the page to update navigation
         router.reload({ only: ['navigation'] });
-    } catch (error) {
+    } catch {
         toast.add({
             severity: 'error',
             summary: 'Error',

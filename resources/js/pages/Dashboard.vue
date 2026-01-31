@@ -12,7 +12,7 @@ interface Props {
     stores?: TimecardStore[];
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
     currentTimecard: null,
     isOnBreak: false,
     stores: () => [],
