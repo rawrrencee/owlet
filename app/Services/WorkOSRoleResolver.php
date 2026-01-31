@@ -31,10 +31,10 @@ class WorkOSRoleResolver
 
             $membership = $memberships[0];
 
-            return match ($membership->role?->slug ?? 'member') {
+            return match ($membership->role?->slug ?? 'customer') {
                 'admin' => 'admin',
                 'staff' => 'staff',
-                'member' => 'customer',
+                'customer' => 'customer',
                 default => 'customer',
             };
         } catch (\Throwable) {
