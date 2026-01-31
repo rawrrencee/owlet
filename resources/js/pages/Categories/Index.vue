@@ -12,6 +12,8 @@ import Tag from 'primevue/tag';
 import ToggleSwitch from 'primevue/toggleswitch';
 import { useConfirm } from 'primevue/useconfirm';
 import { computed, reactive, ref, watch } from 'vue';
+import PagePermissionsSplitButton from '@/components/admin/PagePermissionsSplitButton.vue';
+import { usePermissions } from '@/composables/usePermissions';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type Category, type PaginatedData, type Subcategory } from '@/types';
 
@@ -28,6 +30,10 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+// Permission checks
+const { canAccessPage } = usePermissions();
+const canManage = computed(() => canAccessPage('categories.manage'));
 
 const filters = reactive({
     search: props.filters?.search ?? '',
@@ -109,10 +115,6 @@ function isSubcategoryDeleted(subcategory: Subcategory): boolean {
     return subcategory.is_deleted === true;
 }
 
-function navigateToCreate() {
-    router.get('/categories/create');
-}
-
 function navigateToView(category: Category) {
     router.get(`/categories/${category.id}`);
 }
@@ -184,11 +186,11 @@ function onPage(event: { page: number }) {
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <h1 class="heading-lg">Categories</h1>
-                <Button
-                    label="Create Category"
-                    icon="pi pi-plus"
-                    size="small"
-                    @click="navigateToCreate"
+                <PagePermissionsSplitButton
+                    page="categories"
+                    page-label="Category"
+                    create-route="/categories/create"
+                    :can-manage="canManage"
                 />
             </div>
 
@@ -292,6 +294,7 @@ function onPage(event: { page: number }) {
                     <template #body="{ data }">
                         <div v-if="isDeleted(data)" class="flex justify-end gap-1">
                             <Button
+                                v-if="canManage"
                                 icon="pi pi-history"
                                 severity="success"
                                 text
@@ -303,6 +306,7 @@ function onPage(event: { page: number }) {
                         </div>
                         <div v-else class="flex justify-end gap-1">
                             <Button
+                                v-if="canManage"
                                 icon="pi pi-pencil"
                                 severity="secondary"
                                 text
@@ -311,6 +315,7 @@ function onPage(event: { page: number }) {
                                 @click.stop="navigateToEdit(data)"
                             />
                             <Button
+                                v-if="canManage"
                                 icon="pi pi-trash"
                                 severity="danger"
                                 text
@@ -333,7 +338,7 @@ function onPage(event: { page: number }) {
                                 <span class="text-muted-foreground">Description</span>
                                 <span class="text-sm">{{ data.description }}</span>
                             </div>
-                            <div v-if="isDeleted(data)" class="flex gap-2 pt-2">
+                            <div v-if="isDeleted(data) && canManage" class="flex gap-2 pt-2">
                                 <Button
                                     label="Restore"
                                     icon="pi pi-history"
@@ -343,7 +348,7 @@ function onPage(event: { page: number }) {
                                     class="flex-1"
                                 />
                             </div>
-                            <div v-else class="flex gap-2 pt-2">
+                            <div v-else-if="!isDeleted(data) && canManage" class="flex gap-2 pt-2">
                                 <Button
                                     label="Edit"
                                     icon="pi pi-pencil"

@@ -29,6 +29,9 @@ interface StoreEmployee {
     active: boolean;
     permissions: string[];
     permissions_with_labels: Array<{ key: string; label: string; group: string }>;
+    access_permissions: string[];
+    access_permissions_with_labels: Array<{ key: string; label: string; group: string }>;
+    is_creator: boolean;
     employee?: {
         id: number;
         first_name: string;
@@ -53,11 +56,13 @@ const loading = ref(true);
 
 const storeEmployees = ref<StoreEmployee[]>([]);
 const availablePermissions = ref<StorePermissionGroup>({});
+const availableAccessPermissions = ref<StorePermissionGroup>({});
 
 const form = reactive({
     employee_id: null as number | null,
     active: true,
     permissions: [] as string[],
+    access_permissions: [] as string[],
 });
 
 const formErrors = reactive<Record<string, string>>({});
@@ -88,6 +93,7 @@ async function fetchStoreEmployees() {
         const data = await response.json();
         storeEmployees.value = data.data;
         availablePermissions.value = data.available_permissions;
+        availableAccessPermissions.value = data.available_access_permissions || {};
     } catch (error) {
         console.error('Failed to fetch store employees:', error);
     } finally {
@@ -103,6 +109,7 @@ function resetForm() {
     form.employee_id = null;
     form.active = true;
     form.permissions = [];
+    form.access_permissions = [];
     Object.keys(formErrors).forEach((key) => delete formErrors[key]);
 }
 
@@ -118,6 +125,7 @@ function openEditDialog(se: StoreEmployee) {
     form.employee_id = se.employee_id;
     form.active = se.active;
     form.permissions = [...(se.permissions || [])];
+    form.access_permissions = [...(se.access_permissions || [])];
     dialogVisible.value = true;
 }
 
@@ -129,6 +137,7 @@ function saveAssignment() {
         employee_id: form.employee_id,
         active: form.active,
         permissions: form.permissions,
+        access_permissions: form.access_permissions,
     };
 
     const url = editingId.value
@@ -264,6 +273,42 @@ function getInitials(employeeId: number): string {
     return `${first}${last}`;
 }
 
+// Access permission functions
+function toggleAccessPermission(permissionKey: string) {
+    const index = form.access_permissions.indexOf(permissionKey);
+    if (index === -1) {
+        form.access_permissions.push(permissionKey);
+    } else {
+        form.access_permissions.splice(index, 1);
+    }
+}
+
+function toggleAccessGroupPermissions(group: string) {
+    const groupPermissions = availableAccessPermissions.value[group]?.map((p) => p.key) ?? [];
+    const allSelected = groupPermissions.every((p) => form.access_permissions.includes(p));
+
+    if (allSelected) {
+        form.access_permissions = form.access_permissions.filter((p) => !groupPermissions.includes(p));
+    } else {
+        groupPermissions.forEach((p) => {
+            if (!form.access_permissions.includes(p)) {
+                form.access_permissions.push(p);
+            }
+        });
+    }
+}
+
+function isAccessGroupFullySelected(group: string): boolean {
+    const groupPermissions = availableAccessPermissions.value[group]?.map((p) => p.key) ?? [];
+    return groupPermissions.length > 0 && groupPermissions.every((p) => form.access_permissions.includes(p));
+}
+
+function isAccessGroupPartiallySelected(group: string): boolean {
+    const groupPermissions = availableAccessPermissions.value[group]?.map((p) => p.key) ?? [];
+    const selectedCount = groupPermissions.filter((p) => form.access_permissions.includes(p)).length;
+    return selectedCount > 0 && selectedCount < groupPermissions.length;
+}
+
 const expandedRows = ref({});
 </script>
 
@@ -314,9 +359,12 @@ const expandedRows = ref({});
                         />
                         <div class="flex flex-col gap-0.5">
                             <span class="font-medium">{{ getEmployeeName(data.employee_id) }}</span>
-                            <span v-if="getEmployeeNumber(data.employee_id)" class="text-xs text-muted-foreground">
-                                {{ getEmployeeNumber(data.employee_id) }}
-                            </span>
+                            <div class="flex flex-wrap items-center gap-1">
+                                <span v-if="getEmployeeNumber(data.employee_id)" class="text-xs text-muted-foreground">
+                                    {{ getEmployeeNumber(data.employee_id) }}
+                                </span>
+                                <Tag v-if="data.is_creator" value="Creator" severity="info" class="!text-xs" />
+                            </div>
                         </div>
                     </div>
                 </template>
@@ -324,21 +372,37 @@ const expandedRows = ref({});
             <Column field="permissions" header="Permissions" class="hidden md:table-cell">
                 <template #body="{ data }">
                     <div class="flex flex-wrap gap-1">
+                        <!-- Store Access permissions (primary color) -->
                         <Tag
-                            v-for="perm in (data.permissions_with_labels || []).slice(0, 3)"
-                            :key="perm.key"
+                            v-for="perm in (data.access_permissions_with_labels || []).slice(0, 2)"
+                            :key="`access-${perm.key}`"
+                            :value="perm.label"
+                            severity="info"
+                            class="!text-xs"
+                        />
+                        <!-- Store Operations permissions (secondary color) -->
+                        <Tag
+                            v-for="perm in (data.permissions_with_labels || []).slice(0, 2)"
+                            :key="`ops-${perm.key}`"
                             :value="perm.label"
                             severity="secondary"
                             class="!text-xs"
                         />
+                        <!-- Overflow indicator -->
                         <Tag
-                            v-if="(data.permissions_with_labels || []).length > 3"
-                            :value="`+${(data.permissions_with_labels || []).length - 3}`"
-                            severity="info"
+                            v-if="(data.access_permissions_with_labels || []).length + (data.permissions_with_labels || []).length > 4"
+                            :value="`+${(data.access_permissions_with_labels || []).length + (data.permissions_with_labels || []).length - 4}`"
+                            severity="contrast"
                             class="!text-xs"
-                            v-tooltip.top="(data.permissions_with_labels || []).slice(3).map((p: any) => p.label).join(', ')"
+                            v-tooltip.top="[
+                                ...(data.access_permissions_with_labels || []).slice(2),
+                                ...(data.permissions_with_labels || []).slice(2)
+                            ].map((p: any) => p.label).join(', ')"
                         />
-                        <span v-if="!(data.permissions_with_labels || []).length" class="text-sm text-muted-foreground">
+                        <span
+                            v-if="!(data.access_permissions_with_labels || []).length && !(data.permissions_with_labels || []).length"
+                            class="text-sm text-muted-foreground"
+                        >
                             No permissions
                         </span>
                     </div>
@@ -362,7 +426,7 @@ const expandedRows = ref({});
                             v-tooltip.top="'Edit'"
                         />
                         <Button
-                            v-if="data.active"
+                            v-if="data.active && !data.is_creator"
                             icon="pi pi-ban"
                             severity="warn"
                             text
@@ -372,6 +436,7 @@ const expandedRows = ref({});
                             v-tooltip.top="'Deactivate'"
                         />
                         <Button
+                            v-if="!data.is_creator"
                             icon="pi pi-trash"
                             severity="danger"
                             text
@@ -385,18 +450,35 @@ const expandedRows = ref({});
             </Column>
             <template #expansion="{ data }">
                 <div class="grid gap-3 p-3 text-sm md:hidden">
+                    <!-- Store Access Permissions -->
                     <div class="flex flex-col gap-2">
-                        <span class="shrink-0 text-muted-foreground">Permissions</span>
+                        <span class="shrink-0 text-muted-foreground">Store Access</span>
+                        <div class="flex flex-wrap gap-1">
+                            <Tag
+                                v-for="perm in (data.access_permissions_with_labels || [])"
+                                :key="`access-${perm.key}`"
+                                :value="perm.label"
+                                severity="info"
+                                class="!text-xs"
+                            />
+                            <span v-if="!(data.access_permissions_with_labels || []).length" class="text-muted-foreground">
+                                None
+                            </span>
+                        </div>
+                    </div>
+                    <!-- Store Operations Permissions -->
+                    <div class="flex flex-col gap-2">
+                        <span class="shrink-0 text-muted-foreground">Store Operations</span>
                         <div class="flex flex-wrap gap-1">
                             <Tag
                                 v-for="perm in (data.permissions_with_labels || [])"
-                                :key="perm.key"
+                                :key="`ops-${perm.key}`"
                                 :value="perm.label"
                                 severity="secondary"
                                 class="!text-xs"
                             />
                             <span v-if="!(data.permissions_with_labels || []).length" class="text-muted-foreground">
-                                No permissions
+                                None
                             </span>
                         </div>
                     </div>
@@ -410,7 +492,7 @@ const expandedRows = ref({});
                             @click="openEditDialog(data)"
                         />
                         <Button
-                            v-if="data.active"
+                            v-if="data.active && !data.is_creator"
                             icon="pi pi-ban"
                             label="Deactivate"
                             severity="warn"
@@ -419,6 +501,7 @@ const expandedRows = ref({});
                             @click="confirmDeactivateAssignment(data)"
                         />
                         <Button
+                            v-if="!data.is_creator"
                             icon="pi pi-trash"
                             label="Remove"
                             severity="danger"
@@ -475,9 +558,40 @@ const expandedRows = ref({});
                     </span>
                 </div>
 
-                <!-- Permissions -->
+                <!-- Store Access Permissions -->
+                <div v-if="Object.keys(availableAccessPermissions).length > 0" class="flex flex-col gap-3">
+                    <label class="font-medium">Store Access</label>
+                    <p class="text-sm text-muted-foreground -mt-2">Controls what the employee can do with store settings and management.</p>
+                    <div
+                        v-for="(permissions, group) in availableAccessPermissions"
+                        :key="`access-${group}`"
+                        class="rounded border border-border p-3"
+                    >
+                        <div class="mb-2 flex items-center gap-2">
+                            <Checkbox
+                                :model-value="isAccessGroupFullySelected(group as string)"
+                                :indeterminate="isAccessGroupPartiallySelected(group as string)"
+                                binary
+                                @change="toggleAccessGroupPermissions(group as string)"
+                            />
+                            <span class="text-sm font-medium">{{ group }}</span>
+                        </div>
+                        <div class="ml-6 grid gap-2 sm:grid-cols-2">
+                            <div v-for="perm in permissions" :key="perm.key" class="flex items-center gap-2">
+                                <Checkbox :model-value="form.access_permissions.includes(perm.key)" binary @change="toggleAccessPermission(perm.key)" />
+                                <span class="text-sm">{{ perm.label }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <small v-if="formErrors.access_permissions" class="text-red-500">
+                        {{ formErrors.access_permissions }}
+                    </small>
+                </div>
+
+                <!-- Store Operations Permissions -->
                 <div class="flex flex-col gap-3">
-                    <label class="font-medium">Permissions</label>
+                    <label class="font-medium">Store Operations</label>
+                    <p class="text-sm text-muted-foreground -mt-2">Controls what the employee can do within the store (sales, inventory, etc.).</p>
                     <div
                         v-for="(permissions, group) in availablePermissions"
                         :key="group"

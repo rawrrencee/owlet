@@ -2,7 +2,7 @@
 import Toast from 'primevue/toast';
 import FloatingClockPanel from '@/components/timecards/FloatingClockPanel.vue';
 import IncompleteTimecardModal from '@/components/timecards/IncompleteTimecardModal.vue';
-import { useAdminGuard } from '@/composables/useAdminGuard';
+import { usePermissionGuard } from '@/composables/usePermissionGuard';
 import { useFlashToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItem } from '@/types';
@@ -18,8 +18,8 @@ withDefaults(defineProps<Props>(), {
 // Watch for flash messages and show toasts
 useFlashToast();
 
-// Guard admin routes from staff users
-useAdminGuard();
+// Guard routes based on permissions
+usePermissionGuard();
 </script>
 
 <template>

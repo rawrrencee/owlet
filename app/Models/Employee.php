@@ -73,6 +73,11 @@ class Employee extends Model
         return $this->hasOne(User::class);
     }
 
+    public function permission(): HasOne
+    {
+        return $this->hasOne(EmployeePermission::class);
+    }
+
     public function countryOfResidence(): BelongsTo
     {
         return $this->belongsTo(Country::class, 'country_id');

@@ -27,11 +27,13 @@ const loading = ref(true);
 
 const employeeStores = ref<EmployeeStore[]>([]);
 const availablePermissions = ref<StorePermissionGroup>({});
+const availableAccessPermissions = ref<StorePermissionGroup>({});
 
 const form = reactive({
     store_id: null as number | null,
     active: true,
     permissions: [] as string[],
+    access_permissions: [] as string[],
 });
 
 const formErrors = reactive<Record<string, string>>({});
@@ -62,6 +64,7 @@ async function fetchEmployeeStores() {
         const data = await response.json();
         employeeStores.value = data.data;
         availablePermissions.value = data.available_permissions;
+        availableAccessPermissions.value = data.available_access_permissions || {};
     } catch (error) {
         console.error('Failed to fetch employee stores:', error);
     } finally {
@@ -77,6 +80,7 @@ function resetForm() {
     form.store_id = null;
     form.active = true;
     form.permissions = [];
+    form.access_permissions = [];
     Object.keys(formErrors).forEach((key) => delete formErrors[key]);
 }
 
@@ -92,6 +96,7 @@ function openEditDialog(es: EmployeeStore) {
     form.store_id = es.store_id;
     form.active = es.active;
     form.permissions = [...(es.permissions || [])];
+    form.access_permissions = [...(es.access_permissions || [])];
     dialogVisible.value = true;
 }
 
@@ -103,6 +108,7 @@ function saveAssignment() {
         store_id: form.store_id,
         active: form.active,
         permissions: form.permissions,
+        access_permissions: form.access_permissions,
     };
 
     const url = editingId.value
@@ -224,6 +230,42 @@ function getStoreName(storeId: number): string {
 function getStoreCode(storeId: number): string {
     return props.stores.find(s => s.id === storeId)?.store_code ?? '';
 }
+
+// Access permission functions
+function toggleAccessPermission(permissionKey: string) {
+    const index = form.access_permissions.indexOf(permissionKey);
+    if (index === -1) {
+        form.access_permissions.push(permissionKey);
+    } else {
+        form.access_permissions.splice(index, 1);
+    }
+}
+
+function toggleAccessGroupPermissions(group: string) {
+    const groupPermissions = availableAccessPermissions.value[group]?.map(p => p.key) ?? [];
+    const allSelected = groupPermissions.every(p => form.access_permissions.includes(p));
+
+    if (allSelected) {
+        form.access_permissions = form.access_permissions.filter(p => !groupPermissions.includes(p));
+    } else {
+        groupPermissions.forEach(p => {
+            if (!form.access_permissions.includes(p)) {
+                form.access_permissions.push(p);
+            }
+        });
+    }
+}
+
+function isAccessGroupFullySelected(group: string): boolean {
+    const groupPermissions = availableAccessPermissions.value[group]?.map(p => p.key) ?? [];
+    return groupPermissions.length > 0 && groupPermissions.every(p => form.access_permissions.includes(p));
+}
+
+function isAccessGroupPartiallySelected(group: string): boolean {
+    const groupPermissions = availableAccessPermissions.value[group]?.map(p => p.key) ?? [];
+    const selectedCount = groupPermissions.filter(p => form.access_permissions.includes(p)).length;
+    return selectedCount > 0 && selectedCount < groupPermissions.length;
+}
 </script>
 
 <template>
@@ -259,6 +301,7 @@ function getStoreCode(storeId: number): string {
                     <div class="flex items-center gap-2">
                         <span class="font-medium">{{ getStoreName(data.store_id) }}</span>
                         <Tag :value="getStoreCode(data.store_id)" severity="secondary" class="!text-xs hidden sm:inline-flex" />
+                        <Tag v-if="data.is_creator" value="Creator" severity="info" class="!text-xs" />
                     </div>
                 </template>
             </Column>
@@ -303,7 +346,7 @@ function getStoreCode(storeId: number): string {
                             v-tooltip.top="'Edit'"
                         />
                         <Button
-                            v-if="data.active"
+                            v-if="data.active && !data.is_creator"
                             icon="pi pi-ban"
                             severity="warn"
                             text
@@ -313,6 +356,7 @@ function getStoreCode(storeId: number): string {
                             v-tooltip.top="'Deactivate'"
                         />
                         <Button
+                            v-if="!data.is_creator"
                             icon="pi pi-trash"
                             severity="danger"
                             text
@@ -355,7 +399,7 @@ function getStoreCode(storeId: number): string {
                             @click="openEditDialog(data)"
                         />
                         <Button
-                            v-if="data.active"
+                            v-if="data.active && !data.is_creator"
                             icon="pi pi-ban"
                             label="Deactivate"
                             severity="warn"
@@ -364,6 +408,7 @@ function getStoreCode(storeId: number): string {
                             @click="confirmDeactivateAssignment(data)"
                         />
                         <Button
+                            v-if="!data.is_creator"
                             icon="pi pi-trash"
                             label="Remove"
                             severity="danger"
@@ -415,9 +460,48 @@ function getStoreCode(storeId: number): string {
                     </span>
                 </div>
 
-                <!-- Permissions -->
+                <!-- Store Access Permissions -->
+                <div v-if="Object.keys(availableAccessPermissions).length > 0" class="flex flex-col gap-3">
+                    <label class="font-medium">Store Access</label>
+                    <p class="text-sm text-muted-foreground -mt-2">Controls what the employee can do with the store settings and management.</p>
+                    <div
+                        v-for="(permissions, group) in availableAccessPermissions"
+                        :key="`access-${group}`"
+                        class="rounded border border-border p-3"
+                    >
+                        <div class="mb-2 flex items-center gap-2">
+                            <Checkbox
+                                :model-value="isAccessGroupFullySelected(group as string)"
+                                :indeterminate="isAccessGroupPartiallySelected(group as string)"
+                                binary
+                                @change="toggleAccessGroupPermissions(group as string)"
+                            />
+                            <span class="font-medium text-sm">{{ group }}</span>
+                        </div>
+                        <div class="ml-6 grid gap-2 sm:grid-cols-2">
+                            <div
+                                v-for="perm in permissions"
+                                :key="perm.key"
+                                class="flex items-center gap-2"
+                            >
+                                <Checkbox
+                                    :model-value="form.access_permissions.includes(perm.key)"
+                                    binary
+                                    @change="toggleAccessPermission(perm.key)"
+                                />
+                                <span class="text-sm">{{ perm.label }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <small v-if="formErrors.access_permissions" class="text-red-500">
+                        {{ formErrors.access_permissions }}
+                    </small>
+                </div>
+
+                <!-- Store Operations Permissions -->
                 <div class="flex flex-col gap-3">
-                    <label class="font-medium">Permissions</label>
+                    <label class="font-medium">Store Operations</label>
+                    <p class="text-sm text-muted-foreground -mt-2">Controls what the employee can do within the store (sales, inventory, etc.).</p>
                     <div
                         v-for="(permissions, group) in availablePermissions"
                         :key="group"

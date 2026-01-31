@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Constants\StoreAccessPermissions;
 use App\Constants\StorePermissions;
 use App\Http\Requests\StoreEmployeeStoreRequest;
 use App\Http\Requests\UpdateEmployeeStoreRequest;
@@ -27,6 +28,7 @@ class EmployeeStoreController extends Controller
         return response()->json([
             'data' => EmployeeStoreResource::collection($employeeStores),
             'available_permissions' => StorePermissions::grouped(),
+            'available_access_permissions' => StoreAccessPermissions::grouped(),
         ]);
     }
 
@@ -54,6 +56,7 @@ class EmployeeStoreController extends Controller
         return response()->json([
             'data' => (new EmployeeStoreResource($employeeStore))->resolve(),
             'available_permissions' => StorePermissions::grouped(),
+            'available_access_permissions' => StoreAccessPermissions::grouped(),
         ]);
     }
 
@@ -73,6 +76,13 @@ class EmployeeStoreController extends Controller
 
     public function destroy(Request $request, Employee $employee, EmployeeStore $employeeStore): RedirectResponse|JsonResponse
     {
+        // Prevent removal of the store creator assignment
+        if ($employeeStore->is_creator) {
+            return back()->withErrors([
+                'store' => 'Cannot remove the store creator assignment.',
+            ]);
+        }
+
         $employeeStore->delete();
 
         return $this->respondWithDeleted(

@@ -50,6 +50,36 @@ const isAdmin = computed(() => page.props.auth.user.role === 'admin');
 const hierarchyLoading = ref(true);
 const hierarchyData = ref<EmployeeHierarchyData | null>(null);
 
+// Permissions data (for staff users only)
+const permissionsLoading = ref(true);
+const pagePermissions = ref<string[]>([]);
+const availablePermissions = ref<Record<string, Array<{ key: string; label: string; group: string }>>>({});
+const isStaffUser = computed(() => props.role === 'staff');
+
+async function fetchPermissions() {
+    if (!isAdmin.value || !isStaffUser.value) return;
+
+    permissionsLoading.value = true;
+    try {
+        const response = await fetch(`/users/${props.employee.id}/permissions`, {
+            headers: {
+                Accept: 'application/json',
+            },
+        });
+        const data = await response.json();
+        pagePermissions.value = data.data.page_permissions || [];
+        availablePermissions.value = data.available_permissions || {};
+    } catch (error) {
+        console.error('Failed to fetch permissions:', error);
+    } finally {
+        permissionsLoading.value = false;
+    }
+}
+
+function hasPermission(permissionKey: string): boolean {
+    return pagePermissions.value.includes(permissionKey);
+}
+
 async function fetchHierarchyData() {
     if (!isAdmin.value) return;
 
@@ -72,6 +102,9 @@ async function fetchHierarchyData() {
 onMounted(() => {
     if (isAdmin.value) {
         fetchHierarchyData();
+        if (isStaffUser.value) {
+            fetchPermissions();
+        }
     }
 });
 
@@ -216,6 +249,7 @@ function navigateToEdit() {
                                 <Tab value="contracts">Contracts</Tab>
                                 <Tab value="insurances">Insurances</Tab>
                                 <Tab value="stores">Stores</Tab>
+                                <Tab v-if="isAdmin && isStaffUser" value="permissions">Permissions</Tab>
                                 <Tab v-if="isAdmin" value="hierarchy">Hierarchy</Tab>
                             </TabList>
                             <TabPanels>
@@ -786,6 +820,44 @@ function navigateToEdit() {
                                             </DataTable>
                                         </template>
                                         <p v-else class="text-muted-foreground">No store assignments.</p>
+                                    </div>
+                                </TabPanel>
+
+                                <TabPanel v-if="isAdmin && isStaffUser" value="permissions">
+                                    <div class="pt-4">
+                                        <h3 class="mb-4 text-lg font-medium">Global Page Permissions</h3>
+                                        <div v-if="permissionsLoading" class="flex items-center justify-center py-8">
+                                            <i class="pi pi-spin pi-spinner text-2xl text-muted-foreground"></i>
+                                        </div>
+                                        <div v-else-if="Object.keys(availablePermissions).length > 0" class="flex flex-col gap-4">
+                                            <div
+                                                v-for="(permissions, group) in availablePermissions"
+                                                :key="group"
+                                                class="rounded border border-border p-4"
+                                            >
+                                                <div class="mb-3 font-medium">{{ group }}</div>
+                                                <div class="ml-2 grid gap-2 sm:grid-cols-2">
+                                                    <div
+                                                        v-for="perm in permissions"
+                                                        :key="perm.key"
+                                                        class="flex items-center gap-2"
+                                                    >
+                                                        <i
+                                                            :class="[
+                                                                hasPermission(perm.key) ? 'pi pi-check-circle text-green-600' : 'pi pi-times-circle text-muted-foreground',
+                                                            ]"
+                                                        ></i>
+                                                        <span
+                                                            class="text-sm"
+                                                            :class="{ 'text-muted-foreground': !hasPermission(perm.key) }"
+                                                        >
+                                                            {{ perm.label }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p v-else class="text-muted-foreground">No permissions available.</p>
                                     </div>
                                 </TabPanel>
 

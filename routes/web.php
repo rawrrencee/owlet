@@ -14,6 +14,8 @@ use App\Http\Controllers\MyTeamTimecardController;
 use App\Http\Controllers\OrganisationChartController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\EmployeePermissionController;
+use App\Http\Controllers\PagePermissionsController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\TimecardController;
@@ -58,7 +60,102 @@ Route::middleware([
     Route::get('my-team-timecards/{employee}', [MyTeamTimecardController::class, 'show'])->name('my-team-timecards.show');
     Route::get('my-team-timecards/{employee}/{date}', [MyTeamTimecardController::class, 'showDate'])->name('my-team-timecards.show-date');
 
+    // Commerce routes - Brands (permission-based)
+    // Create route must be defined before parameterized routes
+    Route::middleware('permission:brands.manage')->group(function () {
+        Route::get('brands/create', [BrandController::class, 'create'])->name('brands.create');
+        Route::post('brands', [BrandController::class, 'store'])->name('brands.store');
+    });
+    Route::middleware('permission:brands.view')->group(function () {
+        Route::get('brands', [BrandController::class, 'index'])->name('brands.index');
+        Route::get('brands/{brand}', [BrandController::class, 'show'])->name('brands.show');
+        Route::get('brands/{brand}/logo', [BrandController::class, 'showLogo'])->name('brands.logo');
+    });
+    Route::middleware('permission:brands.manage')->group(function () {
+        Route::get('brands/{brand}/edit', [BrandController::class, 'edit'])->name('brands.edit');
+        Route::put('brands/{brand}', [BrandController::class, 'update'])->name('brands.update');
+        Route::delete('brands/{brand}', [BrandController::class, 'destroy'])->name('brands.destroy');
+        Route::post('brands/{brand}/restore', [BrandController::class, 'restore'])->name('brands.restore')->withTrashed();
+        Route::post('brands/{brand}/logo', [BrandController::class, 'uploadLogo'])->name('brands.upload-logo');
+        Route::delete('brands/{brand}/logo', [BrandController::class, 'deleteLogo'])->name('brands.delete-logo');
+    });
+
+    // Commerce routes - Categories (permission-based)
+    // Create route must be defined before parameterized routes
+    Route::middleware('permission:categories.manage')->group(function () {
+        Route::get('categories/create', [CategoryController::class, 'create'])->name('categories.create');
+        Route::post('categories', [CategoryController::class, 'store'])->name('categories.store');
+    });
+    Route::middleware('permission:categories.view')->group(function () {
+        Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
+        Route::get('categories/{category}', [CategoryController::class, 'show'])->name('categories.show');
+    });
+    Route::middleware('permission:categories.manage')->group(function () {
+        Route::get('categories/{category}/edit', [CategoryController::class, 'edit'])->name('categories.edit');
+        Route::put('categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+        Route::delete('categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+        Route::post('categories/{category}/restore', [CategoryController::class, 'restore'])->name('categories.restore')->withTrashed();
+        Route::post('categories/{category}/subcategories', [CategoryController::class, 'storeSubcategory'])->name('categories.subcategories.store');
+        Route::put('categories/{category}/subcategories/{subcategory}', [CategoryController::class, 'updateSubcategory'])->name('categories.subcategories.update');
+        Route::delete('categories/{category}/subcategories/{subcategory}', [CategoryController::class, 'destroySubcategory'])->name('categories.subcategories.destroy');
+        Route::post('categories/{category}/subcategories/{subcategory}/restore', [CategoryController::class, 'restoreSubcategory'])->name('categories.subcategories.restore')->withTrashed();
+    });
+
+    // Commerce routes - Suppliers (permission-based)
+    // Create route must be defined before parameterized routes
+    Route::middleware('permission:suppliers.manage')->group(function () {
+        Route::get('suppliers/create', [SupplierController::class, 'create'])->name('suppliers.create');
+        Route::post('suppliers', [SupplierController::class, 'store'])->name('suppliers.store');
+    });
+    Route::middleware('permission:suppliers.view')->group(function () {
+        Route::get('suppliers', [SupplierController::class, 'index'])->name('suppliers.index');
+        Route::get('suppliers/{supplier}', [SupplierController::class, 'show'])->name('suppliers.show');
+        Route::get('suppliers/{supplier}/logo', [SupplierController::class, 'showLogo'])->name('suppliers.logo');
+    });
+    Route::middleware('permission:suppliers.manage')->group(function () {
+        Route::get('suppliers/{supplier}/edit', [SupplierController::class, 'edit'])->name('suppliers.edit');
+        Route::put('suppliers/{supplier}', [SupplierController::class, 'update'])->name('suppliers.update');
+        Route::delete('suppliers/{supplier}', [SupplierController::class, 'destroy'])->name('suppliers.destroy');
+        Route::post('suppliers/{supplier}/restore', [SupplierController::class, 'restore'])->name('suppliers.restore')->withTrashed();
+        Route::post('suppliers/{supplier}/logo', [SupplierController::class, 'uploadLogo'])->name('suppliers.upload-logo');
+        Route::delete('suppliers/{supplier}/logo', [SupplierController::class, 'deleteLogo'])->name('suppliers.delete-logo');
+    });
+
+    // Commerce routes - Stores (permission-based with policy authorization)
+    // Manage store actions (must be defined before parameterized routes)
+    Route::middleware('permission:stores.manage')->group(function () {
+        Route::get('stores/create', [StoreController::class, 'create'])->name('stores.create');
+        Route::post('stores', [StoreController::class, 'store'])->name('stores.store');
+        Route::delete('stores/{store}', [StoreController::class, 'destroy'])->name('stores.destroy');
+        Route::post('stores/{store}/restore', [StoreController::class, 'restore'])->name('stores.restore')->withTrashed();
+    });
+    Route::middleware('permission:stores.access')->group(function () {
+        Route::get('stores', [StoreController::class, 'index'])->name('stores.index');
+        Route::get('stores/{store}', [StoreController::class, 'show'])->name('stores.show');
+        Route::get('stores/{store}/logo', [StoreController::class, 'showLogo'])->name('stores.logo');
+        Route::get('stores/{store}/edit', [StoreController::class, 'edit'])->name('stores.edit');
+        Route::put('stores/{store}', [StoreController::class, 'update'])->name('stores.update');
+        Route::post('stores/{store}/logo', [StoreController::class, 'uploadLogo'])->name('stores.upload-logo');
+        Route::delete('stores/{store}/logo', [StoreController::class, 'deleteLogo'])->name('stores.delete-logo');
+        // Store-Employee assignments (manage employees from store side)
+        Route::get('stores/{store}/employees', [StoreController::class, 'employees'])->name('stores.employees.index');
+        Route::post('stores/{store}/employees', [StoreController::class, 'addEmployee'])->name('stores.employees.store');
+        Route::put('stores/{store}/employees/{employeeStore}', [StoreController::class, 'updateEmployee'])->name('stores.employees.update');
+        Route::delete('stores/{store}/employees/{employeeStore}', [StoreController::class, 'removeEmployee'])->name('stores.employees.destroy');
+        // Store-Currency assignments (manage currencies from store side)
+        Route::get('stores/{store}/currencies', [StoreController::class, 'currencies'])->name('stores.currencies.index');
+        Route::post('stores/{store}/currencies', [StoreController::class, 'addCurrency'])->name('stores.currencies.store');
+        Route::put('stores/{store}/currencies/{storeCurrency}', [StoreController::class, 'updateCurrency'])->name('stores.currencies.update');
+        Route::delete('stores/{store}/currencies/{storeCurrency}', [StoreController::class, 'removeCurrency'])->name('stores.currencies.destroy');
+        Route::post('stores/{store}/currencies/{storeCurrency}/set-default', [StoreController::class, 'setDefaultCurrency'])->name('stores.currencies.set-default');
+    });
+
+    // Admin-only routes
     Route::middleware('admin')->group(function () {
+        // Page Permissions Management
+        Route::get('page-permissions/{page}', [PagePermissionsController::class, 'index'])->name('page-permissions.index');
+        Route::put('page-permissions/{page}', [PagePermissionsController::class, 'update'])->name('page-permissions.update');
+
         Route::get('users', [UserController::class, 'index'])->name('users.index');
         Route::get('users/create', [UserController::class, 'create'])->name('users.create');
         Route::post('users', [UserController::class, 'store'])->name('users.store');
@@ -70,6 +167,10 @@ Route::middleware([
         Route::delete('users/{employee}', [UserController::class, 'destroy'])->name('users.destroy');
         Route::post('users/{employee}/restore', [UserController::class, 'restore'])->name('users.restore')->withTrashed();
         Route::post('users/{employee}/resend-invitation', [UserController::class, 'resendInvitation'])->name('users.resend-invitation');
+
+        // Employee Permissions
+        Route::get('users/{employee}/permissions', [EmployeePermissionController::class, 'index'])->name('users.permissions.index');
+        Route::put('users/{employee}/permissions', [EmployeePermissionController::class, 'update'])->name('users.permissions.update');
 
         Route::get('customers/create', [UserController::class, 'createCustomer'])->name('customers.create');
         Route::post('customers', [UserController::class, 'storeCustomer'])->name('customers.store');
@@ -115,48 +216,6 @@ Route::middleware([
         Route::delete('users/{employee}/insurances/{insurance}', [EmployeeInsuranceController::class, 'destroy'])->name('users.insurances.destroy');
         Route::post('users/{employee}/insurances/{insurance}/document', [EmployeeInsuranceController::class, 'uploadDocument'])->name('users.insurances.upload-document');
         Route::delete('users/{employee}/insurances/{insurance}/document', [EmployeeInsuranceController::class, 'deleteDocument'])->name('users.insurances.delete-document');
-
-        // Brands
-        Route::resource('brands', BrandController::class);
-        Route::post('brands/{brand}/restore', [BrandController::class, 'restore'])->name('brands.restore')->withTrashed();
-        Route::get('brands/{brand}/logo', [BrandController::class, 'showLogo'])->name('brands.logo');
-        Route::post('brands/{brand}/logo', [BrandController::class, 'uploadLogo'])->name('brands.upload-logo');
-        Route::delete('brands/{brand}/logo', [BrandController::class, 'deleteLogo'])->name('brands.delete-logo');
-
-        // Categories
-        Route::resource('categories', CategoryController::class);
-        Route::post('categories/{category}/restore', [CategoryController::class, 'restore'])->name('categories.restore')->withTrashed();
-        Route::post('categories/{category}/subcategories', [CategoryController::class, 'storeSubcategory'])->name('categories.subcategories.store');
-        Route::put('categories/{category}/subcategories/{subcategory}', [CategoryController::class, 'updateSubcategory'])->name('categories.subcategories.update');
-        Route::delete('categories/{category}/subcategories/{subcategory}', [CategoryController::class, 'destroySubcategory'])->name('categories.subcategories.destroy');
-        Route::post('categories/{category}/subcategories/{subcategory}/restore', [CategoryController::class, 'restoreSubcategory'])->name('categories.subcategories.restore')->withTrashed();
-
-        // Suppliers
-        Route::resource('suppliers', SupplierController::class);
-        Route::post('suppliers/{supplier}/restore', [SupplierController::class, 'restore'])->name('suppliers.restore')->withTrashed();
-        Route::get('suppliers/{supplier}/logo', [SupplierController::class, 'showLogo'])->name('suppliers.logo');
-        Route::post('suppliers/{supplier}/logo', [SupplierController::class, 'uploadLogo'])->name('suppliers.upload-logo');
-        Route::delete('suppliers/{supplier}/logo', [SupplierController::class, 'deleteLogo'])->name('suppliers.delete-logo');
-
-        // Stores
-        Route::resource('stores', StoreController::class);
-        Route::post('stores/{store}/restore', [StoreController::class, 'restore'])->name('stores.restore')->withTrashed();
-        Route::get('stores/{store}/logo', [StoreController::class, 'showLogo'])->name('stores.logo');
-        Route::post('stores/{store}/logo', [StoreController::class, 'uploadLogo'])->name('stores.upload-logo');
-        Route::delete('stores/{store}/logo', [StoreController::class, 'deleteLogo'])->name('stores.delete-logo');
-
-        // Store-Employee assignments (manage employees from store side)
-        Route::get('stores/{store}/employees', [StoreController::class, 'employees'])->name('stores.employees.index');
-        Route::post('stores/{store}/employees', [StoreController::class, 'addEmployee'])->name('stores.employees.store');
-        Route::put('stores/{store}/employees/{employeeStore}', [StoreController::class, 'updateEmployee'])->name('stores.employees.update');
-        Route::delete('stores/{store}/employees/{employeeStore}', [StoreController::class, 'removeEmployee'])->name('stores.employees.destroy');
-
-        // Store-Currency assignments (manage currencies from store side)
-        Route::get('stores/{store}/currencies', [StoreController::class, 'currencies'])->name('stores.currencies.index');
-        Route::post('stores/{store}/currencies', [StoreController::class, 'addCurrency'])->name('stores.currencies.store');
-        Route::put('stores/{store}/currencies/{storeCurrency}', [StoreController::class, 'updateCurrency'])->name('stores.currencies.update');
-        Route::delete('stores/{store}/currencies/{storeCurrency}', [StoreController::class, 'removeCurrency'])->name('stores.currencies.destroy');
-        Route::post('stores/{store}/currencies/{storeCurrency}/set-default', [StoreController::class, 'setDefaultCurrency'])->name('stores.currencies.set-default');
 
         // Employee-Store assignments
         Route::get('users/{employee}/stores', [EmployeeStoreController::class, 'index'])->name('users.stores.index');

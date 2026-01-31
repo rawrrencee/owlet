@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Constants\StoreAccessPermissions;
 use App\Constants\StorePermissions;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -22,6 +23,8 @@ class UpdateEmployeeStoreRequest extends FormRequest
             'active' => ['boolean'],
             'permissions' => ['nullable', 'array'],
             'permissions.*' => ['string', Rule::in(StorePermissions::keys())],
+            'access_permissions' => ['nullable', 'array'],
+            'access_permissions.*' => ['string', Rule::in(StoreAccessPermissions::keys())],
         ];
     }
 }

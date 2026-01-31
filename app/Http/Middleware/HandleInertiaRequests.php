@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Http\Resources\TimecardResource;
 use App\Models\Timecard;
 use App\Services\NavigationService;
+use App\Services\PermissionService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -44,7 +45,10 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $user?->load(['employee', 'customer']),
+                'user' => $user?->load(['employee.permission', 'customer']),
+                'permissions' => $user
+                    ? app(PermissionService::class)->getPermissionsForFrontend($user)
+                    : null,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'navigation' => $user

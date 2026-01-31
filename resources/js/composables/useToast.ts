@@ -1,6 +1,6 @@
 import { usePage } from '@inertiajs/vue3';
 import { useToast as usePrimeToast } from 'primevue/usetoast';
-import { watch } from 'vue';
+import { nextTick, watch } from 'vue';
 
 export interface ApiError {
     message: string;
@@ -91,14 +91,31 @@ export function useFlashToast() {
     const page = usePage();
     const { showSuccess, showError } = useToast();
 
+    // Watch success flash separately
     watch(
-        () => page.props.flash as FlashMessages | undefined,
-        (flash) => {
-            if (flash?.success) {
-                showSuccess(flash.success);
+        () => (page.props.flash as FlashMessages | undefined)?.success,
+        (success, oldSuccess) => {
+            // Only show if it's a new message (different from old or old was empty)
+            if (success && success !== oldSuccess) {
+                // Use nextTick to ensure Toast component is mounted
+                nextTick(() => {
+                    showSuccess(success);
+                });
             }
-            if (flash?.error) {
-                showError(flash.error);
+        },
+        { immediate: true },
+    );
+
+    // Watch error flash separately
+    watch(
+        () => (page.props.flash as FlashMessages | undefined)?.error,
+        (error, oldError) => {
+            // Only show if it's a new message
+            if (error && error !== oldError) {
+                // Use nextTick to ensure Toast component is mounted
+                nextTick(() => {
+                    showError(error);
+                });
             }
         },
         { immediate: true },

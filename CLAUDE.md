@@ -23,6 +23,7 @@ Use these references to understand:
 - **Read-only legacy data access** - The system must connect to and display data from the old database in a read-only webpage format.
 - **Incremental development** - Features will be prompted and built one at a time.
 - **Inertia-first frontend design** - The primary interface is the Vue/Inertia frontend. API support for external clients (mobile apps, integrations) is a secondary requirement for future extensibility.
+- **Permission-based access control** - Staff users have granular permissions for accessing pages and stores. See `docs/PERMISSIONS.md` for full documentation.
 
 ## Frontend Request Guidelines
 

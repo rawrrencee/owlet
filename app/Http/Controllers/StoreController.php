@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Constants\StoreAccessPermissions;
 use App\Constants\StorePermissions;
 use App\Http\Requests\StoreEmployeeStoreRequest;
 use App\Http\Requests\StoreStoreCurrencyRequest;
@@ -22,6 +23,7 @@ use App\Models\Employee;
 use App\Models\EmployeeStore;
 use App\Models\Store;
 use App\Models\StoreCurrency;
+use App\Services\PermissionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -34,14 +36,27 @@ class StoreController extends Controller
 {
     use RespondsWithInertiaOrJson;
 
+    public function __construct(
+        protected PermissionService $permissionService
+    ) {}
+
     public function index(Request $request): InertiaResponse|JsonResponse
     {
+        $user = $request->user();
+
+        // Filter stores based on user permissions
+        $accessibleStoreIds = $this->permissionService->getAccessibleStoreIds($user);
         $search = $request->query('search', '');
         $status = $request->query('status', '');
         $companyId = $request->query('company_id', '');
         $showDeleted = $request->boolean('show_deleted', false);
 
         $query = Store::with(['company', 'defaultStoreCurrency.currency', 'storeCurrencies']);
+
+        // Filter to accessible stores for non-admin users
+        if (! $user->isAdmin()) {
+            $query->whereIn('id', $accessibleStoreIds);
+        }
 
         if ($showDeleted) {
             $query->withTrashed();
@@ -126,6 +141,20 @@ class StoreController extends Controller
             $store->update(['logo' => $path]);
         }
 
+        // Auto-assign the creator (staff user) to the store so it's visible to them
+        // Grant them all access permissions since they created the store
+        $user = $request->user();
+        if ($user->isStaff() && $user->employee_id) {
+            EmployeeStore::create([
+                'employee_id' => $user->employee_id,
+                'store_id' => $store->id,
+                'active' => true,
+                'permissions' => [],
+                'access_permissions' => StoreAccessPermissions::keys(),
+                'is_creator' => true,
+            ]);
+        }
+
         return $this->respondWithCreated(
             $request,
             'stores.index',
@@ -137,6 +166,8 @@ class StoreController extends Controller
 
     public function show(Request $request, Store $store): InertiaResponse|JsonResponse
     {
+        $this->authorize('view', $store);
+
         $store->load(['company', 'country', 'employeeStores.employee.user', 'storeCurrencies.currency', 'defaultStoreCurrency.currency']);
 
         if ($this->wantsJson($request)) {
@@ -156,6 +187,7 @@ class StoreController extends Controller
                 'active' => $es->active,
                 'permissions' => $es->permissions ?? [],
                 'permissions_with_labels' => $es->getPermissionsWithLabels(),
+                'is_creator' => $es->is_creator,
             ]),
             'storeCurrencies' => StoreCurrencyResource::collection($store->storeCurrencies)->resolve(),
         ]);
@@ -163,6 +195,8 @@ class StoreController extends Controller
 
     public function edit(Store $store): InertiaResponse
     {
+        $this->authorize('update', $store);
+
         $store->load(['company', 'country', 'storeCurrencies.currency', 'defaultStoreCurrency.currency']);
 
         $companies = Company::where('active', true)
@@ -191,6 +225,8 @@ class StoreController extends Controller
 
     public function update(UpdateStoreRequest $request, Store $store): RedirectResponse|JsonResponse
     {
+        $this->authorize('update', $store);
+
         $store->update($request->validated());
 
         return $this->respondWithSuccess(
@@ -290,6 +326,8 @@ class StoreController extends Controller
      */
     public function employees(Request $request, Store $store): JsonResponse
     {
+        $this->authorize('manageEmployees', $store);
+
         $employeeStores = $store->employeeStores()
             ->with('employee')
             ->orderBy('created_at', 'desc')
@@ -298,6 +336,7 @@ class StoreController extends Controller
         return response()->json([
             'data' => EmployeeStoreResource::collection($employeeStores),
             'available_permissions' => StorePermissions::grouped(),
+            'available_access_permissions' => StoreAccessPermissions::grouped(),
         ]);
     }
 
@@ -306,6 +345,8 @@ class StoreController extends Controller
      */
     public function addEmployee(StoreEmployeeStoreRequest $request, Store $store): RedirectResponse|JsonResponse
     {
+        $this->authorize('manageEmployees', $store);
+
         $data = $request->validated();
         $data['store_id'] = $store->id;
 
@@ -326,6 +367,8 @@ class StoreController extends Controller
      */
     public function updateEmployee(UpdateEmployeeStoreRequest $request, Store $store, EmployeeStore $employeeStore): RedirectResponse|JsonResponse
     {
+        $this->authorize('manageEmployees', $store);
+
         $employeeStore->update($request->validated());
         $employeeStore->load('employee');
 
@@ -343,6 +386,15 @@ class StoreController extends Controller
      */
     public function removeEmployee(Request $request, Store $store, EmployeeStore $employeeStore): RedirectResponse|JsonResponse
     {
+        $this->authorize('manageEmployees', $store);
+
+        // Prevent removal of the store creator assignment
+        if ($employeeStore->is_creator) {
+            return back()->withErrors([
+                'employee' => 'Cannot remove the store creator from this store.',
+            ]);
+        }
+
         $employeeStore->delete();
 
         return $this->respondWithDeleted(
@@ -358,6 +410,8 @@ class StoreController extends Controller
      */
     public function currencies(Request $request, Store $store): JsonResponse
     {
+        $this->authorize('manageCurrencies', $store);
+
         $storeCurrencies = $store->storeCurrencies()
             ->with('currency')
             ->orderBy('is_default', 'desc')
@@ -374,6 +428,8 @@ class StoreController extends Controller
      */
     public function addCurrency(StoreStoreCurrencyRequest $request, Store $store): RedirectResponse|JsonResponse
     {
+        $this->authorize('manageCurrencies', $store);
+
         $data = $request->validated();
         $data['store_id'] = $store->id;
 
@@ -398,6 +454,8 @@ class StoreController extends Controller
      */
     public function updateCurrency(UpdateStoreCurrencyRequest $request, Store $store, StoreCurrency $storeCurrency): RedirectResponse|JsonResponse
     {
+        $this->authorize('manageCurrencies', $store);
+
         $storeCurrency->update($request->validated());
         $storeCurrency->load('currency');
 
@@ -415,6 +473,8 @@ class StoreController extends Controller
      */
     public function removeCurrency(Request $request, Store $store, StoreCurrency $storeCurrency): RedirectResponse|JsonResponse
     {
+        $this->authorize('manageCurrencies', $store);
+
         $wasDefault = $storeCurrency->is_default;
         $storeCurrency->delete();
 
@@ -439,6 +499,8 @@ class StoreController extends Controller
      */
     public function setDefaultCurrency(Request $request, Store $store, StoreCurrency $storeCurrency): RedirectResponse|JsonResponse
     {
+        $this->authorize('manageCurrencies', $store);
+
         // Remove default from all other currencies
         $store->storeCurrencies()
             ->where('id', '!=', $storeCurrency->id)

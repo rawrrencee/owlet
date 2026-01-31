@@ -6,6 +6,10 @@ use App\Models\User;
 
 class NavigationService
 {
+    public function __construct(
+        protected PermissionService $permissionService
+    ) {}
+
     public function getMainNavItems(User $user): array
     {
         $sections = [];
@@ -41,10 +45,18 @@ class NavigationService
 
         // Commerce section - before Management
         $commerceItems = [];
-        if ($user->isAdmin()) {
+
+        // Check permissions for commerce items
+        if ($this->permissionService->canAccessPage($user, 'brands.view')) {
             $commerceItems[] = ['title' => 'Brands', 'href' => '/brands', 'icon' => 'Tag'];
+        }
+        if ($this->permissionService->canAccessPage($user, 'categories.view')) {
             $commerceItems[] = ['title' => 'Categories', 'href' => '/categories', 'icon' => 'Layers'];
+        }
+        if ($this->permissionService->canAccessPage($user, 'suppliers.view')) {
             $commerceItems[] = ['title' => 'Suppliers', 'href' => '/suppliers', 'icon' => 'Truck'];
+        }
+        if ($this->permissionService->canAccessPage($user, 'stores.access')) {
             $commerceItems[] = ['title' => 'Stores', 'href' => '/stores', 'icon' => 'Store'];
         }
 

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import ConfirmDialog from 'primevue/confirmdialog';
 import Divider from 'primevue/divider';
 import InputNumber from 'primevue/inputnumber';
 import InputText from 'primevue/inputtext';
+import Message from 'primevue/message';
 import Select from 'primevue/select';
 import Tab from 'primevue/tab';
 import TabList from 'primevue/tablist';
@@ -19,6 +20,8 @@ import ImageSelect from '@/components/ImageSelect.vue';
 import ImageUpload from '@/components/ImageUpload.vue';
 import StoreCurrenciesSection from '@/components/stores/StoreCurrenciesSection.vue';
 import StoreEmployeesSection from '@/components/stores/StoreEmployeesSection.vue';
+import { usePermissions } from '@/composables/usePermissions';
+import { useSmartBack } from '@/composables/useSmartBack';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type Company, type Country, type Currency, type Store } from '@/types';
 
@@ -41,6 +44,21 @@ const props = defineProps<Props>();
 
 const isEditing = computed(() => !!props.store);
 const pageTitle = computed(() => (isEditing.value ? 'Edit Store' : 'Create Store'));
+
+// Permission checks
+const { isAdmin, canAccessStore } = usePermissions();
+const canManageEmployees = computed(() =>
+    isAdmin.value || (props.store ? canAccessStore(props.store.id, 'store.manage_employees') : false)
+);
+const canManageCurrencies = computed(() =>
+    isAdmin.value || (props.store ? canAccessStore(props.store.id, 'store.manage_currencies') : false)
+);
+
+// Navigation
+const { goBack } = useSmartBack('/stores');
+function cancel() {
+    goBack();
+}
 
 
 // Active tab for edit mode
@@ -654,8 +672,15 @@ function submit() {
                                 </TabPanel>
                                 <TabPanel value="employees">
                                     <div class="pt-4">
+                                        <div v-if="!canManageEmployees" class="flex flex-col items-center justify-center gap-4 py-12 text-center">
+                                            <i class="pi pi-lock text-4xl text-muted-foreground"></i>
+                                            <div>
+                                                <h3 class="text-lg font-medium">Access Restricted</h3>
+                                                <p class="text-sm text-muted-foreground">You don't have permission to manage employees for this store.</p>
+                                            </div>
+                                        </div>
                                         <StoreEmployeesSection
-                                            v-if="store && employees"
+                                            v-else-if="store && employees"
                                             :store-id="store.id"
                                             :employees="employees"
                                         />
@@ -663,8 +688,15 @@ function submit() {
                                 </TabPanel>
                                 <TabPanel value="currencies">
                                     <div class="pt-4">
+                                        <div v-if="!canManageCurrencies" class="flex flex-col items-center justify-center gap-4 py-12 text-center">
+                                            <i class="pi pi-lock text-4xl text-muted-foreground"></i>
+                                            <div>
+                                                <h3 class="text-lg font-medium">Access Restricted</h3>
+                                                <p class="text-sm text-muted-foreground">You don't have permission to manage currencies for this store.</p>
+                                            </div>
+                                        </div>
                                         <StoreCurrenciesSection
-                                            v-if="store && currencies"
+                                            v-else-if="store && currencies"
                                             :store-id="store.id"
                                             :currencies="currencies"
                                         />

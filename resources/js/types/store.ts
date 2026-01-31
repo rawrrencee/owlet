@@ -46,6 +46,9 @@ export interface EmployeeStore {
     active: boolean;
     permissions: string[];
     permissions_with_labels: StorePermission[];
+    access_permissions: string[];
+    access_permissions_with_labels: StorePermission[];
+    is_creator: boolean;
     store?: Store;
     employee?: {
         id: number;
@@ -65,4 +68,7 @@ export interface EmployeeStoreView {
     active: boolean;
     permissions: string[];
     permissions_with_labels: StorePermission[];
+    access_permissions: string[];
+    access_permissions_with_labels: StorePermission[];
+    is_creator: boolean;
 }

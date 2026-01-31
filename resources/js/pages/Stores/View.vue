@@ -313,13 +313,16 @@ function getEmployeeInitials(name: string): string {
                                                         shape="circle"
                                                         class="!h-8 !w-8 shrink-0 bg-primary/10 text-primary"
                                                     />
-                                                    <button
-                                                        type="button"
-                                                        class="text-left font-medium text-primary hover:underline"
-                                                        @click="navigateToEmployee(data.employee_id)"
-                                                    >
-                                                        {{ data.employee_name }}
-                                                    </button>
+                                                    <div class="flex items-center gap-2">
+                                                        <button
+                                                            type="button"
+                                                            class="text-left font-medium text-primary hover:underline"
+                                                            @click="navigateToEmployee(data.employee_id)"
+                                                        >
+                                                            {{ data.employee_name }}
+                                                        </button>
+                                                        <Tag v-if="data.is_creator" value="Creator" severity="info" class="!text-xs" />
+                                                    </div>
                                                 </div>
                                             </template>
                                         </Column>

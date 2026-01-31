@@ -33,7 +33,8 @@ class WorkOSRoleResolver
 
             return match ($membership->role?->slug ?? 'member') {
                 'admin' => 'admin',
-                'member' => 'staff',
+                'staff' => 'staff',
+                'member' => 'customer',
                 default => 'customer',
             };
         } catch (\Throwable) {

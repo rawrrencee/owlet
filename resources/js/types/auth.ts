@@ -11,6 +11,18 @@ export type User = {
     [key: string]: unknown;
 };
 
+export type StorePermissions = {
+    access: string[];
+    operations: string[];
+};
+
+export type Permissions = {
+    is_admin: boolean;
+    page_permissions: string[];
+    store_permissions: Record<number, StorePermissions>;
+};
+
 export type Auth = {
     user: User;
+    permissions: Permissions | null;
 };

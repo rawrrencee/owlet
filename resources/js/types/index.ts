@@ -9,6 +9,7 @@ export * from './employee';
 export * from './hierarchy';
 export * from './navigation';
 export * from './pagination';
+export * from './permissions';
 export * from './store';
 export * from './supplier';
 export * from './timecard';

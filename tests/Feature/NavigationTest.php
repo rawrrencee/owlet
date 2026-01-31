@@ -6,7 +6,7 @@ use App\Services\NavigationService;
 test('admin users see users nav item', function () {
     $user = User::factory()->admin()->create();
 
-    $navService = new NavigationService;
+    $navService = app(NavigationService::class);
     $sections = $navService->getMainNavItems($user);
 
     // Get all items from all sections
@@ -23,7 +23,7 @@ test('admin users see users nav item', function () {
 test('staff users do not see users nav item', function () {
     $user = User::factory()->staff()->create();
 
-    $navService = new NavigationService;
+    $navService = app(NavigationService::class);
     $sections = $navService->getMainNavItems($user);
 
     // Get all items from all sections

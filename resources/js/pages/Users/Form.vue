@@ -22,6 +22,7 @@ import EmployeeCompaniesSection from '@/components/employees/EmployeeCompaniesSe
 import EmployeeContractsSection from '@/components/employees/EmployeeContractsSection.vue';
 import EmployeeHierarchySection from '@/components/employees/EmployeeHierarchySection.vue';
 import EmployeeInsurancesSection from '@/components/employees/EmployeeInsurancesSection.vue';
+import EmployeePermissionsSection from '@/components/employees/EmployeePermissionsSection.vue';
 import EmployeeStoresSection from '@/components/employees/EmployeeStoresSection.vue';
 import ImageSelect from '@/components/ImageSelect.vue';
 import ImageUpload from '@/components/ImageUpload.vue';
@@ -83,7 +84,7 @@ const isAdmin = computed(() => page.props.auth.user.role === 'admin');
 // Active tab for edit mode - initialize from URL query param if provided
 const urlParams = new URLSearchParams(window.location.search);
 const initialTab = urlParams.get('tab') ?? 'basic';
-const validTabs = ['basic', 'companies', 'contracts', 'insurances', 'stores', 'hierarchy'];
+const validTabs = ['basic', 'companies', 'contracts', 'insurances', 'stores', 'permissions', 'hierarchy'];
 const activeTab = ref(validTabs.includes(initialTab) ? initialTab : 'basic');
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -921,6 +922,7 @@ function formatDateForBackend(date: Date): string {
                                 <Tab value="contracts">Contracts</Tab>
                                 <Tab value="insurances">Insurances</Tab>
                                 <Tab value="stores">Stores</Tab>
+                                <Tab v-if="employee && form.role === 'staff'" value="permissions">Permissions</Tab>
                                 <Tab v-if="isAdmin" value="hierarchy">Hierarchy</Tab>
                             </TabList>
                             <TabPanels>
@@ -1622,6 +1624,14 @@ function formatDateForBackend(date: Date): string {
                                             v-if="employee"
                                             :employee-id="employee.id"
                                             :stores="stores ?? []"
+                                        />
+                                    </div>
+                                </TabPanel>
+
+                                <TabPanel v-if="employee && form.role === 'staff'" value="permissions">
+                                    <div class="pt-4">
+                                        <EmployeePermissionsSection
+                                            :employee-id="employee.id"
                                         />
                                     </div>
                                 </TabPanel>
