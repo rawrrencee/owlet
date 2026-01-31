@@ -5,7 +5,7 @@ import Button from 'primevue/button';
 import Card from 'primevue/card';
 import { computed } from 'vue';
 import TimecardCalendar from '@/components/timecards/TimecardCalendar.vue';
-import { useSmartBack } from '@/composables/useSmartBack';
+import BackButton from '@/components/BackButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem, CalendarDayData, SubordinateInfo } from '@/types';
 
@@ -17,7 +17,6 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const { goBack } = useSmartBack('/my-team-timecards');
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -51,14 +50,7 @@ function getInitials(name: string): string {
             <!-- Header -->
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex items-center gap-3">
-                    <Button
-                        icon="pi pi-arrow-left"
-                        text
-                        size="small"
-                        severity="secondary"
-                        @click="goBack"
-                        v-tooltip.top="'Back'"
-                    />
+                    <BackButton fallback-url="/my-team-timecards" />
                     <Avatar
                         v-if="employee.profile_picture_url"
                         :image="employee.profile_picture_url"

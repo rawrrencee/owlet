@@ -14,7 +14,7 @@ import TabPanels from 'primevue/tabpanels';
 import Tabs from 'primevue/tabs';
 import Tag from 'primevue/tag';
 import { computed, reactive, ref } from 'vue';
-import { useSmartBack } from '@/composables/useSmartBack';
+import BackButton from '@/components/BackButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import {
     type BreadcrumbItem,
@@ -33,7 +33,6 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const { goBack } = useSmartBack('/my-team');
 
 // Active tab state
 const activeTab = ref('basic');
@@ -80,14 +79,7 @@ function getStatusLabel(status: string): string {
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex items-center gap-4">
-                    <Button
-                        icon="pi pi-arrow-left"
-                        severity="secondary"
-                        text
-                        rounded
-                        size="small"
-                        @click="goBack"
-                    />
+                    <BackButton fallback-url="/my-team" />
                     <h1 class="heading-lg">{{ employee.first_name }} {{ employee.last_name }}</h1>
                     <Tag
                         :value="employee.termination_date ? 'Terminated' : 'Active'"

@@ -16,7 +16,7 @@ import { computed, ref } from 'vue';
 import CompanyEmployeesSection from '@/components/companies/CompanyEmployeesSection.vue';
 import ImageSelect from '@/components/ImageSelect.vue';
 import ImageUpload from '@/components/ImageUpload.vue';
-import { useSmartBack } from '@/composables/useSmartBack';
+import BackButton from '@/components/BackButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type Country } from '@/types';
 import { type Company, type Designation, type EmployeeCompany } from '@/types/company';
@@ -40,7 +40,6 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const { goBack } = useSmartBack('/companies');
 
 const isEditing = computed(() => !!props.company);
 const pageTitle = computed(() => (isEditing.value ? 'Edit Company' : 'Create Company'));
@@ -87,13 +86,6 @@ function submit() {
     }
 }
 
-function cancel() {
-    if (isEditing.value) {
-        goBack();
-    } else {
-        router.get('/companies');
-    }
-}
 </script>
 
 <template>
@@ -102,14 +94,7 @@ function cancel() {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <div class="flex items-center gap-4">
-                <Button
-                    icon="pi pi-arrow-left"
-                    severity="secondary"
-                    text
-                    rounded
-                    size="small"
-                    @click="cancel"
-                />
+                <BackButton fallback-url="/companies" />
                 <h1 class="heading-lg">{{ pageTitle }}</h1>
             </div>
 

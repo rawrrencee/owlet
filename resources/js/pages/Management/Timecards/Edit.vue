@@ -12,7 +12,7 @@ import Tag from 'primevue/tag';
 import { useConfirm } from 'primevue/useconfirm';
 import { ref } from 'vue';
 import TimecardDetailsTable from '@/components/timecards/TimecardDetailsTable.vue';
-import { useSmartBack } from '@/composables/useSmartBack';
+import BackButton from '@/components/BackButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem, Timecard, TimecardDetail } from '@/types';
 
@@ -41,7 +41,6 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const { goBack } = useSmartBack('/management/timecards');
 const confirm = useConfirm();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -222,14 +221,7 @@ function confirmDeleteTimecard() {
             <!-- Header -->
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex items-center gap-3">
-                    <Button
-                        icon="pi pi-arrow-left"
-                        text
-                        size="small"
-                        severity="secondary"
-                        @click="goBack"
-                        v-tooltip.top="'Back'"
-                    />
+                    <BackButton fallback-url="/management/timecards" />
                     <h1 class="heading-lg">Edit Timecard #{{ timecard.id }}</h1>
                     <Tag :value="timecard.status_label" :severity="getStatusSeverity()" />
                 </div>

@@ -9,7 +9,7 @@ import Divider from 'primevue/divider';
 import Image from 'primevue/image';
 import Tag from 'primevue/tag';
 import { ref } from 'vue';
-import { useSmartBack } from '@/composables/useSmartBack';
+import BackButton from '@/components/BackButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { type Company, type EmployeeCompany } from '@/types/company';
@@ -30,7 +30,6 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const { goBack } = useSmartBack('/companies');
 
 const expandedEmployeeRows = ref({});
 
@@ -83,14 +82,7 @@ function navigateToEmployee(employeeId: number) {
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex items-center gap-4">
-                    <Button
-                        icon="pi pi-arrow-left"
-                        severity="secondary"
-                        text
-                        rounded
-                        size="small"
-                        @click="goBack"
-                    />
+                    <BackButton fallback-url="/companies" />
                     <h1 class="heading-lg">{{ company.company_name }}</h1>
                     <Tag v-if="company.is_deleted" value="Deleted" severity="danger" />
                     <Tag

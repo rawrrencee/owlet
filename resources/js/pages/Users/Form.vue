@@ -24,7 +24,7 @@ import EmployeeInsurancesSection from '@/components/employees/EmployeeInsurances
 import EmployeeStoresSection from '@/components/employees/EmployeeStoresSection.vue';
 import ImageSelect from '@/components/ImageSelect.vue';
 import ImageUpload from '@/components/ImageUpload.vue';
-import { useSmartBack } from '@/composables/useSmartBack';
+import BackButton from '@/components/BackButton.vue';
 import { relationships, relationshipOptions } from '@/constants/employee';
 import AppLayout from '@/layouts/AppLayout.vue';
 import {
@@ -57,7 +57,6 @@ interface Props {
 const props = defineProps<Props>();
 
 // Smart back navigation for edit mode (can be accessed from View page or Index page)
-const { goBack } = useSmartBack('/users');
 
 const isEditing = computed(() => !!props.employee);
 const pageTitle = computed(() => (isEditing.value ? 'Edit User' : 'Create User'));
@@ -285,15 +284,6 @@ function formatDateForBackend(date: Date): string {
     return date.toISOString().split('T')[0];
 }
 
-function cancel() {
-    if (isEditing.value) {
-        // Edit mode: use smart back to return to previous page (View or Index)
-        goBack();
-    } else {
-        // Create mode: always go to Index page
-        router.get('/users');
-    }
-}
 </script>
 
 <template>
@@ -302,14 +292,7 @@ function cancel() {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <div class="flex items-center gap-4">
-                <Button
-                    icon="pi pi-arrow-left"
-                    severity="secondary"
-                    text
-                    rounded
-                    size="small"
-                    @click="cancel"
-                />
+                <BackButton fallback-url="/users" />
                 <h1 class="heading-lg">{{ pageTitle }}</h1>
             </div>
 

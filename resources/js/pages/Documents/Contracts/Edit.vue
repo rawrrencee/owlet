@@ -12,7 +12,7 @@ import Select from 'primevue/select';
 import Tag from 'primevue/tag';
 import { useConfirm } from 'primevue/useconfirm';
 import { computed, ref } from 'vue';
-import { useSmartBack } from '@/composables/useSmartBack';
+import BackButton from '@/components/BackButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type Company, type EmployeeContract } from '@/types';
 
@@ -32,7 +32,6 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const { goBack } = useSmartBack(`/documents/contracts/${props.contract.id}`);
 const confirm = useConfirm();
 
 const documentPreviewVisible = ref(false);
@@ -181,7 +180,7 @@ function clearSelectedFile() {
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex items-center gap-4">
-                    <Button icon="pi pi-arrow-left" severity="secondary" text rounded size="small" @click="goBack" />
+                    <BackButton :fallback-url="`/documents/contracts/${contract.id}`" />
                     <h1 class="heading-lg">Edit Contract</h1>
                 </div>
             </div>
@@ -458,7 +457,7 @@ function clearSelectedFile() {
                             </div>
 
                             <div class="mt-4 flex justify-end gap-2">
-                                <Button type="button" label="Cancel" severity="secondary" size="small" @click="goBack" :disabled="form.processing" />
+                                <BackButton :fallback-url="`/documents/contracts/${contract.id}`" />
                                 <Button type="submit" label="Save Changes" size="small" :loading="form.processing" />
                             </div>
                         </form>

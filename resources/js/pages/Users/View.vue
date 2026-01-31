@@ -16,7 +16,7 @@ import TabPanels from 'primevue/tabpanels';
 import Tabs from 'primevue/tabs';
 import Tag from 'primevue/tag';
 import { computed, onMounted, reactive, ref } from 'vue';
-import { useSmartBack } from '@/composables/useSmartBack';
+import BackButton from '@/components/BackButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import {
     type AppPageProps,
@@ -41,8 +41,6 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-
-const { goBack } = useSmartBack('/users');
 
 // Check if current user is admin (for showing hierarchy tab)
 const page = usePage<AppPageProps>();
@@ -190,14 +188,7 @@ function navigateToEdit() {
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex items-center gap-4">
-                    <Button
-                        icon="pi pi-arrow-left"
-                        severity="secondary"
-                        text
-                        rounded
-                        size="small"
-                        @click="goBack"
-                    />
+                    <BackButton fallback-url="/users" />
                     <h1 class="heading-lg">{{ employee.first_name }} {{ employee.last_name }}</h1>
                     <Tag v-if="employee.is_deleted" value="Deleted" severity="danger" />
                     <Tag

@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import TimecardSummaryCard from '@/components/timecards/TimecardSummaryCard.vue';
-import { useSmartBack } from '@/composables/useSmartBack';
+import BackButton from '@/components/BackButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem, Timecard } from '@/types';
 
@@ -16,7 +16,6 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const { goBack } = useSmartBack('/timecards');
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -46,14 +45,7 @@ function formatHours(hours: number): string {
             <!-- Header -->
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex items-center gap-3">
-                    <Button
-                        icon="pi pi-arrow-left"
-                        text
-                        size="small"
-                        severity="secondary"
-                        @click="goBack"
-                        v-tooltip.top="'Back'"
-                    />
+                    <BackButton fallback-url="/timecards" />
                     <div>
                         <h1 class="heading-lg">{{ dateFormatted }}</h1>
                         <p class="text-sm text-muted-foreground">

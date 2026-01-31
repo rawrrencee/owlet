@@ -9,7 +9,7 @@ import Divider from 'primevue/divider';
 import Image from 'primevue/image';
 import Tag from 'primevue/tag';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
-import { useSmartBack } from '@/composables/useSmartBack';
+import BackButton from '@/components/BackButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type EmployeeStoreView, type Store, type StoreCurrency } from '@/types';
 
@@ -21,7 +21,6 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const { goBack } = useSmartBack('/stores');
 
 const expandedEmployeeRows = ref({});
 const expandedCurrencyRows = ref({});
@@ -103,14 +102,7 @@ function getEmployeeInitials(name: string): string {
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex items-center gap-4">
-                    <Button
-                        icon="pi pi-arrow-left"
-                        severity="secondary"
-                        text
-                        rounded
-                        size="small"
-                        @click="goBack"
-                    />
+                    <BackButton fallback-url="/stores" />
                     <h1 class="heading-lg">{{ store.store_name }}</h1>
                     <Tag
                         :value="store.active ? 'Active' : 'Inactive'"

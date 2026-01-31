@@ -6,7 +6,7 @@ import Dialog from 'primevue/dialog';
 import Divider from 'primevue/divider';
 import Tag from 'primevue/tag';
 import { ref } from 'vue';
-import { useSmartBack } from '@/composables/useSmartBack';
+import BackButton from '@/components/BackButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type EmployeeContract } from '@/types';
 
@@ -25,7 +25,6 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const { goBack } = useSmartBack('/documents');
 
 const documentPreviewVisible = ref(false);
 
@@ -93,7 +92,7 @@ function viewDocument() {
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex items-center gap-4">
-                    <Button icon="pi pi-arrow-left" severity="secondary" text rounded size="small" @click="goBack" />
+                    <BackButton fallback-url="/documents" />
                     <h1 class="heading-lg">Contract Details</h1>
                     <Tag :value="contract.is_active ? 'Active' : 'Expired'" :severity="contract.is_active ? 'success' : 'secondary'" />
                 </div>

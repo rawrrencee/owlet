@@ -18,7 +18,7 @@ import ImageSelect from '@/components/ImageSelect.vue';
 import ImageUpload from '@/components/ImageUpload.vue';
 import StoreCurrenciesSection from '@/components/stores/StoreCurrenciesSection.vue';
 import StoreEmployeesSection from '@/components/stores/StoreEmployeesSection.vue';
-import { useSmartBack } from '@/composables/useSmartBack';
+import BackButton from '@/components/BackButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type Company, type Country, type Currency, type Store } from '@/types';
 
@@ -42,7 +42,6 @@ const props = defineProps<Props>();
 const isEditing = computed(() => !!props.store);
 const pageTitle = computed(() => (isEditing.value ? 'Edit Store' : 'Create Store'));
 
-const { goBack } = useSmartBack('/stores');
 
 // Active tab for edit mode
 const activeTab = ref('basic');
@@ -92,13 +91,6 @@ function submit() {
     }
 }
 
-function cancel() {
-    if (isEditing.value) {
-        goBack();
-    } else {
-        router.get('/stores');
-    }
-}
 </script>
 
 <template>
@@ -107,14 +99,7 @@ function cancel() {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <div class="flex items-center gap-4">
-                <Button
-                    icon="pi pi-arrow-left"
-                    severity="secondary"
-                    text
-                    rounded
-                    size="small"
-                    @click="cancel"
-                />
+                <BackButton fallback-url="/stores" />
                 <h1 class="heading-lg">{{ pageTitle }}</h1>
             </div>
 
