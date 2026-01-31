@@ -33,7 +33,7 @@ const breadcrumbs: BreadcrumbItem[] = [
         <div
             class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
         >
-            <div class="grid auto-rows-min gap-4 md:grid-cols-3">
+            <div class="grid auto-rows-min gap-4 md:grid-cols-3 max-w-4xl">
                 <!-- Clock Widget (only show if user has stores assigned) -->
                 <div v-if="stores && stores.length > 0" class="md:col-span-2">
                     <ClockWidget
