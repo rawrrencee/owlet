@@ -148,7 +148,19 @@ class UserController extends Controller
 
     public function show(Request $request, Employee $employee, WorkOSUserService $workOSUserService): InertiaResponse|JsonResponse
     {
-        $employee->load(['user', 'employeeCompanies.company', 'employeeCompanies.designation', 'contracts.company', 'insurances', 'employeeStores.store', 'countryOfResidence', 'nationalityCountry']);
+        $employee->load([
+            'user',
+            'employeeCompanies.company',
+            'employeeCompanies.designation',
+            'contracts.company',
+            'insurances',
+            'employeeStores.store',
+            'countryOfResidence',
+            'nationalityCountry',
+            'createdBy:id,name',
+            'updatedBy:id,name',
+            'previousUpdatedBy:id,name',
+        ]);
 
         $workosUser = null;
         $workosRole = null;
@@ -366,6 +378,12 @@ class UserController extends Controller
 
     public function showCustomer(Request $request, Customer $customer): InertiaResponse|JsonResponse
     {
+        $customer->load([
+            'createdBy:id,name',
+            'updatedBy:id,name',
+            'previousUpdatedBy:id,name',
+        ]);
+
         if ($this->wantsJson($request)) {
             return response()->json([
                 'data' => (new CustomerResource($customer))->resolve(),
@@ -373,7 +391,7 @@ class UserController extends Controller
         }
 
         return Inertia::render('Customers/View', [
-            'customer' => $customer,
+            'customer' => (new CustomerResource($customer))->resolve(),
         ]);
     }
 

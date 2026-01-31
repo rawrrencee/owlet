@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAuditTrail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Subcategory extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasAuditTrail, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'category_id',
@@ -18,6 +19,10 @@ class Subcategory extends Model
         'description',
         'is_default',
         'is_active',
+        'created_by',
+        'updated_by',
+        'previous_updated_by',
+        'previous_updated_at',
     ];
 
     protected function casts(): array

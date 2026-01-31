@@ -120,7 +120,12 @@ class BrandController extends Controller
 
     public function show(Request $request, Brand $brand): InertiaResponse|JsonResponse
     {
-        $brand->load(['country']);
+        $brand->load([
+            'country',
+            'createdBy:id,name',
+            'updatedBy:id,name',
+            'previousUpdatedBy:id,name',
+        ]);
 
         if ($this->wantsJson($request)) {
             return response()->json([

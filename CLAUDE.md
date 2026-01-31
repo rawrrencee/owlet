@@ -25,6 +25,12 @@ Use these references to understand:
 - **Inertia-first frontend design** - The primary interface is the Vue/Inertia frontend. API support for external clients (mobile apps, integrations) is a secondary requirement for future extensibility.
 - **Permission-based access control** - Staff users have granular permissions for accessing pages and stores. See `docs/PERMISSIONS.md` for full documentation.
 
+## Documentation
+
+- **Permissions:** `docs/PERMISSIONS.md` - Page and store access control
+- **Product Model:** `docs/PRODUCT.md` - Product (inventory item) model specification
+- **Audit Trail:** `docs/AUDIT_TRAIL.md` - Record creation/modification tracking
+
 ## Frontend Request Guidelines
 
 All frontend interactions should use Inertia's built-in request handling:

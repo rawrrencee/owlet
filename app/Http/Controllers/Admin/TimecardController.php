@@ -211,7 +211,14 @@ class TimecardController extends Controller
      */
     public function show(Timecard $timecard): InertiaResponse
     {
-        $timecard->load(['employee', 'store', 'details', 'createdByEmployee', 'updatedByEmployee']);
+        $timecard->load([
+            'employee',
+            'store',
+            'details',
+            'createdBy:id,name',
+            'updatedBy:id,name',
+            'previousUpdatedBy:id,name',
+        ]);
 
         return Inertia::render('Management/Timecards/Show', [
             'timecard' => (new TimecardResource($timecard))->resolve(),
@@ -223,7 +230,14 @@ class TimecardController extends Controller
      */
     public function edit(Timecard $timecard): InertiaResponse
     {
-        $timecard->load(['employee', 'store', 'details', 'createdByEmployee', 'updatedByEmployee']);
+        $timecard->load([
+            'employee',
+            'store',
+            'details',
+            'createdBy:id,name',
+            'updatedBy:id,name',
+            'previousUpdatedBy:id,name',
+        ]);
 
         $stores = Store::where('active', true)
             ->orderBy('store_name')

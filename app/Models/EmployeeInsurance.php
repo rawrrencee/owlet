@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAuditTrail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class EmployeeInsurance extends Model
 {
-    use HasFactory;
+    use HasAuditTrail, HasFactory;
 
     protected $fillable = [
         'employee_id',
@@ -22,6 +23,10 @@ class EmployeeInsurance extends Model
         'document_filename',
         'document_mime_type',
         'comments',
+        'created_by',
+        'updated_by',
+        'previous_updated_by',
+        'previous_updated_at',
     ];
 
     protected function casts(): array

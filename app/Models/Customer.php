@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAuditTrail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Customer extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasAuditTrail, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'first_name',
@@ -29,6 +30,10 @@ class Customer extends Model
         'customer_since',
         'notes',
         'image_url',
+        'created_by',
+        'updated_by',
+        'previous_updated_by',
+        'previous_updated_at',
     ];
 
     protected function casts(): array

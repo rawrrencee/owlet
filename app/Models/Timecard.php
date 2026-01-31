@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAuditTrail;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Timecard extends Model
 {
-    use HasFactory;
+    use HasAuditTrail, HasFactory;
 
     public const STATUS_IN_PROGRESS = 'IN_PROGRESS';
 
@@ -31,6 +32,8 @@ class Timecard extends Model
         'hours_worked',
         'created_by',
         'updated_by',
+        'previous_updated_by',
+        'previous_updated_at',
     ];
 
     protected function casts(): array
@@ -70,16 +73,6 @@ class Timecard extends Model
     public function breakDetails(): HasMany
     {
         return $this->details()->where('type', TimecardDetail::TYPE_BREAK);
-    }
-
-    public function createdByEmployee(): BelongsTo
-    {
-        return $this->belongsTo(Employee::class, 'created_by');
-    }
-
-    public function updatedByEmployee(): BelongsTo
-    {
-        return $this->belongsTo(Employee::class, 'updated_by');
     }
 
     // Scopes

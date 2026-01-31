@@ -5,11 +5,13 @@ import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Divider from 'primevue/divider';
 import Image from 'primevue/image';
+import AuditInfo from '@/components/AuditInfo.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type Customer } from '@/types';
+import { type HasAuditTrail } from '@/types/audit';
 
 interface Props {
-    customer: Customer;
+    customer: Customer & HasAuditTrail;
 }
 
 const props = defineProps<Props>();
@@ -129,6 +131,18 @@ function navigateBack() {
                                     </div>
                                 </div>
                             </div>
+
+                            <Divider />
+
+                            <!-- Audit Info -->
+                            <AuditInfo
+                                :created-by="customer.created_by"
+                                :updated-by="customer.updated_by"
+                                :previous-updated-by="customer.previous_updated_by"
+                                :created-at="customer.created_at"
+                                :updated-at="customer.updated_at"
+                                :previous-updated-at="customer.previous_updated_at"
+                            />
                         </div>
                     </template>
                 </Card>

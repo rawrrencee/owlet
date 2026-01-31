@@ -24,6 +24,19 @@ class CompanyResource extends JsonResource
             'logo_url' => $this->logo ? route('companies.logo', $this->id) : null,
             'active' => $this->active,
             'is_deleted' => $this->deleted_at !== null,
+            'created_by' => $this->whenLoaded('createdBy', fn () => [
+                'id' => $this->createdBy->id,
+                'name' => $this->createdBy->name,
+            ]),
+            'updated_by' => $this->whenLoaded('updatedBy', fn () => [
+                'id' => $this->updatedBy->id,
+                'name' => $this->updatedBy->name,
+            ]),
+            'previous_updated_by' => $this->whenLoaded('previousUpdatedBy', fn () => [
+                'id' => $this->previousUpdatedBy->id,
+                'name' => $this->previousUpdatedBy->name,
+            ]),
+            'previous_updated_at' => $this->previous_updated_at?->toIso8601String(),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

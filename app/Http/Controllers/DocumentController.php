@@ -288,7 +288,13 @@ class DocumentController extends Controller
 
     public function showContract(EmployeeContract $contract): Response
     {
-        $contract->load(['employee' => fn ($q) => $q->withTrashed(), 'company']);
+        $contract->load([
+            'employee' => fn ($q) => $q->withTrashed(),
+            'company',
+            'createdBy:id,name',
+            'updatedBy:id,name',
+            'previousUpdatedBy:id,name',
+        ]);
 
         return Inertia::render('Documents/Contracts/View', [
             'contract' => (new EmployeeContractResource($contract))->resolve(),
@@ -373,7 +379,12 @@ class DocumentController extends Controller
 
     public function showInsurance(EmployeeInsurance $insurance): Response
     {
-        $insurance->load(['employee' => fn ($q) => $q->withTrashed()]);
+        $insurance->load([
+            'employee' => fn ($q) => $q->withTrashed(),
+            'createdBy:id,name',
+            'updatedBy:id,name',
+            'previousUpdatedBy:id,name',
+        ]);
 
         return Inertia::render('Documents/Insurances/View', [
             'insurance' => (new EmployeeInsuranceResource($insurance))->resolve(),

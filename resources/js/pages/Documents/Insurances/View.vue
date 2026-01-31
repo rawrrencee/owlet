@@ -6,9 +6,11 @@ import Dialog from 'primevue/dialog';
 import Divider from 'primevue/divider';
 import Tag from 'primevue/tag';
 import { ref } from 'vue';
+import AuditInfo from '@/components/AuditInfo.vue';
 import BackButton from '@/components/BackButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type EmployeeInsurance } from '@/types';
+import { type HasAuditTrail } from '@/types/audit';
 
 interface InsuranceWithEmployee extends EmployeeInsurance {
     employee?: {
@@ -20,7 +22,7 @@ interface InsuranceWithEmployee extends EmployeeInsurance {
 }
 
 interface Props {
-    insurance: InsuranceWithEmployee;
+    insurance: InsuranceWithEmployee & HasAuditTrail;
 }
 
 const props = defineProps<Props>();
@@ -187,6 +189,18 @@ function viewDocument() {
                                     <div class="prose prose-sm max-w-none" v-html="insurance.comments"></div>
                                 </div>
                             </template>
+
+                            <Divider />
+
+                            <!-- Audit Info -->
+                            <AuditInfo
+                                :created-by="insurance.created_by"
+                                :updated-by="insurance.updated_by"
+                                :previous-updated-by="insurance.previous_updated_by"
+                                :created-at="insurance.created_at"
+                                :updated-at="insurance.updated_at"
+                                :previous-updated-at="insurance.previous_updated_at"
+                            />
                         </div>
                     </template>
                 </Card>

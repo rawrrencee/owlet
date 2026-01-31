@@ -168,7 +168,16 @@ class StoreController extends Controller
     {
         $this->authorize('view', $store);
 
-        $store->load(['company', 'country', 'employeeStores.employee.user', 'storeCurrencies.currency', 'defaultStoreCurrency.currency']);
+        $store->load([
+            'company',
+            'country',
+            'employeeStores.employee.user',
+            'storeCurrencies.currency',
+            'defaultStoreCurrency.currency',
+            'createdBy:id,name',
+            'updatedBy:id,name',
+            'previousUpdatedBy:id,name',
+        ]);
 
         if ($this->wantsJson($request)) {
             return response()->json([

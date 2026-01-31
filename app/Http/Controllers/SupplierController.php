@@ -119,7 +119,12 @@ class SupplierController extends Controller
 
     public function show(Request $request, Supplier $supplier): InertiaResponse|JsonResponse
     {
-        $supplier->load(['country']);
+        $supplier->load([
+            'country',
+            'createdBy:id,name',
+            'updatedBy:id,name',
+            'previousUpdatedBy:id,name',
+        ]);
 
         if ($this->wantsJson($request)) {
             return response()->json([

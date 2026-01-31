@@ -32,6 +32,19 @@ class CustomerResource extends JsonResource
             'image_url' => $this->image_url,
             'has_user_account' => $this->hasUserAccount(),
             'user' => $this->whenLoaded('user', fn () => new UserResource($this->user)),
+            'created_by' => $this->whenLoaded('createdBy', fn () => [
+                'id' => $this->createdBy->id,
+                'name' => $this->createdBy->name,
+            ]),
+            'updated_by' => $this->whenLoaded('updatedBy', fn () => [
+                'id' => $this->updatedBy->id,
+                'name' => $this->updatedBy->name,
+            ]),
+            'previous_updated_by' => $this->whenLoaded('previousUpdatedBy', fn () => [
+                'id' => $this->previousUpdatedBy->id,
+                'name' => $this->previousUpdatedBy->name,
+            ]),
+            'previous_updated_at' => $this->previous_updated_at?->toIso8601String(),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

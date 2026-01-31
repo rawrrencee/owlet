@@ -6,9 +6,11 @@ import Dialog from 'primevue/dialog';
 import Divider from 'primevue/divider';
 import Tag from 'primevue/tag';
 import { ref } from 'vue';
+import AuditInfo from '@/components/AuditInfo.vue';
 import BackButton from '@/components/BackButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type EmployeeContract } from '@/types';
+import { type HasAuditTrail } from '@/types/audit';
 
 interface ContractWithEmployee extends EmployeeContract {
     employee?: {
@@ -20,7 +22,7 @@ interface ContractWithEmployee extends EmployeeContract {
 }
 
 interface Props {
-    contract: ContractWithEmployee;
+    contract: ContractWithEmployee & HasAuditTrail;
 }
 
 const props = defineProps<Props>();
@@ -207,6 +209,18 @@ function viewDocument() {
                                     <div class="prose prose-sm max-w-none" v-html="contract.comments"></div>
                                 </div>
                             </template>
+
+                            <Divider />
+
+                            <!-- Audit Info -->
+                            <AuditInfo
+                                :created-by="contract.created_by"
+                                :updated-by="contract.updated_by"
+                                :previous-updated-by="contract.previous_updated_by"
+                                :created-at="contract.created_at"
+                                :updated-at="contract.updated_at"
+                                :previous-updated-at="contract.previous_updated_at"
+                            />
                         </div>
                     </template>
                 </Card>

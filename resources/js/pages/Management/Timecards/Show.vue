@@ -5,13 +5,15 @@ import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Divider from 'primevue/divider';
 import Tag from 'primevue/tag';
+import AuditInfo from '@/components/AuditInfo.vue';
 import BackButton from '@/components/BackButton.vue';
 import TimecardDetailsTable from '@/components/timecards/TimecardDetailsTable.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem, Timecard } from '@/types';
+import { type HasAuditTrail } from '@/types/audit';
 
 interface Props {
-    timecard: Timecard;
+    timecard: Timecard & HasAuditTrail;
 }
 
 const props = defineProps<Props>();
@@ -146,24 +148,14 @@ function navigateToEdit() {
                             <Divider />
 
                             <!-- Audit Info -->
-                            <div class="grid gap-2 text-sm">
-                                <div v-if="timecard.created_by" class="flex justify-between">
-                                    <span class="text-muted-foreground">Created by</span>
-                                    <span>{{ timecard.created_by.name }}</span>
-                                </div>
-                                <div v-if="timecard.updated_by" class="flex justify-between">
-                                    <span class="text-muted-foreground">Last updated by</span>
-                                    <span>{{ timecard.updated_by.name }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-muted-foreground">Created at</span>
-                                    <span>{{ formatDateTime(timecard.created_at) }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-muted-foreground">Updated at</span>
-                                    <span>{{ formatDateTime(timecard.updated_at) }}</span>
-                                </div>
-                            </div>
+                            <AuditInfo
+                                :created-by="timecard.created_by"
+                                :updated-by="timecard.updated_by"
+                                :previous-updated-by="timecard.previous_updated_by"
+                                :created-at="timecard.created_at"
+                                :updated-at="timecard.updated_at"
+                                :previous-updated-at="timecard.previous_updated_at"
+                            />
                         </div>
                     </template>
                 </Card>

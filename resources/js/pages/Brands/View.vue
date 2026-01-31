@@ -6,12 +6,13 @@ import Card from 'primevue/card';
 import Divider from 'primevue/divider';
 import Image from 'primevue/image';
 import Tag from 'primevue/tag';
+import AuditInfo from '@/components/AuditInfo.vue';
 import BackButton from '@/components/BackButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type Brand, type BreadcrumbItem } from '@/types';
+import { type Brand, type BreadcrumbItem, type HasAuditTrail } from '@/types';
 
 interface Props {
-    brand: Brand;
+    brand: Brand & HasAuditTrail;
 }
 
 const props = defineProps<Props>();
@@ -139,6 +140,18 @@ function navigateToEdit() {
                                     <div class="prose prose-sm max-w-none dark:prose-invert" v-html="brand.description"></div>
                                 </div>
                             </template>
+
+                            <Divider />
+
+                            <!-- Audit Info -->
+                            <AuditInfo
+                                :created-by="brand.created_by"
+                                :updated-by="brand.updated_by"
+                                :previous-updated-by="brand.previous_updated_by"
+                                :created-at="brand.created_at"
+                                :updated-at="brand.updated_at"
+                                :previous-updated-at="brand.previous_updated_at"
+                            />
                         </div>
                     </template>
                 </Card>

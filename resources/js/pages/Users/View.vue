@@ -16,6 +16,7 @@ import TabPanels from 'primevue/tabpanels';
 import Tabs from 'primevue/tabs';
 import Tag from 'primevue/tag';
 import { computed, onMounted, reactive, ref } from 'vue';
+import AuditInfo from '@/components/AuditInfo.vue';
 import BackButton from '@/components/BackButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import {
@@ -29,9 +30,10 @@ import {
     type EmployeeStore,
     type WorkOSUser,
 } from '@/types';
+import { type HasAuditTrail } from '@/types/audit';
 
 interface Props {
-    employee: Employee;
+    employee: Employee & HasAuditTrail;
     workosUser: WorkOSUser | null;
     role?: string;
     employeeCompanies?: EmployeeCompany[];
@@ -469,6 +471,18 @@ function navigateToEdit() {
                                                 </div>
                                             </div>
                                         </template>
+
+                                        <Divider />
+
+                                        <!-- Audit Info -->
+                                        <AuditInfo
+                                            :created-by="employee.created_by"
+                                            :updated-by="employee.updated_by"
+                                            :previous-updated-by="employee.previous_updated_by"
+                                            :created-at="employee.created_at"
+                                            :updated-at="employee.updated_at"
+                                            :previous-updated-at="employee.previous_updated_at"
+                                        />
                                     </div>
                                 </TabPanel>
 

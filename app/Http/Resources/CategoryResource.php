@@ -19,6 +19,19 @@ class CategoryResource extends JsonResource
             'subcategories' => $this->whenLoaded('subcategories', fn () => SubcategoryResource::collection($this->subcategories)->resolve()),
             'subcategories_count' => $this->whenCounted('subcategories'),
             'active_subcategories_count' => $this->whenCounted('activeSubcategories'),
+            'created_by' => $this->whenLoaded('createdBy', fn () => [
+                'id' => $this->createdBy->id,
+                'name' => $this->createdBy->name,
+            ]),
+            'updated_by' => $this->whenLoaded('updatedBy', fn () => [
+                'id' => $this->updatedBy->id,
+                'name' => $this->updatedBy->name,
+            ]),
+            'previous_updated_by' => $this->whenLoaded('previousUpdatedBy', fn () => [
+                'id' => $this->previousUpdatedBy->id,
+                'name' => $this->previousUpdatedBy->name,
+            ]),
+            'previous_updated_at' => $this->previous_updated_at?->toIso8601String(),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

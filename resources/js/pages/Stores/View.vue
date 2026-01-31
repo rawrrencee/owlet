@@ -9,12 +9,14 @@ import Divider from 'primevue/divider';
 import Image from 'primevue/image';
 import Tag from 'primevue/tag';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
+import AuditInfo from '@/components/AuditInfo.vue';
 import BackButton from '@/components/BackButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type EmployeeStoreView, type Store, type StoreCurrency } from '@/types';
+import { type HasAuditTrail } from '@/types/audit';
 
 interface Props {
-    store: Store;
+    store: Store & HasAuditTrail;
     employeeStores: EmployeeStoreView[];
     storeCurrencies: StoreCurrency[];
 }
@@ -396,6 +398,18 @@ function getEmployeeInitials(name: string): string {
                                     <p class="text-muted-foreground">No employees assigned to this store.</p>
                                 </div>
                             </template>
+
+                            <Divider />
+
+                            <!-- Audit Info -->
+                            <AuditInfo
+                                :created-by="store.created_by"
+                                :updated-by="store.updated_by"
+                                :previous-updated-by="store.previous_updated_by"
+                                :created-at="store.created_at"
+                                :updated-at="store.updated_at"
+                                :previous-updated-at="store.previous_updated_at"
+                            />
                         </div>
                     </template>
                 </Card>

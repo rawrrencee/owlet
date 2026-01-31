@@ -116,9 +116,14 @@ class CategoryController extends Controller
 
     public function show(Request $request, Category $category): InertiaResponse|JsonResponse
     {
-        $category->load(['subcategories' => function ($query) {
-            $query->withTrashed()->orderBy('is_default', 'desc')->orderBy('subcategory_name');
-        }]);
+        $category->load([
+            'subcategories' => function ($query) {
+                $query->withTrashed()->orderBy('is_default', 'desc')->orderBy('subcategory_name');
+            },
+            'createdBy:id,name',
+            'updatedBy:id,name',
+            'previousUpdatedBy:id,name',
+        ]);
 
         if ($this->wantsJson($request)) {
             return response()->json([

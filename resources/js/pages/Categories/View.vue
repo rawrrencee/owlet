@@ -7,12 +7,14 @@ import DataTable from 'primevue/datatable';
 import Divider from 'primevue/divider';
 import Tag from 'primevue/tag';
 import { ref } from 'vue';
+import AuditInfo from '@/components/AuditInfo.vue';
 import BackButton from '@/components/BackButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type Category, type Subcategory } from '@/types';
+import { type HasAuditTrail } from '@/types/audit';
 
 interface Props {
-    category: Category;
+    category: Category & HasAuditTrail;
 }
 
 const props = defineProps<Props>();
@@ -136,6 +138,18 @@ function isSubcategoryDeleted(subcategory: Subcategory): boolean {
                                     </template>
                                 </DataTable>
                             </div>
+
+                            <Divider />
+
+                            <!-- Audit Info -->
+                            <AuditInfo
+                                :created-by="category.created_by"
+                                :updated-by="category.updated_by"
+                                :previous-updated-by="category.previous_updated_by"
+                                :created-at="category.created_at"
+                                :updated-at="category.updated_at"
+                                :previous-updated-at="category.previous_updated_at"
+                            />
                         </div>
                     </template>
                 </Card>

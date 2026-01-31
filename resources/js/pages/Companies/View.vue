@@ -9,9 +9,10 @@ import Divider from 'primevue/divider';
 import Image from 'primevue/image';
 import Tag from 'primevue/tag';
 import { ref } from 'vue';
+import AuditInfo from '@/components/AuditInfo.vue';
 import BackButton from '@/components/BackButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type HasAuditTrail } from '@/types';
 import { type Company, type EmployeeCompany } from '@/types/company';
 
 interface EmployeeCompanyWithEmployee extends EmployeeCompany {
@@ -24,7 +25,7 @@ interface EmployeeCompanyWithEmployee extends EmployeeCompany {
 }
 
 interface Props {
-    company: Company;
+    company: Company & HasAuditTrail;
     companyEmployees?: EmployeeCompanyWithEmployee[];
 }
 
@@ -259,6 +260,18 @@ function navigateToEmployee(employeeId: number) {
                                 </template>
                                 <p v-else class="text-muted-foreground">No employees assigned to this company.</p>
                             </div>
+
+                            <Divider />
+
+                            <!-- Audit Info -->
+                            <AuditInfo
+                                :created-by="company.created_by"
+                                :updated-by="company.updated_by"
+                                :previous-updated-by="company.previous_updated_by"
+                                :created-at="company.created_at"
+                                :updated-at="company.updated_at"
+                                :previous-updated-at="company.previous_updated_at"
+                            />
                         </div>
                     </template>
                 </Card>

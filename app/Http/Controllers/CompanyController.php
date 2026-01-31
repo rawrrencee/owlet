@@ -114,7 +114,12 @@ class CompanyController extends Controller
 
     public function show(Request $request, Company $company): InertiaResponse|JsonResponse
     {
-        $company->load('country');
+        $company->load([
+            'country',
+            'createdBy:id,name',
+            'updatedBy:id,name',
+            'previousUpdatedBy:id,name',
+        ]);
 
         // Get company's employee assignments
         $companyEmployees = $company->employeeCompanies()
