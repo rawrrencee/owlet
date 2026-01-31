@@ -298,14 +298,15 @@ function navigateToCreate() {
                 <Column expander style="width: 3rem" class="!pr-0 sm:hidden" />
                 <Column header="" :style="{ width: '3.5rem', minWidth: '3.5rem', maxWidth: '3.5rem' }" class="!pl-4 !pr-0">
                     <template #body="{ data }">
-                        <Image
-                            v-if="getProfilePictureUrl(data)"
-                            :src="getProfilePictureUrl(data)"
-                            :alt="getEmployeeName(data)"
-                            image-class="!h-8 !w-8 rounded-full object-cover cursor-pointer"
-                            :pt="{ root: { class: 'rounded-full overflow-hidden' }, previewMask: { class: 'rounded-full' } }"
-                            preview
-                        />
+                        <div v-if="getProfilePictureUrl(data)" @click.stop>
+                            <Image
+                                :src="getProfilePictureUrl(data)"
+                                :alt="getEmployeeName(data)"
+                                image-class="!h-8 !w-8 rounded-full object-cover cursor-pointer"
+                                :pt="{ root: { class: 'rounded-full overflow-hidden' }, previewMask: { class: 'rounded-full' } }"
+                                preview
+                            />
+                        </div>
                         <Avatar
                             v-else
                             :label="getInitials(data)"
@@ -426,14 +427,15 @@ function navigateToCreate() {
                 <Column expander style="width: 3rem" class="!pr-0 sm:hidden" />
                 <Column header="" :style="{ width: '3.5rem', minWidth: '3.5rem', maxWidth: '3.5rem' }" class="!pl-4 !pr-0">
                     <template #body="{ data }">
-                        <Image
-                            v-if="getProfilePictureUrl(data)"
-                            :src="getProfilePictureUrl(data)"
-                            :alt="getEmployeeName(data)"
-                            image-class="!h-8 !w-8 rounded-full object-cover cursor-pointer"
-                            :pt="{ root: { class: 'rounded-full overflow-hidden' }, previewMask: { class: 'rounded-full' } }"
-                            preview
-                        />
+                        <div v-if="getProfilePictureUrl(data)" @click.stop>
+                            <Image
+                                :src="getProfilePictureUrl(data)"
+                                :alt="getEmployeeName(data)"
+                                image-class="!h-8 !w-8 rounded-full object-cover cursor-pointer"
+                                :pt="{ root: { class: 'rounded-full overflow-hidden' }, previewMask: { class: 'rounded-full' } }"
+                                preview
+                            />
+                        </div>
                         <Avatar
                             v-else
                             :label="getInitials(data)"

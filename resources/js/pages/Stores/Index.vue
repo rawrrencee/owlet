@@ -274,14 +274,15 @@ function onPage(event: { page: number }) {
                 <Column expander class="w-12 !pr-0 md:hidden" />
                 <Column header="" class="w-12 !pl-4 !pr-0">
                     <template #body="{ data }">
-                        <Image
-                            v-if="data.logo_url"
-                            :src="data.logo_url"
-                            :alt="data.store_name"
-                            image-class="h-8 w-8 rounded-full object-cover cursor-pointer"
-                            :pt="{ root: { class: 'rounded-full overflow-hidden' }, previewMask: { class: 'rounded-full' } }"
-                            preview
-                        />
+                        <div v-if="data.logo_url" @click.stop>
+                            <Image
+                                :src="data.logo_url"
+                                :alt="data.store_name"
+                                image-class="h-8 w-8 rounded-full object-cover cursor-pointer"
+                                :pt="{ root: { class: 'rounded-full overflow-hidden' }, previewMask: { class: 'rounded-full' } }"
+                                preview
+                            />
+                        </div>
                         <Avatar
                             v-else
                             :label="getInitials(data)"

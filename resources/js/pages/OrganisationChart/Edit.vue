@@ -411,14 +411,15 @@ function goBack() {
                 <Column field="name" header="Employee">
                     <template #body="{ data }">
                         <div class="flex items-center gap-3">
-                            <Image
-                                v-if="data.profile_picture_url"
-                                :src="data.profile_picture_url"
-                                :alt="data.name"
-                                image-class="!h-8 !w-8 rounded-full object-cover cursor-pointer"
-                                :pt="{ root: { class: 'rounded-full overflow-hidden shrink-0' }, previewMask: { class: 'rounded-full' } }"
-                                preview
-                            />
+                            <div v-if="data.profile_picture_url" @click.stop>
+                                <Image
+                                    :src="data.profile_picture_url"
+                                    :alt="data.name"
+                                    image-class="!h-8 !w-8 rounded-full object-cover cursor-pointer"
+                                    :pt="{ root: { class: 'rounded-full overflow-hidden shrink-0' }, previewMask: { class: 'rounded-full' } }"
+                                    preview
+                                />
+                            </div>
                             <Avatar
                                 v-else
                                 :label="getInitials(data.name)"
