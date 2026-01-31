@@ -210,7 +210,7 @@ function onPage(event: { page: number }) {
                     <InputIcon class="pi pi-search" />
                     <InputText
                         v-model="filters.search"
-                        placeholder="Search by name, code, or email..."
+                        placeholder="Search by name or code..."
                         size="small"
                         fluid
                     />
