@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
+import { clearSkipPageInHistory, skipCurrentPageInHistory } from '@/composables/useSmartBack';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import ConfirmDialog from 'primevue/confirmdialog';
@@ -78,7 +79,15 @@ const logoUrl = ref<string | null>(props.company?.logo_url ?? null);
 
 function submit() {
     if (isEditing.value) {
-        form.put(`/companies/${props.company!.id}`);
+        skipCurrentPageInHistory();
+        form.put(`/companies/${props.company!.id}`, {
+            onSuccess: () => {
+                router.visit(`/companies/${props.company!.id}`);
+            },
+            onError: () => {
+                clearSkipPageInHistory();
+            },
+        });
     } else {
         form.post('/companies', {
             forceFormData: true,

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { removeCurrentFromHistory } from '@/composables/useSmartBack';
+import { clearSkipPageInHistory, skipCurrentPageInHistory } from '@/composables/useSmartBack';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import ConfirmDialog from 'primevue/confirmdialog';
@@ -81,6 +81,7 @@ function formatDateForBackend(date: Date | null): string | null {
 }
 
 function submitForm() {
+    skipCurrentPageInHistory();
     form.transform((data) => ({
         ...data,
         start_date: formatDateForBackend(data.start_date as Date | null),
@@ -90,9 +91,10 @@ function submitForm() {
     })).put(`/documents/contracts/${props.contract.id}`, {
         preserveScroll: true,
         onSuccess: () => {
-            // Remove Edit page from navigation history so back button skips it
-            removeCurrentFromHistory();
             router.visit(`/documents/contracts/${props.contract.id}`);
+        },
+        onError: () => {
+            clearSkipPageInHistory();
         },
     });
 }

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
+import { clearSkipPageInHistory, skipCurrentPageInHistory } from '@/composables/useSmartBack';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Column from 'primevue/column';
@@ -41,7 +42,15 @@ const form = useForm({
 
 function submit() {
     if (isEditing.value) {
-        form.put(`/categories/${props.category!.id}`);
+        skipCurrentPageInHistory();
+        form.put(`/categories/${props.category!.id}`, {
+            onSuccess: () => {
+                router.visit(`/categories/${props.category!.id}`);
+            },
+            onError: () => {
+                clearSkipPageInHistory();
+            },
+        });
     } else {
         form.post('/categories');
     }

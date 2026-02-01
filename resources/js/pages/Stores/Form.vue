@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import ConfirmDialog from 'primevue/confirmdialog';
@@ -20,7 +20,7 @@ import ImageUpload from '@/components/ImageUpload.vue';
 import StoreCurrenciesSection from '@/components/stores/StoreCurrenciesSection.vue';
 import StoreEmployeesSection from '@/components/stores/StoreEmployeesSection.vue';
 import { usePermissions } from '@/composables/usePermissions';
-import { useSmartBack } from '@/composables/useSmartBack';
+import { clearSkipPageInHistory, skipCurrentPageInHistory, useSmartBack } from '@/composables/useSmartBack';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type Company, type Country, type Currency, type Store } from '@/types';
 
@@ -100,7 +100,15 @@ const logoUrl = ref<string | null>(props.store?.logo_url ?? null);
 
 function submit() {
     if (isEditing.value) {
-        form.put(`/stores/${props.store!.id}`);
+        skipCurrentPageInHistory();
+        form.put(`/stores/${props.store!.id}`, {
+            onSuccess: () => {
+                router.visit(`/stores/${props.store!.id}`);
+            },
+            onError: () => {
+                clearSkipPageInHistory();
+            },
+        });
     } else {
         form.post('/stores', {
             forceFormData: true,

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
+import { clearSkipPageInHistory, skipCurrentPageInHistory } from '@/composables/useSmartBack';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import ConfirmDialog from 'primevue/confirmdialog';
@@ -265,17 +266,24 @@ function submit() {
         termination_date: isActive.value ? null : (data.termination_date ? formatDateForBackend(data.termination_date as Date) : null),
     }));
 
-    const options = {
-        onFinish: () => {
-            isSubmitting = false;
-        },
-    };
-
     if (isEditing.value) {
-        form.put(`/users/${props.employee!.id}`, options);
+        skipCurrentPageInHistory();
+        form.put(`/users/${props.employee!.id}`, {
+            onFinish: () => {
+                isSubmitting = false;
+            },
+            onSuccess: () => {
+                router.visit(`/users/${props.employee!.id}`);
+            },
+            onError: () => {
+                clearSkipPageInHistory();
+            },
+        });
     } else {
         form.post('/users', {
-            ...options,
+            onFinish: () => {
+                isSubmitting = false;
+            },
             forceFormData: true,
         });
     }

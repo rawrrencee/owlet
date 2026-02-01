@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
+import { clearSkipPageInHistory, skipCurrentPageInHistory } from '@/composables/useSmartBack';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Chips from 'primevue/chips';
@@ -220,7 +221,15 @@ function getStoreById(storeId: number): StoreOption | undefined {
 
 function submit() {
     if (isEditing.value) {
-        form.put(`/products/${props.product!.id}`);
+        skipCurrentPageInHistory();
+        form.put(`/products/${props.product!.id}`, {
+            onSuccess: () => {
+                router.visit(`/products/${props.product!.id}`);
+            },
+            onError: () => {
+                clearSkipPageInHistory();
+            },
+        });
     } else {
         form.post('/products', {
             forceFormData: true,
