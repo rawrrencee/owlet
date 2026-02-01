@@ -80,14 +80,14 @@ function handleClose() {
                     <template v-slot:item="{ item, options }">
                         <div
                             :class="[
-                                'flex items-center gap-3 px-4 py-2',
+                                'flex items-center gap-3 overflow-hidden px-4 py-2',
                                 { 'bg-muted/50': options.odd },
                             ]"
                             style="height: 56px"
                         >
                             <!-- Clickable product info area -->
                             <div
-                                class="flex min-w-0 flex-1 cursor-pointer items-center gap-3"
+                                class="flex min-w-0 flex-1 cursor-pointer items-center gap-3 overflow-hidden"
                                 @click="handlePreview(item.id)"
                             >
                                 <!-- Image/Avatar -->
@@ -105,7 +105,7 @@ function handleClose() {
                                 />
 
                                 <!-- Product Info -->
-                                <div class="min-w-0 flex-1">
+                                <div class="min-w-0 flex-1 overflow-hidden">
                                     <div class="truncate text-sm font-medium">
                                         {{ item.product_name }}
                                     </div>
