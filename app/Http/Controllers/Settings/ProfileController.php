@@ -2,44 +2,56 @@
 
 namespace App\Http\Controllers\Settings;
 
+use App\Exceptions\WorkOSException;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Settings\ProfileUpdateRequest;
-use App\Models\User;
-use Illuminate\Http\RedirectResponse;
+use App\Http\Resources\EmployeeResource;
+use App\Services\WorkOSUserService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Laravel\WorkOS\Http\Requests\AuthKitAccountDeletionRequest;
 
 class ProfileController extends Controller
 {
     /**
-     * Show the user's profile settings page.
+     * Show the user's profile page.
      */
-    public function edit(Request $request): Response
+    public function edit(Request $request, WorkOSUserService $workOSUserService): Response
     {
+        $user = $request->user();
+        $employee = null;
+        $workosUser = null;
+        $role = $user->role ?? 'staff';
+
+        // Load employee data if user is an employee
+        if ($user->employee_id) {
+            $employee = $user->employee;
+            $employee->load([
+                'countryOfResidence',
+                'nationalityCountry',
+            ]);
+
+            // Get WorkOS user info
+            if ($user->workos_id) {
+                try {
+                    $workosUser = $workOSUserService->getUser($user->workos_id);
+                    $workosRole = $workOSUserService->getUserRole($user->workos_id);
+                    if ($workosRole) {
+                        $role = $workosRole;
+                    }
+                } catch (WorkOSException) {
+                    // WorkOS user not found, continue without it
+                }
+            }
+        }
+
         return Inertia::render('settings/Profile', [
-            'status' => $request->session()->get('status'),
+            'employee' => $employee ? (new EmployeeResource($employee))->resolve() : null,
+            'workosUser' => $workosUser ? [
+                'id' => $workosUser->id,
+                'email' => $workosUser->email,
+                'emailVerified' => $workosUser->emailVerified,
+            ] : null,
+            'role' => $role,
         ]);
-    }
-
-    /**
-     * Update the user's profile settings.
-     */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
-    {
-        $request->user()->update(['name' => $request->name]);
-
-        return to_route('profile.edit');
-    }
-
-    /**
-     * Delete the user's account.
-     */
-    public function destroy(AuthKitAccountDeletionRequest $request): RedirectResponse
-    {
-        return $request->delete(
-            using: fn (User $user) => $user->delete()
-        );
     }
 }
