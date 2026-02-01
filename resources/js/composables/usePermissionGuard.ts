@@ -23,6 +23,7 @@ const ADMIN_ONLY_ROUTES = [
 const PERMISSION_ROUTES: Record<string, string> = {
     '/brands': 'brands.view',
     '/categories': 'categories.view',
+    '/products': 'products.view',
     '/suppliers': 'suppliers.view',
     '/stores': 'stores.access',
 };

@@ -52,4 +52,12 @@ class Brand extends Model
     {
         return $this->belongsTo(Country::class);
     }
+
+    /**
+     * Scope to filter active brands.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
 }

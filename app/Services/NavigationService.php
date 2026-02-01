@@ -47,6 +47,9 @@ class NavigationService
         $commerceItems = [];
 
         // Check permissions for commerce items
+        if ($this->permissionService->canAccessPage($user, 'products.view')) {
+            $commerceItems[] = ['title' => 'Products', 'href' => '/products', 'icon' => 'Package'];
+        }
         if ($this->permissionService->canAccessPage($user, 'brands.view')) {
             $commerceItems[] = ['title' => 'Brands', 'href' => '/brands', 'icon' => 'Tag'];
         }

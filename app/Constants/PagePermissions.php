@@ -14,6 +14,19 @@ class PagePermissions
 
     public const CATEGORIES_MANAGE = 'categories.manage';
 
+    // Products
+    public const PRODUCTS_VIEW = 'products.view';
+
+    public const PRODUCTS_CREATE = 'products.create';
+
+    public const PRODUCTS_EDIT = 'products.edit';
+
+    public const PRODUCTS_DELETE = 'products.delete';
+
+    public const PRODUCTS_VIEW_COST_PRICE = 'products.view_cost_price';
+
+    public const PRODUCTS_MANAGE_INVENTORY = 'products.manage_inventory';
+
     // Suppliers
     public const SUPPLIERS_VIEW = 'suppliers.view';
 
@@ -51,6 +64,36 @@ class PagePermissions
                 'key' => self::CATEGORIES_MANAGE,
                 'label' => 'Manage Categories',
                 'group' => 'Categories',
+            ],
+            self::PRODUCTS_VIEW => [
+                'key' => self::PRODUCTS_VIEW,
+                'label' => 'View Products',
+                'group' => 'Products',
+            ],
+            self::PRODUCTS_CREATE => [
+                'key' => self::PRODUCTS_CREATE,
+                'label' => 'Create Products',
+                'group' => 'Products',
+            ],
+            self::PRODUCTS_EDIT => [
+                'key' => self::PRODUCTS_EDIT,
+                'label' => 'Edit Products',
+                'group' => 'Products',
+            ],
+            self::PRODUCTS_DELETE => [
+                'key' => self::PRODUCTS_DELETE,
+                'label' => 'Delete Products',
+                'group' => 'Products',
+            ],
+            self::PRODUCTS_VIEW_COST_PRICE => [
+                'key' => self::PRODUCTS_VIEW_COST_PRICE,
+                'label' => 'View Cost Price',
+                'group' => 'Products',
+            ],
+            self::PRODUCTS_MANAGE_INVENTORY => [
+                'key' => self::PRODUCTS_MANAGE_INVENTORY,
+                'label' => 'Manage Inventory',
+                'group' => 'Products',
             ],
             self::SUPPLIERS_VIEW => [
                 'key' => self::SUPPLIERS_VIEW,

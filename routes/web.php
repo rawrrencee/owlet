@@ -14,6 +14,7 @@ use App\Http\Controllers\MyTeamTimecardController;
 use App\Http\Controllers\OrganisationChartController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\EmployeePermissionController;
 use App\Http\Controllers\PagePermissionsController;
 use App\Http\Controllers\StoreController;
@@ -119,6 +120,28 @@ Route::middleware([
         Route::post('suppliers/{supplier}/restore', [SupplierController::class, 'restore'])->name('suppliers.restore')->withTrashed();
         Route::post('suppliers/{supplier}/logo', [SupplierController::class, 'uploadLogo'])->name('suppliers.upload-logo');
         Route::delete('suppliers/{supplier}/logo', [SupplierController::class, 'deleteLogo'])->name('suppliers.delete-logo');
+    });
+
+    // Commerce routes - Products (permission-based)
+    // Create route must be defined before parameterized routes
+    Route::middleware('permission:products.create')->group(function () {
+        Route::get('products/create', [ProductController::class, 'create'])->name('products.create');
+        Route::post('products', [ProductController::class, 'store'])->name('products.store');
+    });
+    Route::middleware('permission:products.view')->group(function () {
+        Route::get('products', [ProductController::class, 'index'])->name('products.index');
+        Route::get('products/{product}', [ProductController::class, 'show'])->name('products.show');
+        Route::get('products/{product}/image', [ProductController::class, 'showImage'])->name('products.image');
+    });
+    Route::middleware('permission:products.edit')->group(function () {
+        Route::get('products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
+        Route::put('products/{product}', [ProductController::class, 'update'])->name('products.update');
+        Route::post('products/{product}/image', [ProductController::class, 'uploadImage'])->name('products.upload-image');
+        Route::delete('products/{product}/image', [ProductController::class, 'deleteImage'])->name('products.delete-image');
+    });
+    Route::middleware('permission:products.delete')->group(function () {
+        Route::delete('products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+        Route::post('products/{product}/restore', [ProductController::class, 'restore'])->name('products.restore')->withTrashed();
     });
 
     // Commerce routes - Stores (permission-based with policy authorization)

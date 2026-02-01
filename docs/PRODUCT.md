@@ -4,7 +4,7 @@ This document outlines the Product model for Owlet, which replaces the legacy It
 
 ## Overview
 
-Product represents items sold in the POS system. Each product belongs to a brand, category, subcategory, and supplier. Products can be assigned to multiple stores with store-specific pricing and inventory quantities.
+Product represents items sold in the POS system. Each product belongs to a brand, category, subcategory, and supplier. Products can be assigned to multiple stores with store-specific pricing and inventory quantities. Pricing supports multiple currencies with a fallback system from store-specific prices to base product prices.
 
 ## Database Schema
 
@@ -23,9 +23,7 @@ Product represents items sold in the POS system. Each product belongs to a brand
 | supplier_number | string(255) | Yes | null | Supplier's product code/reference |
 | description | text | Yes | null | Product description |
 | tags | json | Yes | null | Flexible tags for filtering/categorization |
-| cost_price | decimal(19,4) | No | 0 | Base cost price |
 | cost_price_remarks | string(255) | Yes | null | Notes about cost price |
-| unit_price | decimal(19,4) | No | - | Base selling/unit price |
 | image_path | string(255) | Yes | null | Path to product image |
 | image_filename | string(255) | Yes | null | Original filename |
 | image_mime_type | string(100) | Yes | null | MIME type of image |
@@ -49,17 +47,32 @@ Product represents items sold in the POS system. Each product belongs to a brand
 - Index on `supplier_id`
 - Index on `is_active`
 
-### product_stores Table (Pivot)
+### product_prices Table
 
-Links products to stores with store-specific pricing and inventory.
+Base prices for each currency the product supports.
 
 | Column | Type | Nullable | Default | Description |
 |--------|------|----------|---------|-------------|
 | id | bigIncrements | No | - | Primary key |
-| product_id | foreignId | No | - | FK to products.id |
+| product_id | foreignId | No | - | FK to products.id (cascadeOnDelete) |
+| currency_id | foreignId | No | - | FK to currencies.id |
+| cost_price | decimal(19,4) | Yes | null | Base cost price in this currency |
+| unit_price | decimal(19,4) | Yes | null | Base selling price in this currency |
+| created_at | timestamp | Yes | - | Laravel timestamp |
+| updated_at | timestamp | Yes | - | Laravel timestamp |
+
+**Indexes:**
+- Unique composite index on `[product_id, currency_id]`
+
+### product_stores Table
+
+Links products to stores with store-specific inventory.
+
+| Column | Type | Nullable | Default | Description |
+|--------|------|----------|---------|-------------|
+| id | bigIncrements | No | - | Primary key |
+| product_id | foreignId | No | - | FK to products.id (cascadeOnDelete) |
 | store_id | foreignId | No | - | FK to stores.id |
-| cost_price | decimal(19,4) | Yes | null | Store-specific cost (null = use product default) |
-| unit_price | decimal(19,4) | Yes | null | Store-specific price (null = use product default) |
 | quantity | integer | No | 0 | Stock quantity at this store |
 | is_active | boolean | No | true | Whether product is active at this store |
 | created_at | timestamp | Yes | - | Laravel timestamp |
@@ -67,9 +80,55 @@ Links products to stores with store-specific pricing and inventory.
 
 **Indexes:**
 - Unique composite index on `[product_id, store_id]`
-- Index on `product_id`
-- Index on `store_id`
 - Index on `is_active`
+
+### product_store_prices Table
+
+Store-specific price overrides per currency.
+
+| Column | Type | Nullable | Default | Description |
+|--------|------|----------|---------|-------------|
+| id | bigIncrements | No | - | Primary key |
+| product_store_id | foreignId | No | - | FK to product_stores.id (cascadeOnDelete) |
+| currency_id | foreignId | No | - | FK to currencies.id |
+| cost_price | decimal(19,4) | Yes | null | Store-specific cost (null = use base) |
+| unit_price | decimal(19,4) | Yes | null | Store-specific price (null = use base) |
+| created_at | timestamp | Yes | - | Laravel timestamp |
+| updated_at | timestamp | Yes | - | Laravel timestamp |
+
+**Indexes:**
+- Unique composite index on `[product_store_id, currency_id]`
+
+## Multi-Currency Pricing Architecture
+
+Products support pricing in multiple currencies with store-level overrides:
+
+```
+products (metadata only, no prices)
+    ↓
+product_prices (product_id, currency_id, cost_price, unit_price)
+    - Base prices for each currency the product supports
+    ↓
+product_stores (product_id, store_id, quantity, is_active)
+    - Store assignment with inventory
+    ↓
+product_store_prices (product_store_id, currency_id, cost_price, unit_price)
+    - Store-specific price overrides per currency
+    - If null, falls back to product_prices for that currency
+```
+
+### Pricing Fallback Logic
+
+For a product at a store in a given currency:
+1. Check `product_store_prices` for that currency
+2. If null (or no record), fall back to `product_prices` for that currency
+
+### Business Rules
+
+- Product base prices are optional; user chooses which currencies to set prices for
+- When assigning a product to a store, for each store currency:
+  - If product has a base price for that currency: store price is optional (falls back to base)
+  - If product has NO base price for that currency: store price is REQUIRED (enforced in UI)
 
 ## Model Relationships
 
@@ -78,18 +137,37 @@ Links products to stores with store-specific pricing and inventory.
 ```php
 class Product extends Model
 {
-    // Relationships
+    use HasAuditTrail, SoftDeletes;
+
+    // Classification
     public function brand(): BelongsTo
     public function category(): BelongsTo
     public function subcategory(): BelongsTo
     public function supplier(): BelongsTo
-    public function createdBy(): BelongsTo  // User
-    public function updatedBy(): BelongsTo  // User
-    public function previousUpdatedBy(): BelongsTo  // User
+
+    // Pricing
+    public function prices(): HasMany  // ProductPrice
+    public function getPriceForCurrency(int $currencyId): ?ProductPrice
 
     // Store relationships
     public function stores(): BelongsToMany  // via product_stores pivot
     public function productStores(): HasMany // ProductStore model
+    public function activeStores(): BelongsToMany
+
+    // Audit trail
+    public function createdBy(): BelongsTo  // User
+    public function updatedBy(): BelongsTo  // User
+    public function previousUpdatedBy(): BelongsTo  // User
+}
+```
+
+### ProductPrice Model
+
+```php
+class ProductPrice extends Model
+{
+    public function product(): BelongsTo
+    public function currency(): BelongsTo
 }
 ```
 
@@ -100,6 +178,25 @@ class ProductStore extends Model
 {
     public function product(): BelongsTo
     public function store(): BelongsTo
+    public function storePrices(): HasMany  // ProductStorePrice
+
+    // Effective price helpers (with fallback)
+    public function getEffectiveCostPrice(int $currencyId): ?string
+    public function getEffectiveUnitPrice(int $currencyId): ?string
+}
+```
+
+### ProductStorePrice Model
+
+```php
+class ProductStorePrice extends Model
+{
+    public function productStore(): BelongsTo
+    public function currency(): BelongsTo
+
+    // Effective price helpers (with fallback to base)
+    public function getEffectiveCostPrice(): ?string
+    public function getEffectiveUnitPrice(): ?string
 }
 ```
 
@@ -114,11 +211,12 @@ class ProductStore extends Model
 | img_url | image_path + image_filename + image_mime_type | Match existing pattern (Brand, etc.) |
 | active | is_active | Match existing pattern |
 | items_stores | product_stores | Renamed entity |
+| cost_price, unit_price (on items table) | product_prices table | Multi-currency support |
 
 ### Retained As-Is
 
 - brand_id, category_id, subcategory_id, supplier_id
-- cost_price, unit_price, cost_price_remarks
+- cost_price_remarks
 - description, supplier_number
 - created_by, updated_by
 - Soft deletes
@@ -134,6 +232,14 @@ class ProductStore extends Model
 | tags | json | Flexible tags array for filtering beyond category/subcategory |
 
 These properties enhance the product model with common e-commerce capabilities not present in the legacy system.
+
+## Soft Delete Handling
+
+When a product is soft deleted:
+- The `deleted_at` timestamp is set
+- The product_number remains unchanged (no suffix modification)
+- Validation uses `Rule::unique('products', 'product_number')->whereNull('deleted_at')` to allow reuse of product numbers from soft-deleted products
+- All associated product_stores remain but are effectively inaccessible
 
 ## Future Considerations
 
@@ -223,15 +329,19 @@ When API support is needed:
 
 ## Web Routes (Inertia)
 
-| Method | Route | Controller Method | Description |
-|--------|-------|-------------------|-------------|
-| GET | /products | index | Products list page |
-| GET | /products/create | create | Create product form |
-| POST | /products | store | Store new product |
-| GET | /products/{id} | show | View product details |
-| GET | /products/{id}/edit | edit | Edit product form |
-| PUT | /products/{id} | update | Update product |
-| DELETE | /products/{id} | destroy | Soft delete product |
+| Method | Route | Controller Method | Permission | Description |
+|--------|-------|-------------------|------------|-------------|
+| GET | /products | index | products.view | Products list page |
+| GET | /products/create | create | products.create | Create product form |
+| POST | /products | store | products.create | Store new product |
+| GET | /products/{id} | show | products.view | View product details |
+| GET | /products/{id}/edit | edit | products.edit | Edit product form |
+| PUT | /products/{id} | update | products.edit | Update product |
+| DELETE | /products/{id} | destroy | products.delete | Soft delete product |
+| POST | /products/{id}/restore | restore | products.delete | Restore soft-deleted product |
+| GET | /products/{id}/image | showImage | products.view | View product image |
+| POST | /products/{id}/image | uploadImage | products.edit | Upload product image |
+| DELETE | /products/{id}/image | deleteImage | products.edit | Delete product image |
 
 ## Validation Rules
 
@@ -240,7 +350,12 @@ When API support is needed:
 ```php
 [
     'product_name' => 'required|string|max:255',
-    'product_number' => 'required|string|max:255|unique:products,product_number',
+    'product_number' => [
+        'required',
+        'string',
+        'max:255',
+        Rule::unique('products', 'product_number')->whereNull('deleted_at'),
+    ],
     'barcode' => 'nullable|string|max:255',
     'brand_id' => 'required|exists:brands,id',
     'category_id' => 'required|exists:categories,id',
@@ -250,13 +365,27 @@ When API support is needed:
     'description' => 'nullable|string',
     'tags' => 'nullable|array',
     'tags.*' => 'string|max:50',
-    'cost_price' => 'nullable|numeric|min:0',
     'cost_price_remarks' => 'nullable|string|max:255',
-    'unit_price' => 'required|numeric|min:0',
     'weight' => 'nullable|numeric|min:0',
     'weight_unit' => 'required|in:kg,g,lb,oz',
-    'image' => 'nullable|image|max:2048',
+    'image' => 'nullable|image|max:5120',
     'is_active' => 'boolean',
+
+    // Base prices (per currency)
+    'prices' => 'nullable|array',
+    'prices.*.currency_id' => 'required|exists:currencies,id',
+    'prices.*.cost_price' => 'nullable|numeric|min:0',
+    'prices.*.unit_price' => 'nullable|numeric|min:0',
+
+    // Store assignments
+    'stores' => 'nullable|array',
+    'stores.*.store_id' => 'required|exists:stores,id',
+    'stores.*.quantity' => 'nullable|integer|min:0',
+    'stores.*.is_active' => 'boolean',
+    'stores.*.prices' => 'nullable|array',
+    'stores.*.prices.*.currency_id' => 'required|exists:currencies,id',
+    'stores.*.prices.*.cost_price' => 'nullable|numeric|min:0',
+    'stores.*.prices.*.unit_price' => 'nullable|numeric|min:0',
 ]
 ```
 
@@ -268,22 +397,10 @@ Product numbers are automatically:
 - Converted to uppercase
 - Stripped of leading/trailing whitespace
 
-### Soft Delete Handling
-
-When a product is soft deleted:
-- The product_number is appended with `__deleted@{timestamp}` to allow reuse of the number
-- All associated product_stores remain but can be cleaned up
-
 ### Deactivation Cascade
 
 When a product is deactivated (`is_active = false`):
-- All associated product_stores should also be set to `is_active = false`
-
-### Store-Specific Pricing
-
-- If `product_stores.cost_price` is null, use `products.cost_price`
-- If `product_stores.unit_price` is null, use `products.unit_price`
-- This allows store-level price overrides while maintaining a default
+- Consider setting all associated product_stores to `is_active = false`
 
 ### Tags Handling
 
