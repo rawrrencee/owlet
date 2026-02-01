@@ -11,7 +11,7 @@ import Select from 'primevue/select';
 import SelectButton from 'primevue/selectbutton';
 import ToggleSwitch from 'primevue/toggleswitch';
 import { computed, watch } from 'vue';
-import type { Category, Currency, Product, Subcategory } from '@/types';
+import type { Category, Currency, Subcategory } from '@/types';
 
 // Minimal product data needed for batch operations
 interface BatchProduct {

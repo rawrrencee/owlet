@@ -4,7 +4,6 @@ import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
-import Divider from 'primevue/divider';
 import ProgressBar from 'primevue/progressbar';
 import Tag from 'primevue/tag';
 import { computed, ref } from 'vue';
@@ -78,11 +77,6 @@ const progress = computed(() => {
 const isComplete = computed(() => {
     const processed = props.migratedCount + props.skippedCount;
     return processed >= props.legacyCount;
-});
-
-const hasPending = computed(() => {
-    const processed = props.migratedCount + props.skippedCount;
-    return processed < props.legacyCount;
 });
 
 const hasStarted = computed(() => props.migratedCount > 0 || props.failedCount > 0 || props.skippedCount > 0);

@@ -30,7 +30,7 @@ interface Props {
     connectionTest: ConnectionTest;
 }
 
-const props = defineProps<Props>();
+defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },

@@ -34,7 +34,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import { type AppPageProps, type NavItem, type NavSection } from '@/types';
+import { type AppPageProps, type NavSection } from '@/types';
 import AppLogo from './AppLogo.vue';
 
 const iconMap: Record<string, LucideIcon> = {
