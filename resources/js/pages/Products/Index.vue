@@ -2,6 +2,7 @@
 import { Head, router } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
+import Checkbox from 'primevue/checkbox';
 import Column from 'primevue/column';
 import ConfirmDialog from 'primevue/confirmdialog';
 import DataTable from 'primevue/datatable';
@@ -15,11 +16,12 @@ import ToggleSwitch from 'primevue/toggleswitch';
 import { useConfirm } from 'primevue/useconfirm';
 import { computed, reactive, ref, watch } from 'vue';
 import PagePermissionsSplitButton from '@/components/admin/PagePermissionsSplitButton.vue';
+import BatchEditDialog from '@/components/products/BatchEditDialog.vue';
 import ProductPreviewDialog from '@/components/products/ProductPreviewDialog.vue';
 import { usePermissions } from '@/composables/usePermissions';
 import { useProductPreview } from '@/composables/useProductPreview';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type PaginatedData, type Product } from '@/types';
+import { type BreadcrumbItem, type Category, type Currency, type PaginatedData, type Product, type Subcategory } from '@/types';
 
 interface Filters {
     search?: string;
@@ -33,8 +35,9 @@ interface Filters {
 interface Props {
     products: PaginatedData<Product>;
     brands: Array<{ id: number; brand_name: string; brand_code: string }>;
-    categories: Array<{ id: number; category_name: string; category_code: string }>;
+    categories: Array<Category & { subcategories?: Subcategory[] }>;
     suppliers: Array<{ id: number; supplier_name: string }>;
+    currencies: Currency[];
     filters?: Filters;
 }
 
@@ -174,6 +177,48 @@ const hasActiveFilters = computed(() =>
     filters.search || filters.status || filters.brand_id || filters.category_id || filters.supplier_id || filters.showDeleted
 );
 const confirm = useConfirm();
+
+// Selection state for batch edit
+const selectedProducts = ref<Product[]>([]);
+const batchEditVisible = ref(false);
+
+// Filter out deleted products from selection
+const selectableProducts = computed(() =>
+    props.products.data.filter(p => !isDeleted(p))
+);
+
+const allSelectableSelected = computed(() =>
+    selectableProducts.value.length > 0 &&
+    selectableProducts.value.every(p => selectedProducts.value.some(s => s.id === p.id))
+);
+
+function toggleSelectAll() {
+    if (allSelectableSelected.value) {
+        // Deselect all on this page
+        selectedProducts.value = selectedProducts.value.filter(
+            s => !selectableProducts.value.some(p => p.id === s.id)
+        );
+    } else {
+        // Select all on this page (that aren't already selected)
+        const newSelections = selectableProducts.value.filter(
+            p => !selectedProducts.value.some(s => s.id === p.id)
+        );
+        selectedProducts.value = [...selectedProducts.value, ...newSelections];
+    }
+}
+
+function clearSelection() {
+    selectedProducts.value = [];
+}
+
+function openBatchEdit() {
+    batchEditVisible.value = true;
+}
+
+function onBatchEditSuccess() {
+    clearSelection();
+    router.reload({ only: ['products'] });
+}
 
 function getInitials(product: Product): string {
     const words = product.product_name.split(' ');
@@ -365,6 +410,25 @@ function onPage(event: { page: number }) {
                     </div>
                 </template>
                 <Column expander class="w-12 !pr-0 md:hidden" />
+                <!-- Selection checkbox column (only visible when canEdit) -->
+                <Column v-if="canEdit" class="w-10 !pl-3 !pr-0" :exportable="false">
+                    <template #header>
+                        <Checkbox
+                            :model-value="allSelectableSelected"
+                            :binary="true"
+                            @click.stop="toggleSelectAll"
+                            v-tooltip.top="allSelectableSelected ? 'Deselect all' : 'Select all'"
+                        />
+                    </template>
+                    <template #body="{ data }">
+                        <Checkbox
+                            v-if="!isDeleted(data)"
+                            v-model="selectedProducts"
+                            :value="data"
+                            @click.stop
+                        />
+                    </template>
+                </Column>
                 <Column header="" class="w-12 !pl-4 !pr-0">
                     <template #body="{ data }">
                         <div v-if="data.image_url" @click.stop>
@@ -558,6 +622,48 @@ function onPage(event: { page: number }) {
             @search="searchProducts"
             @select="handleSearchSelect"
             @close="closePreview"
+        />
+
+        <!-- Floating Action Bar for Batch Edit -->
+        <Transition
+            enter-active-class="transition-all duration-200 ease-out"
+            leave-active-class="transition-all duration-150 ease-in"
+            enter-from-class="translate-y-full opacity-0"
+            leave-to-class="translate-y-full opacity-0"
+        >
+            <div
+                v-if="selectedProducts.length > 0 && canEdit"
+                class="fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-lg border border-border bg-background px-4 py-2 shadow-lg"
+            >
+                <span class="text-sm font-medium">
+                    {{ selectedProducts.length }} item(s) selected
+                </span>
+                <Button
+                    label="Edit"
+                    icon="pi pi-pencil"
+                    size="small"
+                    @click="openBatchEdit"
+                />
+                <Button
+                    label="Deselect"
+                    icon="pi pi-times"
+                    severity="secondary"
+                    text
+                    size="small"
+                    @click="clearSelection"
+                />
+            </div>
+        </Transition>
+
+        <!-- Batch Edit Dialog -->
+        <BatchEditDialog
+            v-model:visible="batchEditVisible"
+            :products="selectedProducts"
+            :brands="brands"
+            :categories="categories"
+            :suppliers="suppliers"
+            :currencies="currencies"
+            @success="onBatchEditSuccess"
         />
     </AppLayout>
 </template>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
+import { removeCurrentFromHistory } from '@/composables/useSmartBack';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import ConfirmDialog from 'primevue/confirmdialog';
@@ -75,6 +76,11 @@ function submitForm() {
         comments: data.comments || null,
     })).put(`/documents/insurances/${props.insurance.id}`, {
         preserveScroll: true,
+        onSuccess: () => {
+            // Remove Edit page from navigation history so back button skips it
+            removeCurrentFromHistory();
+            router.visit(`/documents/insurances/${props.insurance.id}`);
+        },
     });
 }
 

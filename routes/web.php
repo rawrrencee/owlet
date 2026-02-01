@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Admin\TimecardController as AdminTimecardController;
+use App\Http\Controllers\BrandController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DesignationController;
@@ -8,15 +10,13 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EmployeeCompanyController;
 use App\Http\Controllers\EmployeeContractController;
 use App\Http\Controllers\EmployeeInsuranceController;
+use App\Http\Controllers\EmployeePermissionController;
 use App\Http\Controllers\EmployeeStoreController;
 use App\Http\Controllers\MyTeamController;
 use App\Http\Controllers\MyTeamTimecardController;
 use App\Http\Controllers\OrganisationChartController;
-use App\Http\Controllers\BrandController;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\EmployeePermissionController;
 use App\Http\Controllers\PagePermissionsController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\TimecardController;
@@ -137,6 +137,7 @@ Route::middleware([
         Route::get('products/{product}/adjacent', [ProductController::class, 'adjacentIds'])->name('products.adjacent');
     });
     Route::middleware('permission:products.edit')->group(function () {
+        Route::post('products/batch-update', [ProductController::class, 'batchUpdate'])->name('products.batch-update');
         Route::get('products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
         Route::put('products/{product}', [ProductController::class, 'update'])->name('products.update');
         Route::post('products/{product}/image', [ProductController::class, 'uploadImage'])->name('products.upload-image');

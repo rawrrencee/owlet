@@ -1,4 +1,3 @@
-import type { Brand } from './brand';
 import type { Currency } from './currency';
 
 export interface ProductPrice {
@@ -111,4 +110,33 @@ export interface ProductAdjacentIds {
     next_id: number | null;
     position: number | null;
     total: number;
+}
+
+export interface BatchPriceAdjustment {
+    currency_id: number;
+    cost_price?: number | null;
+    unit_price?: number | null;
+}
+
+export interface BatchUpdateForm {
+    product_ids: number[];
+    // Classification
+    apply_brand: boolean;
+    brand_id: number | null;
+    apply_category: boolean;
+    category_id: number | null;
+    subcategory_id: number | null;
+    apply_supplier: boolean;
+    supplier_id: number | null;
+    // Status
+    apply_status: boolean;
+    is_active: boolean;
+    // Tags
+    apply_tags: boolean;
+    tags_to_add: string[];
+    tags_to_remove: string[];
+    // Prices
+    apply_prices: boolean;
+    price_mode: 'fixed' | 'percentage';
+    price_adjustments: BatchPriceAdjustment[];
 }

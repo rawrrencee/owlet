@@ -2,13 +2,22 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\TouchesProductAuditTrail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProductStorePrice extends Model
 {
-    use HasFactory;
+    use HasFactory, TouchesProductAuditTrail;
+
+    /**
+     * Get the Product model for audit trail updates.
+     */
+    protected function getProductForAuditTrail(): ?Product
+    {
+        return $this->productStore?->product;
+    }
 
     protected $fillable = [
         'product_store_id',

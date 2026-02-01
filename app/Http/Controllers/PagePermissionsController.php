@@ -16,6 +16,14 @@ class PagePermissionsController extends Controller
     private const PAGE_PERMISSIONS = [
         'brands' => [PagePermissions::BRANDS_VIEW, PagePermissions::BRANDS_MANAGE],
         'categories' => [PagePermissions::CATEGORIES_VIEW, PagePermissions::CATEGORIES_MANAGE],
+        'products' => [
+            PagePermissions::PRODUCTS_VIEW,
+            PagePermissions::PRODUCTS_CREATE,
+            PagePermissions::PRODUCTS_EDIT,
+            PagePermissions::PRODUCTS_DELETE,
+            PagePermissions::PRODUCTS_VIEW_COST_PRICE,
+            PagePermissions::PRODUCTS_MANAGE_INVENTORY,
+        ],
         'suppliers' => [PagePermissions::SUPPLIERS_VIEW, PagePermissions::SUPPLIERS_MANAGE],
         'stores' => [PagePermissions::STORES_ACCESS, PagePermissions::STORES_MANAGE],
     ];

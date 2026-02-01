@@ -125,7 +125,43 @@ class Product extends Model
     public function syncTagsByName(array $tagNames): void
     {
         $tags = Tag::findOrCreateByNames($tagNames);
-        $this->tags()->sync($tags->pluck('id'));
+        $currentTagIds = $this->tags()->pluck('tags.id')->toArray();
+        $newTagIds = $tags->pluck('id')->toArray();
+
+        $this->tags()->sync($newTagIds);
+
+        // Touch audit trail if tags changed
+        if (array_diff($currentTagIds, $newTagIds) || array_diff($newTagIds, $currentTagIds)) {
+            $this->touchAuditTrail();
+        }
+    }
+
+    /**
+     * Touch the audit trail without triggering a full model update.
+     * This is used when derivative models (prices, stores, etc.) are modified.
+     */
+    public function touchAuditTrail(): void
+    {
+        if (! auth()->check()) {
+            return;
+        }
+
+        $now = now();
+
+        $this->newQuery()
+            ->where('id', $this->id)
+            ->update([
+                'previous_updated_by' => $this->updated_by,
+                'previous_updated_at' => $this->updated_at,
+                'updated_by' => auth()->id(),
+                'updated_at' => $now,
+            ]);
+
+        // Refresh the model's attributes
+        $this->previous_updated_by = $this->updated_by;
+        $this->previous_updated_at = $this->updated_at;
+        $this->updated_by = auth()->id();
+        $this->updated_at = $now;
     }
 
     /**

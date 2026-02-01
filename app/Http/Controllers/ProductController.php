@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\WeightUnit;
+use App\Http\Requests\BatchUpdateProductsRequest;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Http\Resources\ProductResource;
@@ -16,6 +17,7 @@ use App\Models\ProductStore;
 use App\Models\ProductStorePrice;
 use App\Models\Store;
 use App\Models\Supplier;
+use App\Models\Tag;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -93,8 +95,12 @@ class ProductController extends Controller
         return Inertia::render('Products/Index', [
             'products' => $transformedProducts,
             'brands' => Brand::active()->orderBy('brand_name')->get(['id', 'brand_name', 'brand_code']),
-            'categories' => Category::where('is_active', true)->orderBy('category_name')->get(['id', 'category_name', 'category_code']),
+            'categories' => Category::where('is_active', true)
+                ->with(['subcategories' => fn ($q) => $q->where('is_active', true)->orderBy('subcategory_name')])
+                ->orderBy('category_name')
+                ->get(['id', 'category_name', 'category_code']),
             'suppliers' => Supplier::where('active', true)->orderBy('supplier_name')->get(['id', 'supplier_name']),
+            'currencies' => Currency::active()->orderBy('code')->get(['id', 'code', 'name', 'symbol', 'decimal_places']),
             'filters' => [
                 'search' => $search,
                 'status' => $status,
@@ -551,5 +557,168 @@ class ProductController extends Controller
             'position' => $currentIndex + 1,
             'total' => $total,
         ]);
+    }
+
+    public function batchUpdate(BatchUpdateProductsRequest $request): RedirectResponse|JsonResponse
+    {
+        return DB::transaction(function () use ($request) {
+            $productIds = $request->input('product_ids');
+            $products = Product::whereIn('id', $productIds)->get();
+            $updatedCount = 0;
+
+            foreach ($products as $product) {
+                $changes = [];
+
+                // Apply brand change
+                if ($request->boolean('apply_brand') && $request->filled('brand_id')) {
+                    $changes['brand_id'] = $request->input('brand_id');
+                }
+
+                // Apply category change
+                if ($request->boolean('apply_category') && $request->filled('category_id')) {
+                    $changes['category_id'] = $request->input('category_id');
+                    // Also update subcategory if provided
+                    if ($request->filled('subcategory_id')) {
+                        $changes['subcategory_id'] = $request->input('subcategory_id');
+                    }
+                }
+
+                // Apply supplier change
+                if ($request->boolean('apply_supplier') && $request->filled('supplier_id')) {
+                    $changes['supplier_id'] = $request->input('supplier_id');
+                }
+
+                // Apply status change
+                if ($request->boolean('apply_status')) {
+                    $changes['is_active'] = $request->boolean('is_active');
+                }
+
+                // Update product if there are changes
+                if (! empty($changes)) {
+                    $product->update($changes);
+                }
+
+                // Apply tag changes
+                if ($request->boolean('apply_tags')) {
+                    $currentTagIds = $product->tags()->pluck('tags.id')->toArray();
+                    $currentTags = $product->tags()->pluck('name')->toArray();
+
+                    // Get tags to add
+                    $tagsToAdd = $request->input('tags_to_add', []);
+                    $newTags = [];
+                    foreach ($tagsToAdd as $tagName) {
+                        $tag = Tag::findOrCreateByName($tagName);
+                        if (! in_array($tag->id, $currentTagIds)) {
+                            $newTags[] = $tag->id;
+                        }
+                    }
+
+                    // Get tags to remove
+                    $tagsToRemove = $request->input('tags_to_remove', []);
+                    $normalizedTagsToRemove = collect($tagsToRemove)
+                        ->map(fn ($t) => strtolower(trim($t)))
+                        ->toArray();
+
+                    // Calculate final tag IDs
+                    $finalTagIds = collect($currentTagIds)
+                        ->reject(function ($tagId) use ($normalizedTagsToRemove) {
+                            $tag = Tag::find($tagId);
+
+                            return $tag && in_array($tag->name, $normalizedTagsToRemove);
+                        })
+                        ->merge($newTags)
+                        ->unique()
+                        ->values()
+                        ->toArray();
+
+                    $product->tags()->sync($finalTagIds);
+                }
+
+                // Apply price changes
+                if ($request->boolean('apply_prices')) {
+                    $priceMode = $request->input('price_mode');
+                    $adjustments = collect($request->input('price_adjustments', []));
+
+                    foreach ($adjustments as $adjustment) {
+                        $currencyId = $adjustment['currency_id'];
+                        $hasCostPrice = isset($adjustment['cost_price']) && $adjustment['cost_price'] !== null;
+                        $hasUnitPrice = isset($adjustment['unit_price']) && $adjustment['unit_price'] !== null;
+
+                        // Skip if no values are set for this currency
+                        if (! $hasCostPrice && ! $hasUnitPrice) {
+                            continue;
+                        }
+
+                        $productPrice = $product->prices()->where('currency_id', $currencyId)->first();
+
+                        if ($priceMode === 'fixed') {
+                            // Treat 0 as null (remove the price)
+                            $costPrice = $hasCostPrice ? ((float) $adjustment['cost_price'] === 0.0 ? null : $adjustment['cost_price']) : null;
+                            $unitPrice = $hasUnitPrice ? ((float) $adjustment['unit_price'] === 0.0 ? null : $adjustment['unit_price']) : null;
+
+                            if ($productPrice) {
+                                // Update existing price record
+                                $updateData = [];
+                                if ($hasCostPrice) {
+                                    $updateData['cost_price'] = $costPrice;
+                                }
+                                if ($hasUnitPrice) {
+                                    $updateData['unit_price'] = $unitPrice;
+                                }
+                                $productPrice->update($updateData);
+
+                                // Delete the price record if both values become null
+                                $productPrice->refresh();
+                                if ($productPrice->cost_price === null && $productPrice->unit_price === null) {
+                                    $productPrice->delete();
+                                }
+                            } elseif ($costPrice !== null || $unitPrice !== null) {
+                                // Only create if at least one value is non-null
+                                ProductPrice::create([
+                                    'product_id' => $product->id,
+                                    'currency_id' => $currencyId,
+                                    'cost_price' => $costPrice,
+                                    'unit_price' => $unitPrice,
+                                ]);
+                            }
+                        } elseif ($priceMode === 'percentage' && $productPrice) {
+                            // Apply percentage adjustment (only to existing prices)
+                            $updateData = [];
+                            if ($hasCostPrice && $productPrice->cost_price !== null) {
+                                $percentChange = (float) $adjustment['cost_price'];
+                                $newCostPrice = round((float) $productPrice->cost_price * (1 + $percentChange / 100), 2);
+                                // Set to null if result is 0 or negative
+                                $updateData['cost_price'] = $newCostPrice <= 0 ? null : $newCostPrice;
+                            }
+                            if ($hasUnitPrice && $productPrice->unit_price !== null) {
+                                $percentChange = (float) $adjustment['unit_price'];
+                                $newUnitPrice = round((float) $productPrice->unit_price * (1 + $percentChange / 100), 2);
+                                // Set to null if result is 0 or negative
+                                $updateData['unit_price'] = $newUnitPrice <= 0 ? null : $newUnitPrice;
+                            }
+
+                            if (! empty($updateData)) {
+                                $productPrice->update($updateData);
+
+                                // Delete the price record if both values become null
+                                $productPrice->refresh();
+                                if ($productPrice->cost_price === null && $productPrice->unit_price === null) {
+                                    $productPrice->delete();
+                                }
+                            }
+                        }
+                    }
+                }
+
+                $updatedCount++;
+            }
+
+            return $this->respondWithSuccess(
+                request(),
+                'products.index',
+                [],
+                "{$updatedCount} product(s) updated successfully."
+            );
+        });
     }
 }
