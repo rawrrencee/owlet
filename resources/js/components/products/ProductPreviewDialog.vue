@@ -96,14 +96,14 @@ function getTotalStoreQuantity(product: Product): number {
         modal
         :style="{ width: '50rem' }"
         :breakpoints="{ '1280px': '90vw', '640px': '100vw' }"
-        :closable="true"
+        :closable="false"
         :draggable="false"
         @update:visible="emit('update:visible', $event)"
     >
         <template #header>
             <div class="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <!-- Navigation controls -->
-                <div class="flex items-center gap-2">
+                <div class="order-last flex items-center gap-2 sm:order-first">
                     <!-- Back button (search mode or when can go back) -->
                     <Button
                         v-if="currentMode === 'search' || canGoBack"
@@ -144,8 +144,8 @@ function getTotalStoreQuantity(product: Product): number {
                     </template>
                 </div>
 
-                <!-- Search autocomplete -->
-                <div class="flex-1 sm:max-w-xs">
+                <!-- Search autocomplete + close button (first on mobile) -->
+                <div class="order-first flex items-center gap-2 sm:order-last sm:max-w-xs">
                     <AutoComplete
                         v-model="searchQuery"
                         :suggestions="searchResults"
@@ -154,6 +154,7 @@ function getTotalStoreQuantity(product: Product): number {
                         size="small"
                         fluid
                         :loading="searchLoading"
+                        class="flex-1"
                         @complete="onSearch"
                         @item-select="onSelect($event.value)"
                     >
@@ -181,6 +182,15 @@ function getTotalStoreQuantity(product: Product): number {
                             </div>
                         </template>
                     </AutoComplete>
+                    <Button
+                        icon="pi pi-times"
+                        severity="secondary"
+                        text
+                        rounded
+                        size="small"
+                        @click="emit('update:visible', false)"
+                        v-tooltip.bottom="'Close'"
+                    />
                 </div>
             </div>
         </template>

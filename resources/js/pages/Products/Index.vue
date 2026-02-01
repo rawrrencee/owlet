@@ -187,9 +187,27 @@ const selectableProducts = computed(() =>
     props.products.data.filter(p => !isDeleted(p))
 );
 
+// Set of selected product IDs for efficient lookup
+const selectedProductIds = computed(() => new Set(selectedProducts.value.map(p => p.id)));
+
+// Check if a specific product is selected
+function isProductSelected(product: Product): boolean {
+    return selectedProductIds.value.has(product.id);
+}
+
+// Toggle selection for a single product
+function toggleProductSelection(product: Product) {
+    const index = selectedProducts.value.findIndex(p => p.id === product.id);
+    if (index >= 0) {
+        selectedProducts.value.splice(index, 1);
+    } else {
+        selectedProducts.value.push(product);
+    }
+}
+
 const allSelectableSelected = computed(() =>
     selectableProducts.value.length > 0 &&
-    selectableProducts.value.every(p => selectedProducts.value.some(s => s.id === p.id))
+    selectableProducts.value.every(p => selectedProductIds.value.has(p.id))
 );
 
 function toggleSelectAll() {
@@ -201,7 +219,7 @@ function toggleSelectAll() {
     } else {
         // Select all on this page (that aren't already selected)
         const newSelections = selectableProducts.value.filter(
-            p => !selectedProducts.value.some(s => s.id === p.id)
+            p => !selectedProductIds.value.has(p.id)
         );
         selectedProducts.value = [...selectedProducts.value, ...newSelections];
     }
@@ -218,6 +236,74 @@ function openBatchEdit() {
 function onBatchEditSuccess() {
     clearSelection();
     router.reload({ only: ['products'] });
+}
+
+// Selection preview state
+const selectionPreviewVisible = ref(false);
+const selectionPreviewIndex = ref(0);
+const selectionPreviewProduct = ref<Product | null>(null);
+const selectionPreviewLoading = ref(false);
+
+const selectionCanGoPrev = computed(() => selectionPreviewIndex.value > 0);
+const selectionCanGoNext = computed(() => selectionPreviewIndex.value < selectedProducts.value.length - 1);
+const selectionPositionText = computed(() => {
+    if (selectedProducts.value.length === 0) return '';
+    return `${selectionPreviewIndex.value + 1} of ${selectedProducts.value.length}`;
+});
+
+async function fetchProductPreview(productId: number): Promise<Product | null> {
+    try {
+        const response = await fetch(`/products/${productId}/preview`, {
+            headers: { 'Accept': 'application/json' },
+        });
+        if (response.ok) {
+            const data = await response.json();
+            return data.data;
+        }
+        return null;
+    } catch {
+        return null;
+    }
+}
+
+async function openSelectionPreview() {
+    if (selectedProducts.value.length === 0) return;
+
+    selectionPreviewIndex.value = 0;
+    selectionPreviewVisible.value = true;
+    selectionPreviewLoading.value = true;
+
+    const product = await fetchProductPreview(selectedProducts.value[0].id);
+    selectionPreviewProduct.value = product;
+    selectionPreviewLoading.value = false;
+}
+
+async function selectionNavigatePrev() {
+    if (!selectionCanGoPrev.value) return;
+
+    selectionPreviewIndex.value--;
+    selectionPreviewLoading.value = true;
+
+    const product = await fetchProductPreview(selectedProducts.value[selectionPreviewIndex.value].id);
+    selectionPreviewProduct.value = product;
+    selectionPreviewLoading.value = false;
+}
+
+async function selectionNavigateNext() {
+    if (!selectionCanGoNext.value) return;
+
+    selectionPreviewIndex.value++;
+    selectionPreviewLoading.value = true;
+
+    const product = await fetchProductPreview(selectedProducts.value[selectionPreviewIndex.value].id);
+    selectionPreviewProduct.value = product;
+    selectionPreviewLoading.value = false;
+}
+
+function closeSelectionPreview() {
+    selectionPreviewVisible.value = false;
+    selectionPreviewProduct.value = null;
+    selectionPreviewIndex.value = 0;
 }
 
 function getInitials(product: Product): string {
@@ -413,20 +499,23 @@ function onPage(event: { page: number }) {
                 <!-- Selection checkbox column (only visible when canEdit) -->
                 <Column v-if="canEdit" class="w-10 !pl-3 !pr-0" :exportable="false">
                     <template #header>
-                        <Checkbox
-                            :model-value="allSelectableSelected"
-                            :binary="true"
-                            @click.stop="toggleSelectAll"
-                            v-tooltip.top="allSelectableSelected ? 'Deselect all' : 'Select all'"
-                        />
+                        <div @click.stop>
+                            <Checkbox
+                                :model-value="allSelectableSelected"
+                                :binary="true"
+                                @update:model-value="toggleSelectAll"
+                                v-tooltip.top="allSelectableSelected ? 'Deselect all' : 'Select all'"
+                            />
+                        </div>
                     </template>
                     <template #body="{ data }">
-                        <Checkbox
-                            v-if="!isDeleted(data)"
-                            v-model="selectedProducts"
-                            :value="data"
-                            @click.stop
-                        />
+                        <div v-if="!isDeleted(data)" @click.stop>
+                            <Checkbox
+                                :model-value="isProductSelected(data)"
+                                :binary="true"
+                                @update:model-value="toggleProductSelection(data)"
+                            />
+                        </div>
                     </template>
                 </Column>
                 <Column header="" class="w-12 !pl-4 !pr-0">
@@ -492,7 +581,7 @@ function onPage(event: { page: number }) {
                         />
                     </template>
                 </Column>
-                <Column header="" class="w-24 !pr-4">
+                <Column header="" class="hidden w-24 !pr-4 md:table-cell">
                     <template #body="{ data }">
                         <div v-if="isDeleted(data)" class="flex justify-end gap-1">
                             <Button
@@ -633,25 +722,34 @@ function onPage(event: { page: number }) {
         >
             <div
                 v-if="selectedProducts.length > 0 && canEdit"
-                class="fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-lg border border-border bg-background px-4 py-2 shadow-lg"
+                class="fixed bottom-24 left-4 right-4 z-50 flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-4 py-2 shadow-lg sm:bottom-4 sm:left-1/2 sm:right-auto sm:-translate-x-1/2"
             >
                 <span class="text-sm font-medium">
-                    {{ selectedProducts.length }} item(s) selected
+                    {{ selectedProducts.length }} selected
                 </span>
-                <Button
-                    label="Edit"
-                    icon="pi pi-pencil"
-                    size="small"
-                    @click="openBatchEdit"
-                />
-                <Button
-                    label="Deselect"
-                    icon="pi pi-times"
-                    severity="secondary"
-                    text
-                    size="small"
-                    @click="clearSelection"
-                />
+                <div class="flex items-center gap-2">
+                    <Button
+                        icon="pi pi-eye"
+                        severity="info"
+                        size="small"
+                        @click="openSelectionPreview"
+                        v-tooltip.top="'Preview selected'"
+                    />
+                    <Button
+                        label="Edit"
+                        icon="pi pi-pencil"
+                        size="small"
+                        @click="openBatchEdit"
+                    />
+                    <Button
+                        icon="pi pi-times"
+                        severity="secondary"
+                        text
+                        size="small"
+                        @click="clearSelection"
+                        v-tooltip.top="'Deselect all'"
+                    />
+                </div>
             </div>
         </Transition>
 
@@ -664,6 +762,27 @@ function onPage(event: { page: number }) {
             :suppliers="suppliers"
             :currencies="currencies"
             @success="onBatchEditSuccess"
+        />
+
+        <!-- Selection Preview Dialog -->
+        <ProductPreviewDialog
+            :visible="selectionPreviewVisible"
+            :product="selectionPreviewProduct"
+            :loading="selectionPreviewLoading"
+            :search-loading="false"
+            :search-results="[]"
+            current-mode="list"
+            :can-go-back="false"
+            :can-go-prev="selectionCanGoPrev"
+            :can-go-next="selectionCanGoNext"
+            :position-text="selectionPositionText"
+            @update:visible="selectionPreviewVisible = $event"
+            @prev="selectionNavigatePrev"
+            @next="selectionNavigateNext"
+            @back="closeSelectionPreview"
+            @search="() => {}"
+            @select="() => {}"
+            @close="closeSelectionPreview"
         />
     </AppLayout>
 </template>

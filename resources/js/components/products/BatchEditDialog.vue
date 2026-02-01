@@ -219,15 +219,16 @@ function isMixed(value: unknown): boolean {
                             :disabled="!form.apply_brand"
                             filter
                             size="small"
-                            class="flex-1"
+                            class="min-w-0 flex-1"
+                            :pt="{ label: { class: 'truncate' } }"
                         />
                     </div>
 
                     <!-- Category -->
-                    <div class="flex items-center gap-3">
-                        <Checkbox v-model="form.apply_category" :binary="true" input-id="apply_category" />
-                        <label for="apply_category" class="w-24 text-sm">Category</label>
-                        <div class="flex flex-1 gap-2">
+                    <div class="flex items-start gap-3">
+                        <Checkbox v-model="form.apply_category" :binary="true" input-id="apply_category" class="mt-2" />
+                        <label for="apply_category" class="mt-2 w-24 text-sm">Category</label>
+                        <div class="flex flex-1 flex-col gap-2 sm:flex-row">
                             <Select
                                 v-model="form.category_id"
                                 :options="categoryOptions"
@@ -237,7 +238,8 @@ function isMixed(value: unknown): boolean {
                                 :disabled="!form.apply_category"
                                 filter
                                 size="small"
-                                class="flex-1"
+                                class="w-full min-w-0 sm:flex-1"
+                                :pt="{ label: { class: 'truncate' } }"
                             />
                             <Select
                                 v-model="form.subcategory_id"
@@ -246,9 +248,11 @@ function isMixed(value: unknown): boolean {
                                 option-value="value"
                                 :placeholder="subcategoryOptions.length === 0 ? 'No subcategories' : 'Subcategory'"
                                 :disabled="!form.apply_category || subcategoryOptions.length === 0"
+                                :invalid="!!form.errors.subcategory_id"
                                 filter
                                 size="small"
-                                class="flex-1"
+                                class="w-full min-w-0 sm:flex-1"
+                                :pt="{ label: { class: 'truncate' } }"
                             />
                         </div>
                     </div>
@@ -266,7 +270,8 @@ function isMixed(value: unknown): boolean {
                             :disabled="!form.apply_supplier"
                             filter
                             size="small"
-                            class="flex-1"
+                            class="min-w-0 flex-1"
+                            :pt="{ label: { class: 'truncate' } }"
                         />
                     </div>
                 </div>

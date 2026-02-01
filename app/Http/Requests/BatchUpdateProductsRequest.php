@@ -30,7 +30,7 @@ class BatchUpdateProductsRequest extends FormRequest
             // Classification - Category
             'apply_category' => ['boolean'],
             'category_id' => ['nullable', 'required_if:apply_category,true', 'exists:categories,id'],
-            'subcategory_id' => ['nullable', 'exists:subcategories,id'],
+            'subcategory_id' => ['nullable', 'required_if:apply_category,true', 'exists:subcategories,id'],
 
             // Classification - Supplier
             'apply_supplier' => ['boolean'],
@@ -63,6 +63,17 @@ class BatchUpdateProductsRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
+            // Validate subcategory belongs to the selected category
+            if ($this->boolean('apply_category') && $this->filled('category_id') && $this->filled('subcategory_id')) {
+                $subcategory = \App\Models\Subcategory::find($this->input('subcategory_id'));
+                if ($subcategory && $subcategory->category_id !== (int) $this->input('category_id')) {
+                    $validator->errors()->add(
+                        'subcategory_id',
+                        'The selected subcategory does not belong to the selected category.'
+                    );
+                }
+            }
+
             if (! $this->boolean('apply_prices')) {
                 return;
             }
@@ -107,6 +118,7 @@ class BatchUpdateProductsRequest extends FormRequest
             'product_ids.*.exists' => 'One or more selected products do not exist.',
             'brand_id.required_if' => 'Brand is required when applying brand changes.',
             'category_id.required_if' => 'Category is required when applying category changes.',
+            'subcategory_id.required_if' => 'Subcategory is required when applying category changes.',
             'supplier_id.required_if' => 'Supplier is required when applying supplier changes.',
             'price_mode.required_if' => 'Price mode is required when applying price changes.',
             'price_adjustments.*.currency_id.required' => 'Currency is required for each price adjustment.',
