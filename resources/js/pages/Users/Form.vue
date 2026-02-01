@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
-import { clearSkipPageInHistory, skipCurrentPageInHistory } from '@/composables/useSmartBack';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import ConfirmDialog from 'primevue/confirmdialog';
@@ -27,6 +26,7 @@ import EmployeePermissionsSection from '@/components/employees/EmployeePermissio
 import EmployeeStoresSection from '@/components/employees/EmployeeStoresSection.vue';
 import ImageSelect from '@/components/ImageSelect.vue';
 import ImageUpload from '@/components/ImageUpload.vue';
+import { clearSkipPageInHistory, skipCurrentPageInHistory } from '@/composables/useSmartBack';
 import { relationships, relationshipOptions } from '@/constants/employee';
 import AppLayout from '@/layouts/AppLayout.vue';
 import {

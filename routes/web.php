@@ -130,6 +130,7 @@ Route::middleware([
     });
     Route::middleware('permission:products.view')->group(function () {
         Route::get('products', [ProductController::class, 'index'])->name('products.index');
+        Route::get('products/ids', [ProductController::class, 'getAllIds'])->name('products.ids');
         Route::get('products/search', [ProductController::class, 'search'])->name('products.search');
         Route::get('products/{product}', [ProductController::class, 'show'])->name('products.show');
         Route::get('products/{product}/image', [ProductController::class, 'showImage'])->name('products.image');

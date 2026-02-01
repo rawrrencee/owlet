@@ -559,6 +559,68 @@ class ProductController extends Controller
         ]);
     }
 
+    /**
+     * Get all product IDs matching the current filters (for "select all" functionality).
+     * Returns minimal data needed for selection: id, product_name, product_number, brand_name, image_url.
+     * Excludes deleted products since they can't be batch edited.
+     */
+    public function getAllIds(Request $request): JsonResponse
+    {
+        $search = $request->query('search', '');
+        $status = $request->query('status', '');
+        $brandId = $request->query('brand_id', '');
+        $categoryId = $request->query('category_id', '');
+        $supplierId = $request->query('supplier_id', '');
+
+        // Build query without deleted products (they can't be batch edited)
+        $query = Product::query();
+
+        if ($search) {
+            $query->search($search);
+        }
+
+        if ($status === 'active') {
+            $query->where('is_active', true);
+        } elseif ($status === 'inactive') {
+            $query->where('is_active', false);
+        }
+
+        if ($brandId) {
+            $query->where('brand_id', $brandId);
+        }
+
+        if ($categoryId) {
+            $query->where('category_id', $categoryId);
+        }
+
+        if ($supplierId) {
+            $query->where('supplier_id', $supplierId);
+        }
+
+        // Get all products with minimal data
+        $products = $query
+            ->orderBy('product_name')
+            ->get(['id', 'product_name', 'product_number', 'brand_id', 'image_path']);
+
+        // Load brand names efficiently
+        $brandIds = $products->pluck('brand_id')->filter()->unique()->values();
+        $brands = Brand::whereIn('id', $brandIds)->pluck('brand_name', 'id');
+
+        // Transform to minimal data structure
+        $data = $products->map(fn (Product $product) => [
+            'id' => $product->id,
+            'product_name' => $product->product_name,
+            'product_number' => $product->product_number,
+            'brand_name' => $brands[$product->brand_id] ?? null,
+            'image_url' => $product->image_path ? route('products.image', $product->id) : null,
+        ])->values();
+
+        return response()->json([
+            'data' => $data,
+            'total' => $data->count(),
+        ]);
+    }
+
     public function batchUpdate(BatchUpdateProductsRequest $request): RedirectResponse|JsonResponse
     {
         return DB::transaction(function () use ($request) {

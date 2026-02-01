@@ -18,6 +18,8 @@ import { computed, reactive, ref, watch } from 'vue';
 import PagePermissionsSplitButton from '@/components/admin/PagePermissionsSplitButton.vue';
 import BatchEditDialog from '@/components/products/BatchEditDialog.vue';
 import ProductPreviewDialog from '@/components/products/ProductPreviewDialog.vue';
+import SelectAllConfirmDialog from '@/components/products/SelectAllConfirmDialog.vue';
+import SelectionPreviewDialog from '@/components/products/SelectionPreviewDialog.vue';
 import { usePermissions } from '@/composables/usePermissions';
 import { useProductPreview } from '@/composables/useProductPreview';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -30,6 +32,14 @@ interface Filters {
     category_id?: string | number;
     supplier_id?: string | number;
     show_deleted?: boolean;
+}
+
+interface SelectionProduct {
+    id: number;
+    product_name: string;
+    product_number: string;
+    brand_name?: string | null;
+    image_url?: string | null;
 }
 
 interface Props {
@@ -179,8 +189,15 @@ const hasActiveFilters = computed(() =>
 const confirm = useConfirm();
 
 // Selection state for batch edit
-const selectedProducts = ref<Product[]>([]);
+const selectedProducts = ref<(Product | SelectionProduct)[]>([]);
 const batchEditVisible = ref(false);
+
+// Select All confirmation dialog state
+const selectAllConfirmVisible = ref(false);
+const selectAllLoading = ref(false);
+
+// Selection Preview dialog state
+const selectionPreviewDialogVisible = ref(false);
 
 // Filter out deleted products from selection
 const selectableProducts = computed(() =>
@@ -212,17 +229,65 @@ const allSelectableSelected = computed(() =>
 
 function toggleSelectAll() {
     if (allSelectableSelected.value) {
-        // Deselect all on this page
+        // Deselect all on this page (no dialog)
         selectedProducts.value = selectedProducts.value.filter(
             s => !selectableProducts.value.some(p => p.id === s.id)
         );
     } else {
-        // Select all on this page (that aren't already selected)
-        const newSelections = selectableProducts.value.filter(
-            p => !selectedProductIds.value.has(p.id)
-        );
-        selectedProducts.value = [...selectedProducts.value, ...newSelections];
+        // Show confirmation dialog
+        selectAllConfirmVisible.value = true;
     }
+}
+
+function handleSelectPage() {
+    // Select all on this page (that aren't already selected)
+    const newSelections = selectableProducts.value.filter(
+        p => !selectedProductIds.value.has(p.id)
+    );
+    selectedProducts.value = [...selectedProducts.value, ...newSelections];
+}
+
+async function handleSelectAll() {
+    selectAllLoading.value = true;
+    try {
+        const params = new URLSearchParams();
+        if (filters.search) params.append('search', filters.search);
+        if (filters.status) params.append('status', filters.status);
+        if (filters.brand_id) params.append('brand_id', String(filters.brand_id));
+        if (filters.category_id) params.append('category_id', String(filters.category_id));
+        if (filters.supplier_id) params.append('supplier_id', String(filters.supplier_id));
+
+        const response = await fetch(`/products/ids?${params.toString()}`, {
+            headers: { 'Accept': 'application/json' },
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            // Replace selection with all products from API
+            selectedProducts.value = data.data;
+            selectAllConfirmVisible.value = false;
+        }
+    } catch (error) {
+        console.error('Failed to fetch all product IDs:', error);
+    } finally {
+        selectAllLoading.value = false;
+    }
+}
+
+function openSelectionPreviewDialog() {
+    selectionPreviewDialogVisible.value = true;
+}
+
+function handleDeselectFromPreview(productId: number) {
+    selectedProducts.value = selectedProducts.value.filter(p => p.id !== productId);
+    // Close dialog if empty
+    if (selectedProducts.value.length === 0) {
+        selectionPreviewDialogVisible.value = false;
+    }
+}
+
+function handleClearAllFromPreview() {
+    selectedProducts.value = [];
 }
 
 function clearSelection() {
@@ -238,73 +303,6 @@ function onBatchEditSuccess() {
     router.reload({ only: ['products'] });
 }
 
-// Selection preview state
-const selectionPreviewVisible = ref(false);
-const selectionPreviewIndex = ref(0);
-const selectionPreviewProduct = ref<Product | null>(null);
-const selectionPreviewLoading = ref(false);
-
-const selectionCanGoPrev = computed(() => selectionPreviewIndex.value > 0);
-const selectionCanGoNext = computed(() => selectionPreviewIndex.value < selectedProducts.value.length - 1);
-const selectionPositionText = computed(() => {
-    if (selectedProducts.value.length === 0) return '';
-    return `${selectionPreviewIndex.value + 1} of ${selectedProducts.value.length}`;
-});
-
-async function fetchProductPreview(productId: number): Promise<Product | null> {
-    try {
-        const response = await fetch(`/products/${productId}/preview`, {
-            headers: { 'Accept': 'application/json' },
-        });
-        if (response.ok) {
-            const data = await response.json();
-            return data.data;
-        }
-        return null;
-    } catch {
-        return null;
-    }
-}
-
-async function openSelectionPreview() {
-    if (selectedProducts.value.length === 0) return;
-
-    selectionPreviewIndex.value = 0;
-    selectionPreviewVisible.value = true;
-    selectionPreviewLoading.value = true;
-
-    const product = await fetchProductPreview(selectedProducts.value[0].id);
-    selectionPreviewProduct.value = product;
-    selectionPreviewLoading.value = false;
-}
-
-async function selectionNavigatePrev() {
-    if (!selectionCanGoPrev.value) return;
-
-    selectionPreviewIndex.value--;
-    selectionPreviewLoading.value = true;
-
-    const product = await fetchProductPreview(selectedProducts.value[selectionPreviewIndex.value].id);
-    selectionPreviewProduct.value = product;
-    selectionPreviewLoading.value = false;
-}
-
-async function selectionNavigateNext() {
-    if (!selectionCanGoNext.value) return;
-
-    selectionPreviewIndex.value++;
-    selectionPreviewLoading.value = true;
-
-    const product = await fetchProductPreview(selectedProducts.value[selectionPreviewIndex.value].id);
-    selectionPreviewProduct.value = product;
-    selectionPreviewLoading.value = false;
-}
-
-function closeSelectionPreview() {
-    selectionPreviewVisible.value = false;
-    selectionPreviewProduct.value = null;
-    selectionPreviewIndex.value = 0;
-}
 
 function getInitials(product: Product): string {
     const words = product.product_name.split(' ');
@@ -732,7 +730,7 @@ function onPage(event: { page: number }) {
                         icon="pi pi-eye"
                         severity="info"
                         size="small"
-                        @click="openSelectionPreview"
+                        @click="openSelectionPreviewDialog"
                         v-tooltip.top="'Preview selected'"
                     />
                     <Button
@@ -764,25 +762,22 @@ function onPage(event: { page: number }) {
             @success="onBatchEditSuccess"
         />
 
+        <!-- Select All Confirmation Dialog -->
+        <SelectAllConfirmDialog
+            v-model:visible="selectAllConfirmVisible"
+            :page-count="selectableProducts.length"
+            :total-count="products.total"
+            :loading="selectAllLoading"
+            @select-page="handleSelectPage"
+            @select-all="handleSelectAll"
+        />
+
         <!-- Selection Preview Dialog -->
-        <ProductPreviewDialog
-            :visible="selectionPreviewVisible"
-            :product="selectionPreviewProduct"
-            :loading="selectionPreviewLoading"
-            :search-loading="false"
-            :search-results="[]"
-            current-mode="list"
-            :can-go-back="false"
-            :can-go-prev="selectionCanGoPrev"
-            :can-go-next="selectionCanGoNext"
-            :position-text="selectionPositionText"
-            @update:visible="selectionPreviewVisible = $event"
-            @prev="selectionNavigatePrev"
-            @next="selectionNavigateNext"
-            @back="closeSelectionPreview"
-            @search="() => {}"
-            @select="() => {}"
-            @close="closeSelectionPreview"
+        <SelectionPreviewDialog
+            v-model:visible="selectionPreviewDialogVisible"
+            :products="selectedProducts"
+            @deselect="handleDeselectFromPreview"
+            @clear-all="handleClearAllFromPreview"
         />
     </AppLayout>
 </template>

@@ -13,9 +13,21 @@ import ToggleSwitch from 'primevue/toggleswitch';
 import { computed, watch } from 'vue';
 import type { Category, Currency, Product, Subcategory } from '@/types';
 
+// Minimal product data needed for batch operations
+interface BatchProduct {
+    id: number;
+    product_name?: string;
+    brand_id?: number | null;
+    category_id?: number | null;
+    subcategory_id?: number | null;
+    supplier_id?: number | null;
+    is_active?: boolean;
+    tags?: string[];
+}
+
 interface Props {
     visible: boolean;
-    products: Product[];
+    products: BatchProduct[];
     brands: Array<{ id: number; brand_name: string; brand_code: string }>;
     categories: Array<Category & { subcategories?: Subcategory[] }>;
     suppliers: Array<{ id: number; supplier_name: string }>;
@@ -88,33 +100,38 @@ const priceModeOptions = [
 ];
 
 // Get common values from selected products
-const commonBrandId = computed(() => {
+const commonBrandId = computed((): number | null => {
     if (props.products.length === 0) return null;
     const first = props.products[0].brand_id;
+    if (first === undefined) return null;
     return props.products.every((p) => p.brand_id === first) ? first : null;
 });
 
-const commonCategoryId = computed(() => {
+const commonCategoryId = computed((): number | null => {
     if (props.products.length === 0) return null;
     const first = props.products[0].category_id;
+    if (first === undefined) return null;
     return props.products.every((p) => p.category_id === first) ? first : null;
 });
 
-const commonSubcategoryId = computed(() => {
+const commonSubcategoryId = computed((): number | null => {
     if (props.products.length === 0) return null;
     const first = props.products[0].subcategory_id;
+    if (first === undefined) return null;
     return props.products.every((p) => p.subcategory_id === first) ? first : null;
 });
 
-const commonSupplierId = computed(() => {
+const commonSupplierId = computed((): number | null => {
     if (props.products.length === 0) return null;
     const first = props.products[0].supplier_id;
+    if (first === undefined) return null;
     return props.products.every((p) => p.supplier_id === first) ? first : null;
 });
 
-const commonIsActive = computed(() => {
+const commonIsActive = computed((): boolean | null => {
     if (props.products.length === 0) return null;
     const first = props.products[0].is_active;
+    if (first === undefined) return null;
     return props.products.every((p) => p.is_active === first) ? first : null;
 });
 

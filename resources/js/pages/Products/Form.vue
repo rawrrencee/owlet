@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { clearSkipPageInHistory, skipCurrentPageInHistory } from '@/composables/useSmartBack';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Chips from 'primevue/chips';
@@ -16,6 +15,7 @@ import BackButton from '@/components/BackButton.vue';
 import ImageSelect from '@/components/ImageSelect.vue';
 import ImageUpload from '@/components/ImageUpload.vue';
 import { usePermissions } from '@/composables/usePermissions';
+import { clearSkipPageInHistory, skipCurrentPageInHistory } from '@/composables/useSmartBack';
 import AppLayout from '@/layouts/AppLayout.vue';
 import {
     type BreadcrumbItem,

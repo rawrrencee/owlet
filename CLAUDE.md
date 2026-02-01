@@ -111,6 +111,17 @@ This provides better UX by:
 - Using browser history (`window.history.back()`) when the user navigated from within the app
 - Falling back to a specified URL when accessing the page directly (e.g., via bookmark or shared link)
 
+## Code Quality
+
+Before completing any task that modifies TypeScript/Vue files, run the TypeScript checker and fix any errors:
+
+```bash
+npx vue-tsc --noEmit
+```
+
+- Fix all TypeScript errors found, even if they are not directly related to the current change
+- This ensures the codebase stays healthy and prevents accumulating technical debt
+
 ## Development Approach
 
 1. When asked about a feature, first check the legacy codebases for existing implementation
