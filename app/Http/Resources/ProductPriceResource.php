@@ -46,8 +46,11 @@ class ProductPriceResource extends JsonResource
             return false;
         }
 
-        $permissions = $employee->permissions()->pluck('permission')->toArray();
+        $employeePermission = $employee->permission;
+        if (! $employeePermission) {
+            return false;
+        }
 
-        return in_array(PagePermissions::PRODUCTS_VIEW_COST_PRICE, $permissions);
+        return $employeePermission->hasPermission(PagePermissions::PRODUCTS_VIEW_COST_PRICE);
     }
 }

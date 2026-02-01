@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
+import Badge from 'primevue/badge';
 import Button from 'primevue/button';
 import Checkbox from 'primevue/checkbox';
 import Column from 'primevue/column';
 import ConfirmDialog from 'primevue/confirmdialog';
 import DataTable from 'primevue/datatable';
+import Drawer from 'primevue/drawer';
 import IconField from 'primevue/iconfield';
 import Image from 'primevue/image';
 import InputIcon from 'primevue/inputicon';
 import InputText from 'primevue/inputtext';
+import MultiSelect from 'primevue/multiselect';
 import Select from 'primevue/select';
 import Tag from 'primevue/tag';
 import ToggleSwitch from 'primevue/toggleswitch';
@@ -33,6 +36,7 @@ interface Filters {
     brand_id?: string | number;
     category_id?: string | number;
     supplier_id?: string | number;
+    store_ids?: number[];
     show_deleted?: boolean;
     per_page?: number;
 }
@@ -50,6 +54,7 @@ interface Props {
     brands: Array<{ id: number; brand_name: string; brand_code: string }>;
     categories: Array<Category & { subcategories?: Subcategory[] }>;
     suppliers: Array<{ id: number; supplier_name: string }>;
+    stores: Array<{ id: number; store_name: string; store_code: string }>;
     currencies: Currency[];
     filters?: Filters;
 }
@@ -68,8 +73,11 @@ const filters = reactive({
     brand_id: props.filters?.brand_id ?? '',
     category_id: props.filters?.category_id ?? '',
     supplier_id: props.filters?.supplier_id ?? '',
+    store_ids: props.filters?.store_ids ?? [],
     showDeleted: props.filters?.show_deleted ?? false,
 });
+
+const filterDrawerVisible = ref(false);
 
 const perPage = ref(props.products.per_page ?? 15);
 
@@ -80,6 +88,7 @@ const filtersForPreview = computed(() => ({
     brand_id: filters.brand_id,
     category_id: filters.category_id,
     supplier_id: filters.supplier_id,
+    store_ids: filters.store_ids.join(','),
     show_deleted: filters.showDeleted,
 }));
 
@@ -125,6 +134,21 @@ const supplierOptions = computed(() => [
     ...props.suppliers.map(s => ({ label: s.supplier_name, value: s.id })),
 ]);
 
+const storeOptions = computed(() =>
+    props.stores.map(s => ({ label: s.store_name, value: s.id }))
+);
+
+const activeFilterCount = computed(() => {
+    let count = 0;
+    if (filters.brand_id) count++;
+    if (filters.category_id) count++;
+    if (filters.supplier_id) count++;
+    if (filters.store_ids.length > 0) count++;
+    if (filters.status) count++;
+    if (filters.showDeleted) count++;
+    return count;
+});
+
 let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
 watch(
@@ -158,17 +182,24 @@ watch(
 );
 
 watch(
+    () => filters.store_ids,
+    () => applyFilters(),
+    { deep: true },
+);
+
+watch(
     () => filters.showDeleted,
     () => applyFilters(),
 );
 
 function applyFilters() {
-    const params: Record<string, string | number | boolean> = {};
+    const params: Record<string, string | number | boolean | number[]> = {};
     if (filters.search) params.search = filters.search;
     if (filters.status) params.status = filters.status;
     if (filters.brand_id) params.brand_id = filters.brand_id;
     if (filters.category_id) params.category_id = filters.category_id;
     if (filters.supplier_id) params.supplier_id = filters.supplier_id;
+    if (filters.store_ids.length > 0) params.store_ids = filters.store_ids;
     if (filters.showDeleted) params.show_deleted = true;
     if (perPage.value !== 15) params.per_page = perPage.value;
     router.get('/products', params, { preserveState: true });
@@ -180,7 +211,9 @@ function clearFilters() {
     filters.brand_id = '';
     filters.category_id = '';
     filters.supplier_id = '';
+    filters.store_ids = [];
     filters.showDeleted = false;
+    filterDrawerVisible.value = false;
     router.get('/products', {}, { preserveState: true });
 }
 
@@ -191,7 +224,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const expandedRows = ref({});
 const hasActiveFilters = computed(() =>
-    filters.search || filters.status || filters.brand_id || filters.category_id || filters.supplier_id || filters.showDeleted
+    filters.search || filters.status || filters.brand_id || filters.category_id || filters.supplier_id || filters.store_ids.length > 0 || filters.showDeleted
 );
 const confirm = useConfirm();
 
@@ -276,6 +309,7 @@ async function handleSelectAll() {
         if (filters.brand_id) params.append('brand_id', String(filters.brand_id));
         if (filters.category_id) params.append('category_id', String(filters.category_id));
         if (filters.supplier_id) params.append('supplier_id', String(filters.supplier_id));
+        if (filters.store_ids.length > 0) params.append('store_ids', filters.store_ids.join(','));
 
         const response = await fetch(`/products/ids?${params.toString()}`, {
             headers: { 'Accept': 'application/json' },
@@ -404,12 +438,13 @@ function onRowClick(event: { data: Product }) {
 
 function onPage(event: { page: number; rows: number }) {
     perPage.value = event.rows;
-    const params: Record<string, string | number | boolean> = { page: event.page + 1 };
+    const params: Record<string, string | number | boolean | number[]> = { page: event.page + 1 };
     if (filters.search) params.search = filters.search;
     if (filters.status) params.status = filters.status;
     if (filters.brand_id) params.brand_id = filters.brand_id;
     if (filters.category_id) params.category_id = filters.category_id;
     if (filters.supplier_id) params.supplier_id = filters.supplier_id;
+    if (filters.store_ids.length > 0) params.store_ids = filters.store_ids;
     if (filters.showDeleted) params.show_deleted = true;
     if (event.rows !== 15) params.per_page = event.rows;
     router.get('/products', params, { preserveState: true });
@@ -431,8 +466,133 @@ function onPage(event: { page: number; rows: number }) {
                 />
             </div>
 
-            <!-- Filter Section -->
-            <div class="filter-section flex flex-col gap-3">
+            <!-- Filter Section - Mobile -->
+            <div class="filter-section flex flex-col gap-3 sm:hidden">
+                <IconField class="flex-1">
+                    <InputIcon class="pi pi-search" />
+                    <InputText
+                        v-model="filters.search"
+                        placeholder="Search by name, SKU, or barcode..."
+                        size="small"
+                        fluid
+                    />
+                </IconField>
+
+                <div class="flex items-center gap-2">
+                    <Button severity="secondary" size="small" outlined @click="filterDrawerVisible = true">
+                        <i class="pi pi-filter mr-2"></i>
+                        Filters
+                        <Badge v-if="activeFilterCount > 0" :value="activeFilterCount" class="ml-2" />
+                    </Button>
+                    <Button
+                        v-if="hasActiveFilters"
+                        icon="pi pi-times"
+                        severity="secondary"
+                        text
+                        size="small"
+                        @click="clearFilters"
+                        v-tooltip.top="'Clear all filters'"
+                    />
+                </div>
+            </div>
+
+            <!-- Filter Drawer (Mobile only) -->
+            <Drawer v-model:visible="filterDrawerVisible" header="Filters" position="right" class="!w-full">
+                <div class="flex flex-col gap-4">
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm font-medium">Store</label>
+                        <MultiSelect
+                            v-model="filters.store_ids"
+                            :options="storeOptions"
+                            option-label="label"
+                            option-value="value"
+                            placeholder="All Stores"
+                            filter
+                            size="small"
+                            class="w-full"
+                            display="chip"
+                            :max-selected-labels="2"
+                        />
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm font-medium">Brand</label>
+                        <Select
+                            v-model="filters.brand_id"
+                            :options="brandOptions"
+                            option-label="label"
+                            option-value="value"
+                            placeholder="All Brands"
+                            filter
+                            size="small"
+                            class="w-full"
+                        />
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm font-medium">Category</label>
+                        <Select
+                            v-model="filters.category_id"
+                            :options="categoryOptions"
+                            option-label="label"
+                            option-value="value"
+                            placeholder="All Categories"
+                            filter
+                            size="small"
+                            class="w-full"
+                        />
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm font-medium">Supplier</label>
+                        <Select
+                            v-model="filters.supplier_id"
+                            :options="supplierOptions"
+                            option-label="label"
+                            option-value="value"
+                            placeholder="All Suppliers"
+                            filter
+                            size="small"
+                            class="w-full"
+                        />
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm font-medium">Status</label>
+                        <Select
+                            v-model="filters.status"
+                            :options="statusOptions"
+                            option-label="label"
+                            option-value="value"
+                            placeholder="All"
+                            size="small"
+                            class="w-full"
+                        />
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <label class="text-sm font-medium">Show Deleted</label>
+                        <ToggleSwitch v-model="filters.showDeleted" />
+                    </div>
+                </div>
+                <template #footer>
+                    <div class="flex gap-2">
+                        <Button
+                            label="Clear All"
+                            severity="secondary"
+                            outlined
+                            size="small"
+                            class="flex-1"
+                            @click="clearFilters"
+                            :disabled="!hasActiveFilters"
+                        />
+                        <Button
+                            label="Done"
+                            size="small"
+                            class="flex-1"
+                            @click="filterDrawerVisible = false"
+                        />
+                    </div>
+                </template>
+            </Drawer>
+
+            <!-- Filter Section - Desktop -->
+            <div class="filter-section hidden flex-col gap-3 sm:flex">
                 <IconField class="flex-1">
                     <InputIcon class="pi pi-search" />
                     <InputText
@@ -443,6 +603,18 @@ function onPage(event: { page: number; rows: number }) {
                     />
                 </IconField>
                 <div class="flex flex-wrap items-center gap-2">
+                    <MultiSelect
+                        v-model="filters.store_ids"
+                        :options="storeOptions"
+                        option-label="label"
+                        option-value="value"
+                        placeholder="Store"
+                        filter
+                        size="small"
+                        class="w-48"
+                        display="chip"
+                        :max-selected-labels="1"
+                    />
                     <Select
                         v-model="filters.brand_id"
                         :options="brandOptions"
@@ -451,7 +623,7 @@ function onPage(event: { page: number; rows: number }) {
                         placeholder="Brand"
                         filter
                         size="small"
-                        class="w-full sm:w-40"
+                        class="w-40"
                     />
                     <Select
                         v-model="filters.category_id"
@@ -461,7 +633,7 @@ function onPage(event: { page: number; rows: number }) {
                         placeholder="Category"
                         filter
                         size="small"
-                        class="w-full sm:w-40"
+                        class="w-40"
                     />
                     <Select
                         v-model="filters.supplier_id"
@@ -471,7 +643,7 @@ function onPage(event: { page: number; rows: number }) {
                         placeholder="Supplier"
                         filter
                         size="small"
-                        class="w-full sm:w-40"
+                        class="w-40"
                     />
                     <Select
                         v-model="filters.status"
@@ -480,7 +652,7 @@ function onPage(event: { page: number; rows: number }) {
                         option-value="value"
                         placeholder="Status"
                         size="small"
-                        class="w-full sm:w-32"
+                        class="w-32"
                     />
                     <label class="flex cursor-pointer items-center gap-2">
                         <ToggleSwitch v-model="filters.showDeleted" />

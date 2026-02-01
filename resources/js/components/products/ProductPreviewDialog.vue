@@ -195,8 +195,8 @@ function getTotalStoreQuantity(product: Product): number {
             </div>
         </template>
 
-        <!-- Content -->
-        <div class="min-h-[300px]">
+        <!-- Content - Fixed height for consistent button positioning -->
+        <div class="h-[400px] overflow-y-auto">
             <!-- Loading skeleton -->
             <div v-if="loading" class="flex flex-col gap-4">
                 <!-- Header skeleton -->
@@ -372,7 +372,7 @@ function getTotalStoreQuantity(product: Product): number {
             </div>
 
             <!-- No product state -->
-            <div v-else class="flex h-[300px] items-center justify-center text-muted-foreground">
+            <div v-else class="flex h-full items-center justify-center text-muted-foreground">
                 Product not found
             </div>
         </div>

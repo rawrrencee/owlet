@@ -18,6 +18,7 @@ use App\Models\ProductStorePrice;
 use App\Models\Store;
 use App\Models\Supplier;
 use App\Models\Tag;
+use App\Services\PermissionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -31,15 +32,28 @@ class ProductController extends Controller
 {
     use RespondsWithInertiaOrJson;
 
-    public function index(Request $request): InertiaResponse|JsonResponse
+    public function index(Request $request, PermissionService $permissionService): InertiaResponse|JsonResponse
     {
         $search = $request->query('search', '');
         $status = $request->query('status', '');
         $brandId = $request->query('brand_id', '');
         $categoryId = $request->query('category_id', '');
         $supplierId = $request->query('supplier_id', '');
+        $storeIds = $request->query('store_ids', []);
         $showDeleted = $request->boolean('show_deleted', false);
         $perPage = min(max($request->integer('per_page', 15), 10), 100);
+
+        // Normalize store_ids to array of integers
+        if (is_string($storeIds)) {
+            $storeIds = array_filter(array_map('intval', explode(',', $storeIds)));
+        } elseif (is_array($storeIds)) {
+            $storeIds = array_filter(array_map('intval', $storeIds));
+        } else {
+            $storeIds = [];
+        }
+
+        // Get employee's accessible store IDs
+        $accessibleStoreIds = $permissionService->getAccessibleStoreIds($request->user());
 
         $query = Product::with([
             'brand:id,brand_name,brand_code',
@@ -49,6 +63,24 @@ class ProductController extends Controller
             'prices.currency',
             'tags:id,name',
         ]);
+
+        // Only show products assigned to employee's accessible stores
+        if (! empty($accessibleStoreIds)) {
+            $query->whereHas('productStores', function ($q) use ($accessibleStoreIds) {
+                $q->whereIn('store_id', $accessibleStoreIds);
+            });
+        } else {
+            // No accessible stores means no products visible
+            $query->whereRaw('1 = 0');
+        }
+
+        // Apply store filter (must be within accessible stores)
+        $filteredStoreIds = array_intersect($storeIds, $accessibleStoreIds);
+        if (! empty($filteredStoreIds)) {
+            $query->whereHas('productStores', function ($q) use ($filteredStoreIds) {
+                $q->whereIn('store_id', $filteredStoreIds);
+            });
+        }
 
         if ($showDeleted) {
             $query->withTrashed();
@@ -102,12 +134,17 @@ class ProductController extends Controller
                 ->get(['id', 'category_name', 'category_code']),
             'suppliers' => Supplier::where('active', true)->orderBy('supplier_name')->get(['id', 'supplier_name']),
             'currencies' => Currency::active()->orderBy('code')->get(['id', 'code', 'name', 'symbol', 'decimal_places']),
+            'stores' => Store::whereIn('id', $accessibleStoreIds)
+                ->where('active', true)
+                ->orderBy('store_name')
+                ->get(['id', 'store_name', 'store_code']),
             'filters' => [
                 'search' => $search,
                 'status' => $status,
                 'brand_id' => $brandId,
                 'category_id' => $categoryId,
                 'supplier_id' => $supplierId,
+                'store_ids' => $storeIds,
                 'show_deleted' => $showDeleted,
                 'per_page' => $perPage,
             ],
@@ -211,8 +248,16 @@ class ProductController extends Controller
         });
     }
 
-    public function show(Request $request, Product $product): InertiaResponse|JsonResponse
+    public function show(Request $request, Product $product, PermissionService $permissionService): InertiaResponse|JsonResponse
     {
+        // Verify product is in accessible stores
+        $accessibleStoreIds = $permissionService->getAccessibleStoreIds($request->user());
+        $productStoreIds = $product->productStores()->pluck('store_id')->toArray();
+
+        if (empty(array_intersect($accessibleStoreIds, $productStoreIds))) {
+            abort(403, 'You do not have access to this product.');
+        }
+
         $product->load([
             'brand',
             'category',
@@ -238,8 +283,16 @@ class ProductController extends Controller
         ]);
     }
 
-    public function edit(Product $product): InertiaResponse
+    public function edit(Request $request, Product $product, PermissionService $permissionService): InertiaResponse
     {
+        // Verify product is in accessible stores
+        $accessibleStoreIds = $permissionService->getAccessibleStoreIds($request->user());
+        $productStoreIds = $product->productStores()->pluck('store_id')->toArray();
+
+        if (empty(array_intersect($accessibleStoreIds, $productStoreIds))) {
+            abort(403, 'You do not have access to this product.');
+        }
+
         $product->load([
             'brand',
             'category',
@@ -493,17 +546,47 @@ class ProductController extends Controller
         ]);
     }
 
-    public function adjacentIds(Request $request, Product $product): JsonResponse
+    public function adjacentIds(Request $request, Product $product, PermissionService $permissionService): JsonResponse
     {
         $search = $request->query('search', '');
         $status = $request->query('status', '');
         $brandId = $request->query('brand_id', '');
         $categoryId = $request->query('category_id', '');
         $supplierId = $request->query('supplier_id', '');
+        $storeIds = $request->query('store_ids', []);
         $showDeleted = $request->boolean('show_deleted', false);
+
+        // Normalize store_ids to array of integers
+        if (is_string($storeIds)) {
+            $storeIds = array_filter(array_map('intval', explode(',', $storeIds)));
+        } elseif (is_array($storeIds)) {
+            $storeIds = array_filter(array_map('intval', $storeIds));
+        } else {
+            $storeIds = [];
+        }
+
+        // Get employee's accessible store IDs
+        $accessibleStoreIds = $permissionService->getAccessibleStoreIds($request->user());
 
         // Build base query with same filters as index
         $query = Product::query();
+
+        // Only show products assigned to employee's accessible stores
+        if (! empty($accessibleStoreIds)) {
+            $query->whereHas('productStores', function ($q) use ($accessibleStoreIds) {
+                $q->whereIn('store_id', $accessibleStoreIds);
+            });
+        } else {
+            $query->whereRaw('1 = 0');
+        }
+
+        // Apply store filter (must be within accessible stores)
+        $filteredStoreIds = array_intersect($storeIds, $accessibleStoreIds);
+        if (! empty($filteredStoreIds)) {
+            $query->whereHas('productStores', function ($q) use ($filteredStoreIds) {
+                $q->whereIn('store_id', $filteredStoreIds);
+            });
+        }
 
         if ($showDeleted) {
             $query->withTrashed();
@@ -566,16 +649,46 @@ class ProductController extends Controller
      * Returns minimal data needed for selection: id, product_name, product_number, brand_name, image_url.
      * Excludes deleted products since they can't be batch edited.
      */
-    public function getAllIds(Request $request): JsonResponse
+    public function getAllIds(Request $request, PermissionService $permissionService): JsonResponse
     {
         $search = $request->query('search', '');
         $status = $request->query('status', '');
         $brandId = $request->query('brand_id', '');
         $categoryId = $request->query('category_id', '');
         $supplierId = $request->query('supplier_id', '');
+        $storeIds = $request->query('store_ids', []);
+
+        // Normalize store_ids to array of integers
+        if (is_string($storeIds)) {
+            $storeIds = array_filter(array_map('intval', explode(',', $storeIds)));
+        } elseif (is_array($storeIds)) {
+            $storeIds = array_filter(array_map('intval', $storeIds));
+        } else {
+            $storeIds = [];
+        }
+
+        // Get employee's accessible store IDs
+        $accessibleStoreIds = $permissionService->getAccessibleStoreIds($request->user());
 
         // Build query without deleted products (they can't be batch edited)
         $query = Product::query();
+
+        // Only show products assigned to employee's accessible stores
+        if (! empty($accessibleStoreIds)) {
+            $query->whereHas('productStores', function ($q) use ($accessibleStoreIds) {
+                $q->whereIn('store_id', $accessibleStoreIds);
+            });
+        } else {
+            $query->whereRaw('1 = 0');
+        }
+
+        // Apply store filter (must be within accessible stores)
+        $filteredStoreIds = array_intersect($storeIds, $accessibleStoreIds);
+        if (! empty($filteredStoreIds)) {
+            $query->whereHas('productStores', function ($q) use ($filteredStoreIds) {
+                $q->whereIn('store_id', $filteredStoreIds);
+            });
+        }
 
         if ($search) {
             $query->search($search);
