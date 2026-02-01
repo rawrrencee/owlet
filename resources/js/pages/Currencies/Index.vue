@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import AppLayout from '@/layouts/AppLayout.vue';
+import {
+    type BreadcrumbItem,
+    type Currency,
+    type PaginatedData,
+} from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Column from 'primevue/column';
@@ -11,12 +17,6 @@ import Select from 'primevue/select';
 import Tag from 'primevue/tag';
 import { useConfirm } from 'primevue/useconfirm';
 import { computed, reactive, ref, watch } from 'vue';
-import AppLayout from '@/layouts/AppLayout.vue';
-import {
-    type BreadcrumbItem,
-    type Currency,
-    type PaginatedData,
-} from '@/types';
 
 interface Filters {
     search?: string;

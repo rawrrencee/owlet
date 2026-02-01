@@ -1,16 +1,4 @@
 <script setup lang="ts">
-import { Head, router, useForm } from '@inertiajs/vue3';
-import Button from 'primevue/button';
-import Card from 'primevue/card';
-import Chips from 'primevue/chips';
-import Divider from 'primevue/divider';
-import Editor from 'primevue/editor';
-import InputNumber from 'primevue/inputnumber';
-import InputText from 'primevue/inputtext';
-import MultiSelect from 'primevue/multiselect';
-import Select from 'primevue/select';
-import ToggleSwitch from 'primevue/toggleswitch';
-import { computed, ref, watch } from 'vue';
 import BackButton from '@/components/BackButton.vue';
 import ImageSelect from '@/components/ImageSelect.vue';
 import ImageUpload from '@/components/ImageUpload.vue';
@@ -28,6 +16,18 @@ import {
     type Subcategory,
     type WeightUnitOption,
 } from '@/types';
+import { Head, router, useForm } from '@inertiajs/vue3';
+import Button from 'primevue/button';
+import Card from 'primevue/card';
+import Chips from 'primevue/chips';
+import Divider from 'primevue/divider';
+import Editor from 'primevue/editor';
+import InputNumber from 'primevue/inputnumber';
+import InputText from 'primevue/inputtext';
+import MultiSelect from 'primevue/multiselect';
+import Select from 'primevue/select';
+import ToggleSwitch from 'primevue/toggleswitch';
+import { computed, ref, watch } from 'vue';
 
 interface StoreOption {
     id: number;

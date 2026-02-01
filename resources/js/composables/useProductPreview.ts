@@ -1,6 +1,6 @@
+import type { Product, ProductAdjacentIds, ProductSearchResult } from '@/types';
 import axios from 'axios';
 import { computed, ref, type ComputedRef, type Ref } from 'vue';
-import type { Product, ProductAdjacentIds, ProductSearchResult } from '@/types';
 
 interface NavigationEntry {
     productId: number;

@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { Button } from '@/components/ui/button';
 import { Link } from '@inertiajs/vue3';
 import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
-import { Button } from '@/components/ui/button';
 
 export interface PaginationLink {
     url: string | null;

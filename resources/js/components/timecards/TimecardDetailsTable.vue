@@ -1,10 +1,10 @@
 <script setup lang="ts">
+import type { TimecardDetail } from '@/types/timecard';
 import Button from 'primevue/button';
 import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
 import Tag from 'primevue/tag';
 import { computed } from 'vue';
-import type { TimecardDetail } from '@/types/timecard';
 
 interface Props {
     details: TimecardDetail[];

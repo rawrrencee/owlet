@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { usePermissions } from '@/composables/usePermissions';
+import type { Product, ProductSearchResult } from '@/types';
 import { router } from '@inertiajs/vue3';
 import AutoComplete, {
     type AutoCompleteCompleteEvent,
@@ -11,8 +13,6 @@ import Image from 'primevue/image';
 import Skeleton from 'primevue/skeleton';
 import Tag from 'primevue/tag';
 import { computed, ref, watch } from 'vue';
-import { usePermissions } from '@/composables/usePermissions';
-import type { Product, ProductSearchResult } from '@/types';
 
 interface Props {
     visible: boolean;

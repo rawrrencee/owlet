@@ -1,4 +1,32 @@
 <script setup lang="ts">
+import BackButton from '@/components/BackButton.vue';
+import EmployeeCompaniesSection from '@/components/employees/EmployeeCompaniesSection.vue';
+import EmployeeContractsSection from '@/components/employees/EmployeeContractsSection.vue';
+import EmployeeHierarchySection from '@/components/employees/EmployeeHierarchySection.vue';
+import EmployeeInsurancesSection from '@/components/employees/EmployeeInsurancesSection.vue';
+import EmployeePermissionsSection from '@/components/employees/EmployeePermissionsSection.vue';
+import EmployeeStoresSection from '@/components/employees/EmployeeStoresSection.vue';
+import ImageSelect from '@/components/ImageSelect.vue';
+import ImageUpload from '@/components/ImageUpload.vue';
+import {
+    clearSkipPageInHistory,
+    skipCurrentPageInHistory,
+} from '@/composables/useSmartBack';
+import { relationshipOptions, relationships } from '@/constants/employee';
+import AppLayout from '@/layouts/AppLayout.vue';
+import {
+    type AppPageProps,
+    type BreadcrumbItem,
+    type Company,
+    type Country,
+    type Designation,
+    type Employee,
+    type EmployeeCompany,
+    type EmployeeContract,
+    type EmployeeInsurance,
+    type Store,
+    type WorkOSUser,
+} from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
@@ -17,34 +45,6 @@ import Tabs from 'primevue/tabs';
 import ToggleSwitch from 'primevue/toggleswitch';
 import { useConfirm } from 'primevue/useconfirm';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import BackButton from '@/components/BackButton.vue';
-import EmployeeCompaniesSection from '@/components/employees/EmployeeCompaniesSection.vue';
-import EmployeeContractsSection from '@/components/employees/EmployeeContractsSection.vue';
-import EmployeeHierarchySection from '@/components/employees/EmployeeHierarchySection.vue';
-import EmployeeInsurancesSection from '@/components/employees/EmployeeInsurancesSection.vue';
-import EmployeePermissionsSection from '@/components/employees/EmployeePermissionsSection.vue';
-import EmployeeStoresSection from '@/components/employees/EmployeeStoresSection.vue';
-import ImageSelect from '@/components/ImageSelect.vue';
-import ImageUpload from '@/components/ImageUpload.vue';
-import {
-    clearSkipPageInHistory,
-    skipCurrentPageInHistory,
-} from '@/composables/useSmartBack';
-import { relationships, relationshipOptions } from '@/constants/employee';
-import AppLayout from '@/layouts/AppLayout.vue';
-import {
-    type AppPageProps,
-    type BreadcrumbItem,
-    type Company,
-    type Country,
-    type Designation,
-    type Employee,
-    type EmployeeCompany,
-    type EmployeeContract,
-    type EmployeeInsurance,
-    type Store,
-    type WorkOSUser,
-} from '@/types';
 
 interface Props {
     employee: Employee | null;

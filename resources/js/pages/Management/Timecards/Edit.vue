@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import BackButton from '@/components/BackButton.vue';
+import TimecardDetailsTable from '@/components/timecards/TimecardDetailsTable.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import type { BreadcrumbItem, Timecard, TimecardDetail } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
@@ -11,10 +15,6 @@ import Select from 'primevue/select';
 import Tag from 'primevue/tag';
 import { useConfirm } from 'primevue/useconfirm';
 import { ref } from 'vue';
-import BackButton from '@/components/BackButton.vue';
-import TimecardDetailsTable from '@/components/timecards/TimecardDetailsTable.vue';
-import AppLayout from '@/layouts/AppLayout.vue';
-import type { BreadcrumbItem, Timecard, TimecardDetail } from '@/types';
 
 interface StoreOption {
     id: number;

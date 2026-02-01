@@ -1,19 +1,4 @@
 <script setup lang="ts">
-import { Head, router, useForm } from '@inertiajs/vue3';
-import Button from 'primevue/button';
-import Card from 'primevue/card';
-import ConfirmDialog from 'primevue/confirmdialog';
-import Divider from 'primevue/divider';
-import InputNumber from 'primevue/inputnumber';
-import InputText from 'primevue/inputtext';
-import Select from 'primevue/select';
-import Tab from 'primevue/tab';
-import TabList from 'primevue/tablist';
-import TabPanel from 'primevue/tabpanel';
-import TabPanels from 'primevue/tabpanels';
-import Tabs from 'primevue/tabs';
-import ToggleSwitch from 'primevue/toggleswitch';
-import { computed, ref } from 'vue';
 import BackButton from '@/components/BackButton.vue';
 import ImageSelect from '@/components/ImageSelect.vue';
 import ImageUpload from '@/components/ImageUpload.vue';
@@ -33,6 +18,21 @@ import {
     type Currency,
     type Store,
 } from '@/types';
+import { Head, router, useForm } from '@inertiajs/vue3';
+import Button from 'primevue/button';
+import Card from 'primevue/card';
+import ConfirmDialog from 'primevue/confirmdialog';
+import Divider from 'primevue/divider';
+import InputNumber from 'primevue/inputnumber';
+import InputText from 'primevue/inputtext';
+import Select from 'primevue/select';
+import Tab from 'primevue/tab';
+import TabList from 'primevue/tablist';
+import TabPanel from 'primevue/tabpanel';
+import TabPanels from 'primevue/tabpanels';
+import Tabs from 'primevue/tabs';
+import ToggleSwitch from 'primevue/toggleswitch';
+import { computed, ref } from 'vue';
 
 interface EmployeeOption {
     id: number;

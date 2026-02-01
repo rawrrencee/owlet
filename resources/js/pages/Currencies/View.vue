@@ -1,12 +1,12 @@
 <script setup lang="ts">
+import BackButton from '@/components/BackButton.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem, type Currency } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Divider from 'primevue/divider';
 import Tag from 'primevue/tag';
-import BackButton from '@/components/BackButton.vue';
-import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type Currency } from '@/types';
 
 interface Props {
     currency: Currency;

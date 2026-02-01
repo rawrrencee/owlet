@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { Head, router } from '@inertiajs/vue3';
-import Avatar from 'primevue/avatar';
-import Card from 'primevue/card';
 import BackButton from '@/components/BackButton.vue';
 import TimecardCalendar from '@/components/timecards/TimecardCalendar.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem, CalendarDayData, SubordinateInfo } from '@/types';
+import { Head, router } from '@inertiajs/vue3';
+import Avatar from 'primevue/avatar';
+import Card from 'primevue/card';
 
 interface Props {
     employee: SubordinateInfo;

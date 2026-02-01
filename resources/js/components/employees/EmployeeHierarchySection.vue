@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { type EmployeeHierarchyData, type SubordinateInfo } from '@/types';
 import { router } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
@@ -11,7 +12,6 @@ import Select from 'primevue/select';
 import Tag from 'primevue/tag';
 import { useConfirm } from 'primevue/useconfirm';
 import { onMounted, reactive, ref } from 'vue';
-import { type EmployeeHierarchyData, type SubordinateInfo } from '@/types';
 
 interface Props {
     employeeId: number;

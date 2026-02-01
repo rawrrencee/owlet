@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import AuditInfo from '@/components/AuditInfo.vue';
+import BackButton from '@/components/BackButton.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem, type HasAuditTrail } from '@/types';
+import { type Company, type EmployeeCompany } from '@/types/company';
 import { Head, router } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
@@ -9,11 +14,6 @@ import Divider from 'primevue/divider';
 import Image from 'primevue/image';
 import Tag from 'primevue/tag';
 import { ref } from 'vue';
-import AuditInfo from '@/components/AuditInfo.vue';
-import BackButton from '@/components/BackButton.vue';
-import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type HasAuditTrail } from '@/types';
-import { type Company, type EmployeeCompany } from '@/types/company';
 
 interface EmployeeCompanyWithEmployee extends EmployeeCompany {
     employee?: {

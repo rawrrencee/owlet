@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import {
+    type EmployeeStore,
+    type Store,
+    type StorePermissionGroup,
+} from '@/types';
 import { router } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Checkbox from 'primevue/checkbox';
@@ -10,11 +15,6 @@ import Tag from 'primevue/tag';
 import ToggleSwitch from 'primevue/toggleswitch';
 import { useConfirm } from 'primevue/useconfirm';
 import { computed, onMounted, reactive, ref } from 'vue';
-import {
-    type EmployeeStore,
-    type Store,
-    type StorePermissionGroup,
-} from '@/types';
 
 interface Props {
     employeeId: number;

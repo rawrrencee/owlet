@@ -1,18 +1,4 @@
 <script setup lang="ts">
-import { Head, router, useForm } from '@inertiajs/vue3';
-import Button from 'primevue/button';
-import Card from 'primevue/card';
-import ConfirmDialog from 'primevue/confirmdialog';
-import Divider from 'primevue/divider';
-import InputText from 'primevue/inputtext';
-import Select from 'primevue/select';
-import Tab from 'primevue/tab';
-import TabList from 'primevue/tablist';
-import TabPanel from 'primevue/tabpanel';
-import TabPanels from 'primevue/tabpanels';
-import Tabs from 'primevue/tabs';
-import ToggleSwitch from 'primevue/toggleswitch';
-import { computed, ref } from 'vue';
 import BackButton from '@/components/BackButton.vue';
 import CompanyEmployeesSection from '@/components/companies/CompanyEmployeesSection.vue';
 import ImageSelect from '@/components/ImageSelect.vue';
@@ -29,6 +15,20 @@ import {
     type EmployeeCompany,
 } from '@/types/company';
 import { type Employee } from '@/types/employee';
+import { Head, router, useForm } from '@inertiajs/vue3';
+import Button from 'primevue/button';
+import Card from 'primevue/card';
+import ConfirmDialog from 'primevue/confirmdialog';
+import Divider from 'primevue/divider';
+import InputText from 'primevue/inputtext';
+import Select from 'primevue/select';
+import Tab from 'primevue/tab';
+import TabList from 'primevue/tablist';
+import TabPanel from 'primevue/tabpanel';
+import TabPanels from 'primevue/tabpanels';
+import Tabs from 'primevue/tabs';
+import ToggleSwitch from 'primevue/toggleswitch';
+import { computed, ref } from 'vue';
 
 interface EmployeeCompanyWithEmployee extends EmployeeCompany {
     employee?: {

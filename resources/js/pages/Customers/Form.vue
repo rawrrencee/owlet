@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { Head, router, useForm } from '@inertiajs/vue3';
-import Button from 'primevue/button';
-import Card from 'primevue/card';
-import InputText from 'primevue/inputtext';
-import { computed } from 'vue';
 import {
     clearSkipPageInHistory,
     skipCurrentPageInHistory,
 } from '@/composables/useSmartBack';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type Customer } from '@/types';
+import { Head, router, useForm } from '@inertiajs/vue3';
+import Button from 'primevue/button';
+import Card from 'primevue/card';
+import InputText from 'primevue/inputtext';
+import { computed } from 'vue';
 
 interface Props {
     customer: Customer | null;

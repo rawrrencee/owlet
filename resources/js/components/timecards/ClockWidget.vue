@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Timecard, TimecardStore } from '@/types/timecard';
 import { router, useForm } from '@inertiajs/vue3';
 import { Clock, Coffee, Play } from 'lucide-vue-next';
 import Button from 'primevue/button';
@@ -6,7 +7,6 @@ import Card from 'primevue/card';
 import Select from 'primevue/select';
 import Tag from 'primevue/tag';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
-import type { Timecard, TimecardStore } from '@/types/timecard';
 
 interface Props {
     currentTimecard: Timecard | null;

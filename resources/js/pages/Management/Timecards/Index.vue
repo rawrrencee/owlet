@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import TimecardCalendar from '@/components/timecards/TimecardCalendar.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import type { BreadcrumbItem, CalendarDayData } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
@@ -9,9 +12,6 @@ import TabPanel from 'primevue/tabpanel';
 import TabPanels from 'primevue/tabpanels';
 import Tabs from 'primevue/tabs';
 import { ref } from 'vue';
-import TimecardCalendar from '@/components/timecards/TimecardCalendar.vue';
-import AppLayout from '@/layouts/AppLayout.vue';
-import type { BreadcrumbItem, CalendarDayData } from '@/types';
 
 interface EmployeeOption {
     id: number;

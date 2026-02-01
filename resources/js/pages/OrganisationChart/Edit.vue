@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import AppLayout from '@/layouts/AppLayout.vue';
+import {
+    type BreadcrumbItem,
+    type EmployeeWithManagers,
+    type ManagerInfo,
+} from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
@@ -13,12 +19,6 @@ import Select from 'primevue/select';
 import Tag from 'primevue/tag';
 import { useToast } from 'primevue/usetoast';
 import { computed, ref } from 'vue';
-import AppLayout from '@/layouts/AppLayout.vue';
-import {
-    type BreadcrumbItem,
-    type EmployeeWithManagers,
-    type ManagerInfo,
-} from '@/types';
 
 interface Props {
     employees: EmployeeWithManagers[];

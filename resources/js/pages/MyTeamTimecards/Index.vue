@@ -1,4 +1,11 @@
 <script setup lang="ts">
+import TimecardCalendar from '@/components/timecards/TimecardCalendar.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import type {
+    BreadcrumbItem,
+    SubordinateInfo,
+    TeamTimecardDayData,
+} from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Card from 'primevue/card';
@@ -8,13 +15,6 @@ import InputText from 'primevue/inputtext';
 import Select from 'primevue/select';
 import Tag from 'primevue/tag';
 import { computed, ref } from 'vue';
-import TimecardCalendar from '@/components/timecards/TimecardCalendar.vue';
-import AppLayout from '@/layouts/AppLayout.vue';
-import type {
-    BreadcrumbItem,
-    SubordinateInfo,
-    TeamTimecardDayData,
-} from '@/types';
 
 interface Props {
     month: string;

@@ -1,4 +1,17 @@
 <script setup lang="ts">
+import NavMain from '@/components/NavMain.vue';
+import NavUser from '@/components/NavUser.vue';
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+} from '@/components/ui/sidebar';
+import { dashboard } from '@/routes';
+import { type AppPageProps, type NavSection } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import {
     BadgeCheck,
@@ -21,19 +34,6 @@ import {
     type LucideIcon,
 } from 'lucide-vue-next';
 import { computed } from 'vue';
-import NavMain from '@/components/NavMain.vue';
-import NavUser from '@/components/NavUser.vue';
-import {
-    Sidebar,
-    SidebarContent,
-    SidebarFooter,
-    SidebarHeader,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-} from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
-import { type AppPageProps, type NavSection } from '@/types';
 import AppLogo from './AppLogo.vue';
 
 const iconMap: Record<string, LucideIcon> = {

@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import type { CalendarDayData } from '@/types/timecard';
 import Button from 'primevue/button';
 import DatePicker from 'primevue/datepicker';
 import Popover from 'primevue/popover';
 import { computed, ref } from 'vue';
-import type { CalendarDayData } from '@/types/timecard';
 
 interface Props {
     month: string;

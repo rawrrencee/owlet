@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import { usePermissions } from '@/composables/usePermissions';
 import { router } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import SplitButton from 'primevue/splitbutton';
 import { computed, ref } from 'vue';
-import { usePermissions } from '@/composables/usePermissions';
 import PagePermissionsDialog from './PagePermissionsDialog.vue';
 
 interface Props {

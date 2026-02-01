@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem, type OrgChartNode } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
@@ -9,8 +11,6 @@ import InputText from 'primevue/inputtext';
 import OrganizationChart from 'primevue/organizationchart';
 import Tag from 'primevue/tag';
 import { computed, ref } from 'vue';
-import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type OrgChartNode } from '@/types';
 
 interface Props {
     orgChart: OrgChartNode[];

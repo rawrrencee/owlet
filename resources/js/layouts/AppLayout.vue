@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import Toast from 'primevue/toast';
 import FloatingClockPanel from '@/components/timecards/FloatingClockPanel.vue';
 import IncompleteTimecardModal from '@/components/timecards/IncompleteTimecardModal.vue';
 import { usePermissionGuard } from '@/composables/usePermissionGuard';
 import { useFlashToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItem } from '@/types';
+import Toast from 'primevue/toast';
 
 type Props = {
     breadcrumbs?: BreadcrumbItem[];

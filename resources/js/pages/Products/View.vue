@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import AuditInfo from '@/components/AuditInfo.vue';
+import BackButton from '@/components/BackButton.vue';
+import { usePermissions } from '@/composables/usePermissions';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem, type HasAuditTrail, type Product } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
@@ -7,11 +12,6 @@ import Divider from 'primevue/divider';
 import Image from 'primevue/image';
 import Tag from 'primevue/tag';
 import { computed } from 'vue';
-import AuditInfo from '@/components/AuditInfo.vue';
-import BackButton from '@/components/BackButton.vue';
-import { usePermissions } from '@/composables/usePermissions';
-import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type HasAuditTrail, type Product } from '@/types';
 
 interface Props {
     product: Product & HasAuditTrail;

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { PagePermission, UserPagePermission } from '@/types';
 import { router } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
@@ -12,7 +13,6 @@ import InputText from 'primevue/inputtext';
 import { useConfirm } from 'primevue/useconfirm';
 import { useToast } from 'primevue/usetoast';
 import { computed, ref, watch } from 'vue';
-import type { PagePermission, UserPagePermission } from '@/types';
 
 interface Props {
     visible: boolean;

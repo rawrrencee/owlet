@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { useSmartBack } from '@/composables/useSmartBack';
 import Button from 'primevue/button';
 import { ref } from 'vue';
-import { useSmartBack } from '@/composables/useSmartBack';
 
 interface Props {
     fallbackUrl: string;

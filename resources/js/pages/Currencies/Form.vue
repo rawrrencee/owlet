@@ -1,4 +1,11 @@
 <script setup lang="ts">
+import BackButton from '@/components/BackButton.vue';
+import {
+    clearSkipPageInHistory,
+    skipCurrentPageInHistory,
+} from '@/composables/useSmartBack';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem, type Currency } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
@@ -7,13 +14,6 @@ import InputNumber from 'primevue/inputnumber';
 import InputText from 'primevue/inputtext';
 import ToggleSwitch from 'primevue/toggleswitch';
 import { computed } from 'vue';
-import BackButton from '@/components/BackButton.vue';
-import {
-    clearSkipPageInHistory,
-    skipCurrentPageInHistory,
-} from '@/composables/useSmartBack';
-import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type Currency } from '@/types';
 
 interface Props {
     currency: Currency | null;

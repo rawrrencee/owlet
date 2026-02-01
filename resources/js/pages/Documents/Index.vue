@@ -1,4 +1,12 @@
 <script setup lang="ts">
+import AppLayout from '@/layouts/AppLayout.vue';
+import {
+    type BreadcrumbItem,
+    type Company,
+    type EmployeeContract,
+    type EmployeeInsurance,
+    type PaginatedData,
+} from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
@@ -15,14 +23,6 @@ import Tabs from 'primevue/tabs';
 import Tag from 'primevue/tag';
 import ToggleSwitch from 'primevue/toggleswitch';
 import { computed, reactive, ref, watch } from 'vue';
-import AppLayout from '@/layouts/AppLayout.vue';
-import {
-    type BreadcrumbItem,
-    type Company,
-    type EmployeeContract,
-    type EmployeeInsurance,
-    type PaginatedData,
-} from '@/types';
 
 interface ContractWithEmployee extends EmployeeContract {
     employee?: {

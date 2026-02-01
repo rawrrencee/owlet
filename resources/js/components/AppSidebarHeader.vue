@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import Button from 'primevue/button';
-import { computed } from 'vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useAppearance } from '@/composables/useAppearance';
 import type { BreadcrumbItem } from '@/types';
+import Button from 'primevue/button';
+import { computed } from 'vue';
 
 withDefaults(
     defineProps<{

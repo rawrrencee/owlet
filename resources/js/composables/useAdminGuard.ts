@@ -1,7 +1,7 @@
-import { router, usePage } from '@inertiajs/vue3';
-import { onUnmounted } from 'vue';
 import { useToast } from '@/composables/useToast';
 import type { AppPageProps } from '@/types';
+import { router, usePage } from '@inertiajs/vue3';
+import { onUnmounted } from 'vue';
 
 /**
  * Route prefixes that require admin role access.

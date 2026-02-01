@@ -1,13 +1,13 @@
 <script setup lang="ts">
+import AppLayout from '@/layouts/AppLayout.vue';
+import { edit } from '@/routes/profile';
+import { type BreadcrumbItem, type Employee, type WorkOSUser } from '@/types';
 import { Head } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Card from 'primevue/card';
 import Divider from 'primevue/divider';
 import Image from 'primevue/image';
 import Tag from 'primevue/tag';
-import AppLayout from '@/layouts/AppLayout.vue';
-import { edit } from '@/routes/profile';
-import { type BreadcrumbItem, type Employee, type WorkOSUser } from '@/types';
 
 interface Props {
     employee: Employee | null;

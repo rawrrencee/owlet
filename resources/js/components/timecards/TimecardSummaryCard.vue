@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Timecard } from '@/types/timecard';
 import { Link } from '@inertiajs/vue3';
 import { AlertTriangle, Clock, MapPin } from 'lucide-vue-next';
 import Button from 'primevue/button';
@@ -6,7 +7,6 @@ import Card from 'primevue/card';
 import Divider from 'primevue/divider';
 import Tag from 'primevue/tag';
 import { computed, ref } from 'vue';
-import type { Timecard } from '@/types/timecard';
 
 interface Props {
     timecard: Timecard;

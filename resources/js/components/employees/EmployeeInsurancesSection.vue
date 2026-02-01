@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { type EmployeeInsurance } from '@/types/company';
 import { router } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Column from 'primevue/column';
@@ -10,7 +11,6 @@ import InputText from 'primevue/inputtext';
 import Tag from 'primevue/tag';
 import { useConfirm } from 'primevue/useconfirm';
 import { computed, reactive, ref } from 'vue';
-import { type EmployeeInsurance } from '@/types/company';
 
 interface Props {
     employeeId: number;

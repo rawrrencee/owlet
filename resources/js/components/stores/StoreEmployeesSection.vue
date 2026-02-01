@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { type StorePermissionGroup } from '@/types';
 import { router } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
@@ -12,7 +13,6 @@ import Tag from 'primevue/tag';
 import ToggleSwitch from 'primevue/toggleswitch';
 import { useConfirm } from 'primevue/useconfirm';
 import { computed, onMounted, reactive, ref } from 'vue';
-import { type StorePermissionGroup } from '@/types';
 
 interface EmployeeOption {
     id: number;

@@ -1,4 +1,15 @@
 <script setup lang="ts">
+import BackButton from '@/components/BackButton.vue';
+import {
+    clearSkipPageInHistory,
+    skipCurrentPageInHistory,
+} from '@/composables/useSmartBack';
+import AppLayout from '@/layouts/AppLayout.vue';
+import {
+    type BreadcrumbItem,
+    type Company,
+    type EmployeeContract,
+} from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
@@ -12,17 +23,6 @@ import Select from 'primevue/select';
 import Tag from 'primevue/tag';
 import { useConfirm } from 'primevue/useconfirm';
 import { computed, ref } from 'vue';
-import BackButton from '@/components/BackButton.vue';
-import {
-    clearSkipPageInHistory,
-    skipCurrentPageInHistory,
-} from '@/composables/useSmartBack';
-import AppLayout from '@/layouts/AppLayout.vue';
-import {
-    type BreadcrumbItem,
-    type Company,
-    type EmployeeContract,
-} from '@/types';
 
 interface ContractWithEmployee extends EmployeeContract {
     employee?: {

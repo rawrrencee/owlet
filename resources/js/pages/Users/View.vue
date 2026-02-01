@@ -1,4 +1,19 @@
 <script setup lang="ts">
+import AuditInfo from '@/components/AuditInfo.vue';
+import BackButton from '@/components/BackButton.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import {
+    type AppPageProps,
+    type BreadcrumbItem,
+    type Employee,
+    type EmployeeCompany,
+    type EmployeeContract,
+    type EmployeeHierarchyData,
+    type EmployeeInsurance,
+    type EmployeeStore,
+    type WorkOSUser,
+} from '@/types';
+import { type HasAuditTrail } from '@/types/audit';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
@@ -16,21 +31,6 @@ import TabPanels from 'primevue/tabpanels';
 import Tabs from 'primevue/tabs';
 import Tag from 'primevue/tag';
 import { computed, onMounted, reactive, ref } from 'vue';
-import AuditInfo from '@/components/AuditInfo.vue';
-import BackButton from '@/components/BackButton.vue';
-import AppLayout from '@/layouts/AppLayout.vue';
-import {
-    type AppPageProps,
-    type BreadcrumbItem,
-    type Employee,
-    type EmployeeCompany,
-    type EmployeeContract,
-    type EmployeeHierarchyData,
-    type EmployeeInsurance,
-    type EmployeeStore,
-    type WorkOSUser,
-} from '@/types';
-import { type HasAuditTrail } from '@/types/audit';
 
 interface Props {
     employee: Employee & HasAuditTrail;

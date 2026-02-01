@@ -1,14 +1,14 @@
 <script setup lang="ts">
+import AuditInfo from '@/components/AuditInfo.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem, type Customer } from '@/types';
+import { type HasAuditTrail } from '@/types/audit';
 import { Head, router } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Divider from 'primevue/divider';
 import Image from 'primevue/image';
-import AuditInfo from '@/components/AuditInfo.vue';
-import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type Customer } from '@/types';
-import { type HasAuditTrail } from '@/types/audit';
 
 interface Props {
     customer: Customer & HasAuditTrail;

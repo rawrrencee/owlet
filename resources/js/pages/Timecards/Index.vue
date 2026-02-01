@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { Head, router } from '@inertiajs/vue3';
-import Card from 'primevue/card';
-import { computed, ref } from 'vue';
 import ClockWidget from '@/components/timecards/ClockWidget.vue';
 import TimecardCalendar from '@/components/timecards/TimecardCalendar.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -11,6 +8,9 @@ import type {
     Timecard,
     TimecardStore,
 } from '@/types';
+import { Head, router } from '@inertiajs/vue3';
+import Card from 'primevue/card';
+import { computed, ref } from 'vue';
 
 interface MonthlyStats {
     total_hours: number;

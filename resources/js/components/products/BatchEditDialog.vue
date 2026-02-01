@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Category, Currency, Subcategory } from '@/types';
 import { useForm } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Checkbox from 'primevue/checkbox';
@@ -11,7 +12,6 @@ import Select from 'primevue/select';
 import SelectButton from 'primevue/selectbutton';
 import ToggleSwitch from 'primevue/toggleswitch';
 import { computed, watch } from 'vue';
-import type { Category, Currency, Subcategory } from '@/types';
 
 // Minimal product data needed for batch operations
 interface BatchProduct {

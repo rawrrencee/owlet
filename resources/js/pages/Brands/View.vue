@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import AuditInfo from '@/components/AuditInfo.vue';
+import BackButton from '@/components/BackButton.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type Brand, type BreadcrumbItem, type HasAuditTrail } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
@@ -6,10 +10,6 @@ import Card from 'primevue/card';
 import Divider from 'primevue/divider';
 import Image from 'primevue/image';
 import Tag from 'primevue/tag';
-import AuditInfo from '@/components/AuditInfo.vue';
-import BackButton from '@/components/BackButton.vue';
-import AppLayout from '@/layouts/AppLayout.vue';
-import { type Brand, type BreadcrumbItem, type HasAuditTrail } from '@/types';
 
 interface Props {
     brand: Brand & HasAuditTrail;

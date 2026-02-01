@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { type Currency, type StoreCurrency } from '@/types';
 import { router } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Column from 'primevue/column';
@@ -7,7 +8,6 @@ import Dialog from 'primevue/dialog';
 import Select from 'primevue/select';
 import { useConfirm } from 'primevue/useconfirm';
 import { computed, onMounted, reactive, ref } from 'vue';
-import { type Currency, type StoreCurrency } from '@/types';
 
 interface Props {
     storeId: number;

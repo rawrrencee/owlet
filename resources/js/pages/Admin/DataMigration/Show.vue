@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
@@ -7,8 +9,6 @@ import DataTable from 'primevue/datatable';
 import ProgressBar from 'primevue/progressbar';
 import Tag from 'primevue/tag';
 import { computed, ref } from 'vue';
-import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
 
 interface Dependency {
     type: string;

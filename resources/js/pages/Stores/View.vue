@@ -1,14 +1,4 @@
 <script setup lang="ts">
-import { Head, router } from '@inertiajs/vue3';
-import Avatar from 'primevue/avatar';
-import Button from 'primevue/button';
-import Card from 'primevue/card';
-import Column from 'primevue/column';
-import DataTable from 'primevue/datatable';
-import Divider from 'primevue/divider';
-import Image from 'primevue/image';
-import Tag from 'primevue/tag';
-import { onMounted, onUnmounted, ref } from 'vue';
 import AuditInfo from '@/components/AuditInfo.vue';
 import BackButton from '@/components/BackButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -19,6 +9,16 @@ import {
     type StoreCurrency,
 } from '@/types';
 import { type HasAuditTrail } from '@/types/audit';
+import { Head, router } from '@inertiajs/vue3';
+import Avatar from 'primevue/avatar';
+import Button from 'primevue/button';
+import Card from 'primevue/card';
+import Column from 'primevue/column';
+import DataTable from 'primevue/datatable';
+import Divider from 'primevue/divider';
+import Image from 'primevue/image';
+import Tag from 'primevue/tag';
+import { onMounted, onUnmounted, ref } from 'vue';
 
 interface Props {
     store: Store & HasAuditTrail;

@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import AppLayout from '@/layouts/AppLayout.vue';
+import {
+    type AvailableSections,
+    type BreadcrumbItem,
+    type SubordinateInfo,
+} from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
@@ -7,12 +13,6 @@ import InputIcon from 'primevue/inputicon';
 import InputText from 'primevue/inputtext';
 import Tag from 'primevue/tag';
 import { computed, ref } from 'vue';
-import AppLayout from '@/layouts/AppLayout.vue';
-import {
-    type AvailableSections,
-    type BreadcrumbItem,
-    type SubordinateInfo,
-} from '@/types';
 
 interface Props {
     subordinates: SubordinateInfo[];

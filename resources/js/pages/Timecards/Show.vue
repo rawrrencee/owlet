@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
-import Card from 'primevue/card';
 import BackButton from '@/components/BackButton.vue';
 import TimecardSummaryCard from '@/components/timecards/TimecardSummaryCard.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem, Timecard } from '@/types';
+import { Head } from '@inertiajs/vue3';
+import Card from 'primevue/card';
 
 interface Props {
     date: string;

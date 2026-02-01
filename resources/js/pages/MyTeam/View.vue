@@ -1,4 +1,12 @@
 <script setup lang="ts">
+import BackButton from '@/components/BackButton.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import {
+    type BreadcrumbItem,
+    type Employee,
+    type EmployeeCompany,
+    type EmployeeStore,
+} from '@/types';
 import { Head } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Card from 'primevue/card';
@@ -13,14 +21,6 @@ import TabPanels from 'primevue/tabpanels';
 import Tabs from 'primevue/tabs';
 import Tag from 'primevue/tag';
 import { computed, reactive, ref } from 'vue';
-import BackButton from '@/components/BackButton.vue';
-import AppLayout from '@/layouts/AppLayout.vue';
-import {
-    type BreadcrumbItem,
-    type Employee,
-    type EmployeeCompany,
-    type EmployeeStore,
-} from '@/types';
 
 interface Props {
     employee: Employee;

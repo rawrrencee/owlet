@@ -1,6 +1,6 @@
+import type { AppPageProps } from '@/types';
 import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
-import type { AppPageProps } from '@/types';
 
 /**
  * Composable for checking user permissions.

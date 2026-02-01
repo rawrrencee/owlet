@@ -1,4 +1,22 @@
 <script setup lang="ts">
+import PagePermissionsSplitButton from '@/components/admin/PagePermissionsSplitButton.vue';
+import BatchEditDialog from '@/components/products/BatchEditDialog.vue';
+import DeselectConfirmDialog from '@/components/products/DeselectConfirmDialog.vue';
+import ProductPreviewDialog from '@/components/products/ProductPreviewDialog.vue';
+import SelectAllConfirmDialog from '@/components/products/SelectAllConfirmDialog.vue';
+import SelectionPreviewDialog from '@/components/products/SelectionPreviewDialog.vue';
+import { usePermissions } from '@/composables/usePermissions';
+import { useProductPreview } from '@/composables/useProductPreview';
+import AppLayout from '@/layouts/AppLayout.vue';
+import {
+    type BreadcrumbItem,
+    type Category,
+    type Currency,
+    type PaginatedData,
+    type Product,
+    type Subcategory,
+} from '@/types';
+import { formatProductPrice } from '@/utils/currency';
 import { Head, router } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Badge from 'primevue/badge';
@@ -18,24 +36,6 @@ import Tag from 'primevue/tag';
 import ToggleSwitch from 'primevue/toggleswitch';
 import { useConfirm } from 'primevue/useconfirm';
 import { computed, reactive, ref, watch } from 'vue';
-import PagePermissionsSplitButton from '@/components/admin/PagePermissionsSplitButton.vue';
-import BatchEditDialog from '@/components/products/BatchEditDialog.vue';
-import DeselectConfirmDialog from '@/components/products/DeselectConfirmDialog.vue';
-import ProductPreviewDialog from '@/components/products/ProductPreviewDialog.vue';
-import SelectAllConfirmDialog from '@/components/products/SelectAllConfirmDialog.vue';
-import SelectionPreviewDialog from '@/components/products/SelectionPreviewDialog.vue';
-import { usePermissions } from '@/composables/usePermissions';
-import { useProductPreview } from '@/composables/useProductPreview';
-import AppLayout from '@/layouts/AppLayout.vue';
-import {
-    type BreadcrumbItem,
-    type Category,
-    type Currency,
-    type PaginatedData,
-    type Product,
-    type Subcategory,
-} from '@/types';
-import { formatProductPrice } from '@/utils/currency';
 
 interface Filters {
     search?: string;

@@ -1,4 +1,13 @@
 <script setup lang="ts">
+import PagePermissionsSplitButton from '@/components/admin/PagePermissionsSplitButton.vue';
+import { usePermissions } from '@/composables/usePermissions';
+import AppLayout from '@/layouts/AppLayout.vue';
+import {
+    type BreadcrumbItem,
+    type Company,
+    type PaginatedData,
+    type Store,
+} from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
@@ -14,15 +23,6 @@ import Tag from 'primevue/tag';
 import ToggleSwitch from 'primevue/toggleswitch';
 import { useConfirm } from 'primevue/useconfirm';
 import { computed, reactive, ref, watch } from 'vue';
-import PagePermissionsSplitButton from '@/components/admin/PagePermissionsSplitButton.vue';
-import { usePermissions } from '@/composables/usePermissions';
-import AppLayout from '@/layouts/AppLayout.vue';
-import {
-    type BreadcrumbItem,
-    type Company,
-    type PaginatedData,
-    type Store,
-} from '@/types';
 
 interface Filters {
     search?: string;
