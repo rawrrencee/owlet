@@ -437,4 +437,119 @@ class ProductController extends Controller
             ['image_url' => null]
         );
     }
+
+    public function search(Request $request): JsonResponse
+    {
+        $query = $request->query('q', '');
+        $limit = min((int) $request->query('limit', 20), 50);
+
+        if (strlen($query) < 2) {
+            return response()->json(['data' => []]);
+        }
+
+        $products = Product::query()
+            ->search($query)
+            ->orderBy('product_name')
+            ->limit($limit)
+            ->get(['id', 'product_name', 'product_number', 'barcode', 'brand_id', 'image_path']);
+
+        $brandIds = $products->pluck('brand_id')->filter()->unique()->values();
+        $brands = Brand::whereIn('id', $brandIds)->pluck('brand_name', 'id');
+
+        $results = $products->map(fn (Product $product) => [
+            'id' => $product->id,
+            'product_name' => $product->product_name,
+            'product_number' => $product->product_number,
+            'barcode' => $product->barcode,
+            'brand_name' => $brands[$product->brand_id] ?? null,
+            'image_url' => $product->image_path ? route('products.image', $product->id) : null,
+        ]);
+
+        return response()->json(['data' => $results]);
+    }
+
+    public function preview(Request $request, Product $product): JsonResponse
+    {
+        $product->load([
+            'brand:id,brand_name,brand_code',
+            'category:id,category_name,category_code',
+            'subcategory:id,subcategory_name,subcategory_code',
+            'supplier:id,supplier_name',
+            'prices.currency',
+            'productStores.store:id,store_name,store_code',
+            'tags:id,name',
+        ]);
+
+        return response()->json([
+            'data' => (new ProductResource($product))->resolve(),
+        ]);
+    }
+
+    public function adjacentIds(Request $request, Product $product): JsonResponse
+    {
+        $search = $request->query('search', '');
+        $status = $request->query('status', '');
+        $brandId = $request->query('brand_id', '');
+        $categoryId = $request->query('category_id', '');
+        $supplierId = $request->query('supplier_id', '');
+        $showDeleted = $request->boolean('show_deleted', false);
+
+        // Build base query with same filters as index
+        $query = Product::query();
+
+        if ($showDeleted) {
+            $query->withTrashed();
+        }
+
+        if ($search) {
+            $query->search($search);
+        }
+
+        if ($status === 'active') {
+            $query->where('is_active', true);
+        } elseif ($status === 'inactive') {
+            $query->where('is_active', false);
+        }
+
+        if ($brandId) {
+            $query->where('brand_id', $brandId);
+        }
+
+        if ($categoryId) {
+            $query->where('category_id', $categoryId);
+        }
+
+        if ($supplierId) {
+            $query->where('supplier_id', $supplierId);
+        }
+
+        // Get all product IDs in order
+        $orderedIds = (clone $query)
+            ->orderBy('product_name')
+            ->pluck('id')
+            ->values()
+            ->toArray();
+
+        $total = count($orderedIds);
+        $currentIndex = array_search($product->id, $orderedIds);
+
+        if ($currentIndex === false) {
+            return response()->json([
+                'prev_id' => null,
+                'next_id' => null,
+                'position' => null,
+                'total' => $total,
+            ]);
+        }
+
+        $prevId = $currentIndex > 0 ? $orderedIds[$currentIndex - 1] : null;
+        $nextId = $currentIndex < $total - 1 ? $orderedIds[$currentIndex + 1] : null;
+
+        return response()->json([
+            'prev_id' => $prevId,
+            'next_id' => $nextId,
+            'position' => $currentIndex + 1,
+            'total' => $total,
+        ]);
+    }
 }

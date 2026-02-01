@@ -15,7 +15,9 @@ import ToggleSwitch from 'primevue/toggleswitch';
 import { useConfirm } from 'primevue/useconfirm';
 import { computed, reactive, ref, watch } from 'vue';
 import PagePermissionsSplitButton from '@/components/admin/PagePermissionsSplitButton.vue';
+import ProductPreviewDialog from '@/components/products/ProductPreviewDialog.vue';
 import { usePermissions } from '@/composables/usePermissions';
+import { useProductPreview } from '@/composables/useProductPreview';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type PaginatedData, type Product } from '@/types';
 
@@ -52,6 +54,36 @@ const filters = reactive({
     supplier_id: props.filters?.supplier_id ?? '',
     showDeleted: props.filters?.show_deleted ?? false,
 });
+
+// Product preview composable
+const filtersForPreview = computed(() => ({
+    search: filters.search,
+    status: filters.status,
+    brand_id: filters.brand_id,
+    category_id: filters.category_id,
+    supplier_id: filters.supplier_id,
+    show_deleted: filters.showDeleted,
+}));
+
+const {
+    previewVisible,
+    currentProduct,
+    loading: previewLoading,
+    searchLoading,
+    searchResults,
+    currentMode,
+    canGoBack,
+    canGoPrev,
+    canGoNext,
+    positionText,
+    openPreview,
+    navigatePrev,
+    navigateNext,
+    searchProducts,
+    handleSearchSelect,
+    goBack,
+    closePreview,
+} = useProductPreview(filtersForPreview);
 
 const statusOptions = [
     { label: 'All', value: '' },
@@ -412,6 +444,15 @@ function onPage(event: { page: number }) {
                         </div>
                         <div v-else class="flex justify-end gap-1">
                             <Button
+                                icon="pi pi-eye"
+                                severity="info"
+                                text
+                                rounded
+                                size="small"
+                                @click.stop="openPreview(data)"
+                                v-tooltip.top="'Quick Preview'"
+                            />
+                            <Button
                                 v-if="canEdit"
                                 icon="pi pi-pencil"
                                 severity="secondary"
@@ -466,6 +507,14 @@ function onPage(event: { page: number }) {
                         </div>
                         <div v-else-if="!isDeleted(data)" class="flex gap-2 pt-2">
                             <Button
+                                label="Preview"
+                                icon="pi pi-eye"
+                                severity="info"
+                                size="small"
+                                @click="openPreview(data)"
+                                class="flex-1"
+                            />
+                            <Button
                                 v-if="canEdit"
                                 label="Edit"
                                 icon="pi pi-pencil"
@@ -490,5 +539,25 @@ function onPage(event: { page: number }) {
         </div>
 
         <ConfirmDialog />
+
+        <ProductPreviewDialog
+            :visible="previewVisible"
+            :product="currentProduct"
+            :loading="previewLoading"
+            :search-loading="searchLoading"
+            :search-results="searchResults"
+            :current-mode="currentMode"
+            :can-go-back="canGoBack"
+            :can-go-prev="canGoPrev"
+            :can-go-next="canGoNext"
+            :position-text="positionText"
+            @update:visible="previewVisible = $event"
+            @prev="navigatePrev"
+            @next="navigateNext"
+            @back="goBack"
+            @search="searchProducts"
+            @select="handleSearchSelect"
+            @close="closePreview"
+        />
     </AppLayout>
 </template>

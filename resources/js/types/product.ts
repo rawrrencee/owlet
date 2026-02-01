@@ -96,3 +96,19 @@ export interface WeightUnitOption {
     value: string;
     label: string;
 }
+
+export interface ProductSearchResult {
+    id: number;
+    product_name: string;
+    product_number: string;
+    barcode: string | null;
+    brand_name: string | null;
+    image_url: string | null;
+}
+
+export interface ProductAdjacentIds {
+    prev_id: number | null;
+    next_id: number | null;
+    position: number | null;
+    total: number;
+}

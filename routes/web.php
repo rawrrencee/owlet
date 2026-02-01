@@ -130,8 +130,11 @@ Route::middleware([
     });
     Route::middleware('permission:products.view')->group(function () {
         Route::get('products', [ProductController::class, 'index'])->name('products.index');
+        Route::get('products/search', [ProductController::class, 'search'])->name('products.search');
         Route::get('products/{product}', [ProductController::class, 'show'])->name('products.show');
         Route::get('products/{product}/image', [ProductController::class, 'showImage'])->name('products.image');
+        Route::get('products/{product}/preview', [ProductController::class, 'preview'])->name('products.preview');
+        Route::get('products/{product}/adjacent', [ProductController::class, 'adjacentIds'])->name('products.adjacent');
     });
     Route::middleware('permission:products.edit')->group(function () {
         Route::get('products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
