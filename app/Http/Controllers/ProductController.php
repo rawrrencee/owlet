@@ -44,6 +44,7 @@ class ProductController extends Controller
             'subcategory:id,subcategory_name,subcategory_code',
             'supplier:id,supplier_name',
             'prices.currency',
+            'tags:id,name',
         ]);
 
         if ($showDeleted) {
@@ -128,8 +129,13 @@ class ProductController extends Controller
     {
         return DB::transaction(function () use ($request) {
             // Create product
-            $data = collect($request->validated())->except(['image', 'prices', 'stores'])->toArray();
+            $data = collect($request->validated())->except(['image', 'prices', 'stores', 'tags'])->toArray();
             $product = Product::create($data);
+
+            // Sync tags
+            if ($request->has('tags')) {
+                $product->syncTagsByName($request->input('tags', []));
+            }
 
             // Handle image upload if provided
             if ($request->hasFile('image')) {
@@ -191,6 +197,7 @@ class ProductController extends Controller
                     'prices.currency',
                     'productStores.store',
                     'productStores.storePrices.currency',
+                    'tags:id,name',
                 ]))
             );
         });
@@ -206,6 +213,7 @@ class ProductController extends Controller
             'prices.currency',
             'productStores.store',
             'productStores.storePrices.currency',
+            'tags:id,name',
             'createdBy:id,name',
             'updatedBy:id,name',
             'previousUpdatedBy:id,name',
@@ -232,6 +240,7 @@ class ProductController extends Controller
             'prices.currency',
             'productStores.store',
             'productStores.storePrices.currency',
+            'tags:id,name',
         ]);
 
         return Inertia::render('Products/Form', [
@@ -255,8 +264,13 @@ class ProductController extends Controller
     {
         return DB::transaction(function () use ($request, $product) {
             // Update product
-            $data = collect($request->validated())->except(['prices', 'stores'])->toArray();
+            $data = collect($request->validated())->except(['prices', 'stores', 'tags'])->toArray();
             $product->update($data);
+
+            // Sync tags
+            if ($request->has('tags')) {
+                $product->syncTagsByName($request->input('tags', []));
+            }
 
             // Sync base prices
             if ($request->has('prices')) {
@@ -322,6 +336,7 @@ class ProductController extends Controller
                     'prices.currency',
                     'productStores.store',
                     'productStores.storePrices.currency',
+                    'tags:id,name',
                 ])))->resolve()
             );
         });
@@ -359,6 +374,7 @@ class ProductController extends Controller
                 'subcategory',
                 'supplier',
                 'prices.currency',
+                'tags:id,name',
             ])))->resolve()
         );
     }

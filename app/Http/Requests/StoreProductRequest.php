@@ -35,7 +35,7 @@ class StoreProductRequest extends FormRequest
             'supplier_number' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'tags' => ['nullable', 'array'],
-            'tags.*' => ['string', 'max:50'],
+            'tags.*' => ['string', 'max:50', 'distinct'],
             'cost_price_remarks' => ['nullable', 'string', 'max:255'],
             'weight' => ['nullable', 'numeric', 'min:0'],
             'weight_unit' => ['required', Rule::enum(WeightUnit::class)],

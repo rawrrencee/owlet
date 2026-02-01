@@ -22,7 +22,6 @@ return new class extends Migration
             $table->string('barcode')->nullable()->index();
             $table->string('supplier_number')->nullable();
             $table->text('description')->nullable();
-            $table->json('tags')->nullable();
             $table->string('cost_price_remarks')->nullable();
             $table->string('image_path')->nullable();
             $table->string('image_filename')->nullable();

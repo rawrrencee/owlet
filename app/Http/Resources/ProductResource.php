@@ -46,7 +46,7 @@ class ProductResource extends JsonResource
             ]),
             'supplier_number' => $this->supplier_number,
             'description' => $this->description,
-            'tags' => $this->tags ?? [],
+            'tags' => $this->whenLoaded('tags', fn () => $this->tags->pluck('name')->toArray(), []),
             'cost_price_remarks' => $this->when($canViewCostPrice, fn () => $this->cost_price_remarks),
             'image_path' => $this->image_path,
             'image_filename' => $this->image_filename,

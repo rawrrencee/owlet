@@ -285,6 +285,13 @@ function formatDateForBackend(date: Date): string {
     return date.toISOString().split('T')[0];
 }
 
+function cancel() {
+    if (isEditing.value) {
+        router.visit(`/users/${props.employee!.id}`);
+    } else {
+        router.visit('/users');
+    }
+}
 </script>
 
 <template>

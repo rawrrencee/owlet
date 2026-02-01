@@ -25,7 +25,6 @@ class Product extends Model
         'barcode',
         'supplier_number',
         'description',
-        'tags',
         'cost_price_remarks',
         'image_path',
         'image_filename',
@@ -42,7 +41,6 @@ class Product extends Model
     protected function casts(): array
     {
         return [
-            'tags' => 'array',
             'weight' => 'decimal:3',
             'weight_unit' => WeightUnit::class,
             'is_active' => 'boolean',
@@ -112,6 +110,25 @@ class Product extends Model
     }
 
     /**
+     * Get the tags for this product.
+     */
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class)->withTimestamps();
+    }
+
+    /**
+     * Sync tags by name (creates tags if they don't exist).
+     *
+     * @param  array<string>  $tagNames
+     */
+    public function syncTagsByName(array $tagNames): void
+    {
+        $tags = Tag::findOrCreateByNames($tagNames);
+        $this->tags()->sync($tags->pluck('id'));
+    }
+
+    /**
      * Get the base price for a specific currency.
      */
     public function getPriceForCurrency(int $currencyId): ?ProductPrice
@@ -144,10 +161,44 @@ class Product extends Model
     }
 
     /**
-     * Scope to filter by tag.
+     * Scope to filter by tag name.
      */
     public function scopeWithTag($query, string $tag)
     {
-        return $query->whereJsonContains('tags', $tag);
+        return $query->whereHas('tags', function ($q) use ($tag) {
+            $q->where('name', strtolower(trim($tag)));
+        });
+    }
+
+    /**
+     * Scope to filter by any of the given tags.
+     *
+     * @param  array<string>  $tags
+     */
+    public function scopeWithAnyTags($query, array $tags)
+    {
+        $normalizedTags = collect($tags)->map(fn ($tag) => strtolower(trim($tag)))->toArray();
+
+        return $query->whereHas('tags', function ($q) use ($normalizedTags) {
+            $q->whereIn('name', $normalizedTags);
+        });
+    }
+
+    /**
+     * Scope to filter by all of the given tags.
+     *
+     * @param  array<string>  $tags
+     */
+    public function scopeWithAllTags($query, array $tags)
+    {
+        $normalizedTags = collect($tags)->map(fn ($tag) => strtolower(trim($tag)))->toArray();
+
+        foreach ($normalizedTags as $tag) {
+            $query->whereHas('tags', function ($q) use ($tag) {
+                $q->where('name', $tag);
+            });
+        }
+
+        return $query;
     }
 }

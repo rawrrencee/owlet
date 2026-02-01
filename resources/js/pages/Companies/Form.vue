@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import ConfirmDialog from 'primevue/confirmdialog';
@@ -86,6 +86,13 @@ function submit() {
     }
 }
 
+function cancel() {
+    if (isEditing.value) {
+        router.visit(`/companies/${props.company!.id}`);
+    } else {
+        router.visit('/companies');
+    }
+}
 </script>
 
 <template>
