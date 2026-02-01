@@ -13,17 +13,7 @@ class StoreCurrency extends Model
     protected $fillable = [
         'store_id',
         'currency_id',
-        'is_default',
-        'exchange_rate',
     ];
-
-    protected function casts(): array
-    {
-        return [
-            'is_default' => 'boolean',
-            'exchange_rate' => 'decimal:6',
-        ];
-    }
 
     public function store(): BelongsTo
     {

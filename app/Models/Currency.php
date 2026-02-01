@@ -34,7 +34,6 @@ class Currency extends Model
     public function stores(): BelongsToMany
     {
         return $this->belongsToMany(Store::class, 'store_currencies')
-            ->withPivot(['is_default', 'exchange_rate'])
             ->withTimestamps();
     }
 

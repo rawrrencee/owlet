@@ -8,7 +8,7 @@ import DataTable from 'primevue/datatable';
 import Divider from 'primevue/divider';
 import Image from 'primevue/image';
 import Tag from 'primevue/tag';
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import AuditInfo from '@/components/AuditInfo.vue';
 import BackButton from '@/components/BackButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -54,11 +54,6 @@ function formatExchangeRate(rate: number | string | null): string {
     // Format with up to 4 decimal places, remove trailing zeros
     return parseFloat(num.toFixed(4)).toString();
 }
-
-const defaultCurrency = computed(() => {
-    const defaultSc = props.storeCurrencies.find((sc) => sc.is_default);
-    return defaultSc?.currency ?? null;
-});
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -226,10 +221,7 @@ function getEmployeeInitials(name: string): string {
                                         <Column expander style="width: 3rem" class="!pr-0 lg:hidden" />
                                         <Column field="currency.code" header="Code">
                                             <template #body="{ data }">
-                                                <div class="flex items-center gap-2">
-                                                    <span class="font-medium">{{ data.currency?.code }}</span>
-                                                    <Tag v-if="data.is_default" value="Default" severity="info" class="!text-xs" />
-                                                </div>
+                                                <span class="font-medium">{{ data.currency?.code }}</span>
                                             </template>
                                         </Column>
                                         <Column field="currency.name" header="Name" class="hidden sm:table-cell">
@@ -244,13 +236,13 @@ function getEmployeeInitials(name: string): string {
                                         </Column>
                                         <Column field="exchange_rate" class="hidden lg:table-cell">
                                             <template #header>
-                                                <span v-tooltip.top="defaultCurrency ? `Rate relative to ${defaultCurrency.code}` : 'Rate relative to default currency'">
+                                                <span v-tooltip.top="'Exchange rate relative to SGD (base currency)'">
                                                     Exchange Rate
                                                     <i class="pi pi-info-circle ml-1 text-xs text-muted-foreground"></i>
                                                 </span>
                                             </template>
                                             <template #body="{ data }">
-                                                {{ formatExchangeRate(data.exchange_rate) }}
+                                                {{ formatExchangeRate(data.currency?.exchange_rate) }}
                                             </template>
                                         </Column>
                                         <template #expansion="{ data }">
@@ -266,9 +258,9 @@ function getEmployeeInitials(name: string): string {
                                                 <div class="flex justify-between gap-4">
                                                     <span class="shrink-0 text-muted-foreground">
                                                         Exchange Rate
-                                                        <span v-if="defaultCurrency" class="text-xs">(vs {{ defaultCurrency.code }})</span>
+                                                        <span class="text-xs">(vs SGD)</span>
                                                     </span>
-                                                    <span class="text-right">{{ formatExchangeRate(data.exchange_rate) }}</span>
+                                                    <span class="text-right">{{ formatExchangeRate(data.currency?.exchange_rate) }}</span>
                                                 </div>
                                             </div>
                                         </template>

@@ -1,6 +1,6 @@
 import type { Company } from './company';
 import type { Country } from './country';
-import type { Currency, StoreCurrency } from './currency';
+import type { StoreCurrency } from './currency';
 
 export interface Store {
     id: number;
@@ -23,7 +23,6 @@ export interface Store {
     logo_url: string | null;
     company?: Company;
     store_currencies?: StoreCurrency[];
-    default_currency?: Currency | null;
     is_deleted?: boolean;
     created_at: string | null;
     updated_at: string | null;

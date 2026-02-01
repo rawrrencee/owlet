@@ -102,18 +102,14 @@ class StoreSeeder extends Seeder
             shuffle($shuffled);
             $numCurrencies = min(2, count($shuffled));
             $selectedCurrencyIds = array_slice($shuffled, 0, $numCurrencies);
-            $isFirstCurrency = true;
 
             foreach ($selectedCurrencyIds as $currencyId) {
                 $storeCurrencies[] = [
                     'store_id' => $store->id,
                     'currency_id' => $currencyId,
-                    'is_default' => $isFirstCurrency,
-                    'exchange_rate' => $isFirstCurrency ? 1.0000 : $faker->randomFloat(4, 0.5, 2.0),
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
-                $isFirstCurrency = false;
 
                 if (count($storeCurrencies) >= $batchSize) {
                     StoreCurrency::insert($storeCurrencies);

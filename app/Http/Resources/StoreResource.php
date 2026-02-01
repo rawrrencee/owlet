@@ -29,13 +29,6 @@ class StoreResource extends JsonResource
             'logo_url' => $this->logo ? route('stores.logo', $this->id) : null,
             'company' => $this->whenLoaded('company', fn () => (new CompanyResource($this->company))->resolve()),
             'store_currencies' => $this->whenLoaded('storeCurrencies', fn () => StoreCurrencyResource::collection($this->storeCurrencies)->resolve()),
-            'default_currency' => $this->whenLoaded('defaultStoreCurrency', function () {
-                if ($this->defaultStoreCurrency && $this->defaultStoreCurrency->currency) {
-                    return (new CurrencyResource($this->defaultStoreCurrency->currency))->resolve();
-                }
-
-                return null;
-            }),
             'is_deleted' => $this->deleted_at !== null,
             'created_by' => $this->whenLoaded('createdBy', fn () => [
                 'id' => $this->createdBy->id,

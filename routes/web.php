@@ -174,9 +174,7 @@ Route::middleware([
         // Store-Currency assignments (manage currencies from store side)
         Route::get('stores/{store}/currencies', [StoreController::class, 'currencies'])->name('stores.currencies.index');
         Route::post('stores/{store}/currencies', [StoreController::class, 'addCurrency'])->name('stores.currencies.store');
-        Route::put('stores/{store}/currencies/{storeCurrency}', [StoreController::class, 'updateCurrency'])->name('stores.currencies.update');
         Route::delete('stores/{store}/currencies/{storeCurrency}', [StoreController::class, 'removeCurrency'])->name('stores.currencies.destroy');
-        Route::post('stores/{store}/currencies/{storeCurrency}/set-default', [StoreController::class, 'setDefaultCurrency'])->name('stores.currencies.set-default');
     });
 
     // Admin-only routes

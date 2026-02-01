@@ -328,22 +328,23 @@ function onPage(event: { page: number; rows: number }) {
                         {{ data.email ?? '-' }}
                     </template>
                 </Column>
-                <Column field="default_currency" header="Currency" class="hidden lg:table-cell">
+                <Column field="store_currencies" header="Currency" class="hidden lg:table-cell">
                     <template #body="{ data }">
                         <div class="flex items-center gap-1">
-                            <Tag
-                                v-if="data.default_currency"
-                                :value="data.default_currency.code"
-                                severity="secondary"
-                            />
-                            <Tag
-                                v-if="data.store_currencies && data.store_currencies.length > 1"
-                                :value="`+${data.store_currencies.length - 1}`"
-                                severity="info"
-                                class="!text-xs"
-                                v-tooltip.top="data.store_currencies.filter((sc: any) => !sc.is_default).map((sc: any) => sc.currency?.code).join(', ')"
-                            />
-                            <span v-if="!data.default_currency && (!data.store_currencies || data.store_currencies.length === 0)" class="text-muted-foreground">-</span>
+                            <template v-if="data.store_currencies && data.store_currencies.length > 0">
+                                <Tag
+                                    :value="data.store_currencies[0].currency?.code"
+                                    severity="secondary"
+                                />
+                                <Tag
+                                    v-if="data.store_currencies.length > 1"
+                                    :value="`+${data.store_currencies.length - 1}`"
+                                    severity="info"
+                                    class="!text-xs"
+                                    v-tooltip.top="data.store_currencies.slice(1).map((sc: any) => sc.currency?.code).join(', ')"
+                                />
+                            </template>
+                            <span v-else class="text-muted-foreground">-</span>
                         </div>
                     </template>
                 </Column>
@@ -411,18 +412,19 @@ function onPage(event: { page: number; rows: number }) {
                         <div class="flex justify-between border-b border-border pb-2 lg:hidden">
                             <span class="text-muted-foreground">Currency</span>
                             <div class="flex items-center gap-1">
-                                <Tag
-                                    v-if="data.default_currency"
-                                    :value="data.default_currency.code"
-                                    severity="secondary"
-                                />
-                                <Tag
-                                    v-if="data.store_currencies && data.store_currencies.length > 1"
-                                    :value="`+${data.store_currencies.length - 1}`"
-                                    severity="info"
-                                    class="!text-xs"
-                                />
-                                <span v-if="!data.default_currency && (!data.store_currencies || data.store_currencies.length === 0)">-</span>
+                                <template v-if="data.store_currencies && data.store_currencies.length > 0">
+                                    <Tag
+                                        :value="data.store_currencies[0].currency?.code"
+                                        severity="secondary"
+                                    />
+                                    <Tag
+                                        v-if="data.store_currencies.length > 1"
+                                        :value="`+${data.store_currencies.length - 1}`"
+                                        severity="info"
+                                        class="!text-xs"
+                                    />
+                                </template>
+                                <span v-else>-</span>
                             </div>
                         </div>
                         <div v-if="isDeleted(data) && canManageStores" class="flex gap-2 pt-2">

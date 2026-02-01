@@ -15,7 +15,6 @@ export interface StoreCurrency {
     id: number;
     store_id: number;
     currency_id: number;
-    is_default: boolean;
     exchange_rate: number | string | null;
     currency?: Currency;
     created_at: string | null;

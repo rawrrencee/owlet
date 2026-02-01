@@ -26,7 +26,6 @@ class StoreStoreCurrencyRequest extends FormRequest
                 Rule::unique('store_currencies', 'currency_id')
                     ->where('store_id', $storeId),
             ],
-            'exchange_rate' => ['nullable', 'numeric', 'min:0'],
         ];
     }
 

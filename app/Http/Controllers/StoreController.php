@@ -8,7 +8,6 @@ use App\Http\Requests\StoreEmployeeStoreRequest;
 use App\Http\Requests\StoreStoreCurrencyRequest;
 use App\Http\Requests\StoreStoreRequest;
 use App\Http\Requests\UpdateEmployeeStoreRequest;
-use App\Http\Requests\UpdateStoreCurrencyRequest;
 use App\Http\Requests\UpdateStoreRequest;
 use App\Http\Resources\CompanyResource;
 use App\Http\Resources\CurrencyResource;
@@ -52,7 +51,7 @@ class StoreController extends Controller
         $showDeleted = $request->boolean('show_deleted', false);
         $perPage = min(max($request->integer('per_page', 15), 10), 100);
 
-        $query = Store::with(['company', 'defaultStoreCurrency.currency', 'storeCurrencies']);
+        $query = Store::with(['company', 'storeCurrencies.currency']);
 
         // Filter to accessible stores for non-admin users
         if (! $user->isAdmin()) {
@@ -175,7 +174,6 @@ class StoreController extends Controller
             'country',
             'employeeStores.employee.user',
             'storeCurrencies.currency',
-            'defaultStoreCurrency.currency',
             'createdBy:id,name',
             'updatedBy:id,name',
             'previousUpdatedBy:id,name',
@@ -208,7 +206,7 @@ class StoreController extends Controller
     {
         $this->authorize('update', $store);
 
-        $store->load(['company', 'country', 'storeCurrencies.currency', 'defaultStoreCurrency.currency']);
+        $store->load(['company', 'country', 'storeCurrencies.currency']);
 
         $companies = Company::where('active', true)
             ->orderBy('company_name')
@@ -425,7 +423,6 @@ class StoreController extends Controller
 
         $storeCurrencies = $store->storeCurrencies()
             ->with('currency')
-            ->orderBy('is_default', 'desc')
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -441,14 +438,10 @@ class StoreController extends Controller
     {
         $this->authorize('manageCurrencies', $store);
 
-        $data = $request->validated();
-        $data['store_id'] = $store->id;
-
-        // If this is the first currency, make it default
-        $isFirst = ! $store->storeCurrencies()->exists();
-        $data['is_default'] = $isFirst;
-
-        $storeCurrency = StoreCurrency::create($data);
+        $storeCurrency = StoreCurrency::create([
+            'store_id' => $store->id,
+            'currency_id' => $request->validated('currency_id'),
+        ]);
         $storeCurrency->load('currency');
 
         return $this->respondWithCreated(
@@ -461,41 +454,13 @@ class StoreController extends Controller
     }
 
     /**
-     * Update a currency assignment for a store.
-     */
-    public function updateCurrency(UpdateStoreCurrencyRequest $request, Store $store, StoreCurrency $storeCurrency): RedirectResponse|JsonResponse
-    {
-        $this->authorize('manageCurrencies', $store);
-
-        $storeCurrency->update($request->validated());
-        $storeCurrency->load('currency');
-
-        return $this->respondWithSuccess(
-            $request,
-            'stores.edit',
-            ['store' => $store->id],
-            'Currency assignment updated successfully.',
-            (new StoreCurrencyResource($storeCurrency->fresh('currency')))->resolve()
-        );
-    }
-
-    /**
      * Remove a currency from a store.
      */
     public function removeCurrency(Request $request, Store $store, StoreCurrency $storeCurrency): RedirectResponse|JsonResponse
     {
         $this->authorize('manageCurrencies', $store);
 
-        $wasDefault = $storeCurrency->is_default;
         $storeCurrency->delete();
-
-        // If removed currency was default, make another one default (if any)
-        if ($wasDefault) {
-            $firstRemaining = $store->storeCurrencies()->first();
-            if ($firstRemaining) {
-                $firstRemaining->update(['is_default' => true]);
-            }
-        }
 
         return $this->respondWithDeleted(
             $request,
@@ -505,27 +470,4 @@ class StoreController extends Controller
         );
     }
 
-    /**
-     * Set a currency as the default for a store.
-     */
-    public function setDefaultCurrency(Request $request, Store $store, StoreCurrency $storeCurrency): RedirectResponse|JsonResponse
-    {
-        $this->authorize('manageCurrencies', $store);
-
-        // Remove default from all other currencies
-        $store->storeCurrencies()
-            ->where('id', '!=', $storeCurrency->id)
-            ->update(['is_default' => false]);
-
-        // Set this currency as default
-        $storeCurrency->update(['is_default' => true]);
-
-        return $this->respondWithSuccess(
-            $request,
-            'stores.edit',
-            ['store' => $store->id],
-            'Default currency updated successfully.',
-            (new StoreCurrencyResource($storeCurrency->fresh('currency')))->resolve()
-        );
-    }
 }
