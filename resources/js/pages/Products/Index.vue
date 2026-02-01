@@ -25,6 +25,7 @@ import { usePermissions } from '@/composables/usePermissions';
 import { useProductPreview } from '@/composables/useProductPreview';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type Category, type Currency, type PaginatedData, type Product, type Subcategory } from '@/types';
+import { formatProductPrice } from '@/utils/currency';
 
 interface Filters {
     search?: string;
@@ -342,8 +343,7 @@ function isDeleted(product: Product): boolean {
 
 function getFirstPrice(product: Product): string {
     if (product.prices && product.prices.length > 0) {
-        const price = product.prices[0];
-        return `${price.currency?.symbol ?? ''}${price.unit_price ?? '-'}`;
+        return formatProductPrice(product.prices[0]);
     }
     return '-';
 }

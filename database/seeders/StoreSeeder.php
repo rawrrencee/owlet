@@ -22,7 +22,10 @@ class StoreSeeder extends Seeder
         $faker = Faker::create();
         $companies = Company::all();
         $countries = Country::where('active', true)->pluck('id')->toArray();
-        $currencies = Currency::where('active', true)->get();
+        // Only use SGD, MYR, KRW for simplified testing
+        $currencies = Currency::where('active', true)
+            ->whereIn('code', ['SGD', 'MYR', 'KRW'])
+            ->get();
 
         $storesPerCompany = config('seeders.counts.stores_per_company', 3);
         $totalStores = 0;

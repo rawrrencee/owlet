@@ -31,14 +31,14 @@ return [
         'customers_with_workos' => (int) env('SEEDER_CUSTOMER_WORKOS_COUNT', 5), // First N customers get WorkOS accounts
 
         // Organizations
-        'companies' => 30,
-        'stores_per_company' => 3,
+        'companies' => 3,
+        'stores_per_company' => 7, // ~20 stores total
 
         // Product catalog
-        'brands' => 300,
-        'categories' => 50,
-        'subcategories_per_category' => 6,
-        'suppliers' => 300,
+        'brands' => 5,
+        'categories' => 5,
+        'subcategories_per_category' => 3,
+        'suppliers' => 5,
         'products' => 300,
         'tags' => 100,
 

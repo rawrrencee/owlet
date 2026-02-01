@@ -37,7 +37,11 @@ class ProductSeeder extends Seeder
         $subcategoriesByCategory = Subcategory::where('is_active', true)->get()->groupBy('category_id');
         $suppliers = Supplier::where('active', true)->pluck('id')->toArray();
         $stores = Store::where('active', true)->get();
-        $currencies = Currency::where('active', true)->pluck('id')->toArray();
+        // Only use SGD, MYR, KRW for simplified testing
+        $currencies = Currency::where('active', true)
+            ->whereIn('code', ['SGD', 'MYR', 'KRW'])
+            ->pluck('id')
+            ->toArray();
         $tags = Tag::pluck('id')->toArray();
         $employees = Employee::pluck('id')->toArray();
 
@@ -104,38 +108,58 @@ class ProductSeeder extends Seeder
 
         $this->command->info("  Created {$createdCount} products.");
 
-        // Now add prices, store assignments, and tags
-        $this->seedProductPrices($faker, $currencies);
-        $this->seedProductStores($faker, $stores, $currencies);
+        // Load store currencies for all stores (grouped by store_id)
+        $storeCurrencies = StoreCurrency::all()->groupBy('store_id');
+
+        // Seed prices and store assignments together (prices must exist before store assignment)
+        $this->seedProductPricesAndStores($faker, $stores, $storeCurrencies, $currencies);
         $this->seedProductTags($faker, $tags);
     }
 
     /**
-     * Seed base product prices (per currency).
+     * Seed product prices and store assignments together.
+     * Products must have prices for store currencies BEFORE being assigned to stores.
      */
-    private function seedProductPrices($faker, array $currencies): void
+    private function seedProductPricesAndStores($faker, $stores, $storeCurrencies, array $currencies): void
     {
-        if (empty($currencies)) {
+        if ($stores->isEmpty()) {
+            $this->command->warn('  No stores available. Skipping product prices and store assignments.');
+
             return;
         }
 
-        $this->command->line('  Adding product prices...');
+        $this->command->line('  Adding product prices and store assignments...');
 
         $products = Product::pluck('id')->toArray();
+        $storeIds = $stores->pluck('id')->toArray();
         $batchSize = 100;
-        $prices = [];
-        $count = 0;
+
+        $allPrices = [];
+        $allProductStores = [];
+        $priceCount = 0;
+        $storeCount = 0;
 
         foreach ($products as $productId) {
-            // Each product gets 1-2 currency prices
-            $numPrices = $faker->numberBetween(1, min(2, count($currencies)));
-            $selectedCurrencies = $faker->randomElements($currencies, $numPrices);
+            // Determine which stores this product will be assigned to
+            $numStores = $faker->numberBetween(1, min(3, count($storeIds)));
+            $selectedStoreIds = $faker->randomElements($storeIds, $numStores);
 
-            foreach ($selectedCurrencies as $currencyId) {
+            // Collect all unique currencies needed for these stores
+            $requiredCurrencyIds = [];
+            foreach ($selectedStoreIds as $storeId) {
+                $storesCurrencyRecords = $storeCurrencies->get($storeId, collect());
+                foreach ($storesCurrencyRecords->pluck('currency_id') as $currencyId) {
+                    $requiredCurrencyIds[$currencyId] = true;
+                }
+            }
+            $requiredCurrencyIds = array_keys($requiredCurrencyIds);
+
+            // Create product prices for all required currencies
+            foreach ($requiredCurrencyIds as $currencyId) {
                 $costPrice = $faker->randomFloat(4, 1, 500);
                 $sellingPrice = $costPrice * $faker->randomFloat(2, 1.2, 3.0);
 
-                $prices[] = [
+                $allPrices[] = [
                     'product_id' => $productId,
                     'currency_id' => $currencyId,
                     'cost_price' => round($costPrice, 4),
@@ -144,60 +168,16 @@ class ProductSeeder extends Seeder
                     'updated_at' => now(),
                 ];
 
-                if (count($prices) >= $batchSize) {
-                    ProductPrice::insert($prices);
-                    $count += count($prices);
-                    $prices = [];
+                if (count($allPrices) >= $batchSize) {
+                    ProductPrice::insert($allPrices);
+                    $priceCount += count($allPrices);
+                    $allPrices = [];
                 }
             }
-        }
 
-        if (! empty($prices)) {
-            ProductPrice::insert($prices);
-            $count += count($prices);
-        }
-
-        $this->command->info("  Created {$count} product prices.");
-    }
-
-    /**
-     * Seed product-store assignments with store-specific prices.
-     */
-    private function seedProductStores($faker, $stores, array $currencies): void
-    {
-        if ($stores->isEmpty()) {
-            return;
-        }
-
-        $this->command->line('  Adding product store assignments...');
-
-        $products = Product::pluck('id')->toArray();
-        $storeIds = $stores->pluck('id')->toArray();
-        $batchSize = 100;
-        $productStores = [];
-        $psCount = 0;
-
-        // Load store currencies for all stores (grouped by store_id)
-        $storeCurrencies = StoreCurrency::all()->groupBy('store_id');
-
-        // Load existing product prices (grouped by product_id, then currency_id)
-        $existingProductPrices = ProductPrice::all()->groupBy('product_id');
-
-        // Track additional product prices to create
-        $additionalPrices = [];
-
-        foreach ($products as $productId) {
-            // Each product is assigned to 1-3 stores
-            $numStores = $faker->numberBetween(1, min(3, count($storeIds)));
-            $selectedStores = $faker->randomElements($storeIds, $numStores);
-
-            // Get this product's existing currency IDs
-            $productCurrencyIds = $existingProductPrices->get($productId, collect())
-                ->pluck('currency_id')
-                ->toArray();
-
-            foreach ($selectedStores as $storeId) {
-                $productStores[] = [
+            // Create product-store assignments
+            foreach ($selectedStoreIds as $storeId) {
+                $allProductStores[] = [
                     'product_id' => $productId,
                     'store_id' => $storeId,
                     'quantity' => $faker->numberBetween(0, 100),
@@ -206,66 +186,30 @@ class ProductSeeder extends Seeder
                     'updated_at' => now(),
                 ];
 
-                // Check if product has a price for any of this store's currencies
-                $storesCurrencyRecords = $storeCurrencies->get($storeId, collect());
-                $storeCurrencyIds = $storesCurrencyRecords->pluck('currency_id')->toArray();
-
-                $hasMatchingCurrency = ! empty(array_intersect($productCurrencyIds, $storeCurrencyIds));
-
-                // If no matching currency, create a price for the store's default currency
-                if (! $hasMatchingCurrency && ! empty($storeCurrencyIds)) {
-                    // Try to get default currency, otherwise use first
-                    $defaultCurrencyRecord = $storesCurrencyRecords->firstWhere('is_default', true);
-                    $currencyIdToUse = $defaultCurrencyRecord
-                        ? $defaultCurrencyRecord->currency_id
-                        : $storeCurrencyIds[0];
-
-                    // Only add if we haven't already added this currency for this product
-                    $priceKey = "{$productId}_{$currencyIdToUse}";
-                    if (! isset($additionalPrices[$priceKey]) && ! in_array($currencyIdToUse, $productCurrencyIds)) {
-                        $costPrice = $faker->randomFloat(4, 1, 500);
-                        $sellingPrice = $costPrice * $faker->randomFloat(2, 1.2, 3.0);
-
-                        $additionalPrices[$priceKey] = [
-                            'product_id' => $productId,
-                            'currency_id' => $currencyIdToUse,
-                            'cost_price' => round($costPrice, 4),
-                            'unit_price' => round($sellingPrice, 4),
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ];
-
-                        // Also track this in our local cache
-                        $productCurrencyIds[] = $currencyIdToUse;
-                    }
-                }
-
-                if (count($productStores) >= $batchSize) {
-                    ProductStore::insert($productStores);
-                    $psCount += count($productStores);
-                    $productStores = [];
+                if (count($allProductStores) >= $batchSize) {
+                    ProductStore::insert($allProductStores);
+                    $storeCount += count($allProductStores);
+                    $allProductStores = [];
                 }
             }
         }
 
-        if (! empty($productStores)) {
-            ProductStore::insert($productStores);
-            $psCount += count($productStores);
+        // Insert remaining prices
+        if (! empty($allPrices)) {
+            ProductPrice::insert($allPrices);
+            $priceCount += count($allPrices);
         }
 
-        $this->command->info("  Created {$psCount} product-store assignments.");
-
-        // Insert additional prices for store currency compatibility
-        if (! empty($additionalPrices)) {
-            $priceValues = array_values($additionalPrices);
-            $chunks = array_chunk($priceValues, $batchSize);
-            foreach ($chunks as $chunk) {
-                ProductPrice::insert($chunk);
-            }
-            $this->command->info('  Created '.count($additionalPrices).' additional product prices for store currency compatibility.');
+        // Insert remaining product-store assignments
+        if (! empty($allProductStores)) {
+            ProductStore::insert($allProductStores);
+            $storeCount += count($allProductStores);
         }
 
-        // Now add store-specific prices
+        $this->command->info("  Created {$priceCount} product prices.");
+        $this->command->info("  Created {$storeCount} product-store assignments.");
+
+        // Now add store-specific prices (overrides)
         $this->seedProductStorePrices($faker, $currencies);
     }
 

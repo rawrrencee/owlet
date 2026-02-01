@@ -42,7 +42,7 @@ class CurrencySeeder extends Seeder
             ['code' => 'SEK', 'name' => 'Swedish Krona', 'symbol' => 'kr', 'decimal_places' => 2],
             ['code' => 'NOK', 'name' => 'Norwegian Krone', 'symbol' => 'kr', 'decimal_places' => 2],
             ['code' => 'DKK', 'name' => 'Danish Krone', 'symbol' => 'kr', 'decimal_places' => 2],
-            ['code' => 'PLN', 'name' => 'Polish Zloty', 'symbol' => 'z\u{0142}', 'decimal_places' => 2],
+            ['code' => 'PLN', 'name' => 'Polish Zloty', 'symbol' => "z\u{0142}", 'decimal_places' => 2],
             ['code' => 'TRY', 'name' => 'Turkish Lira', 'symbol' => "\u{20BA}", 'decimal_places' => 2],
 
             // Middle East & Africa
@@ -50,7 +50,7 @@ class CurrencySeeder extends Seeder
             ['code' => 'SAR', 'name' => 'Saudi Riyal', 'symbol' => 'SR', 'decimal_places' => 2],
             ['code' => 'ILS', 'name' => 'Israeli New Shekel', 'symbol' => "\u{20AA}", 'decimal_places' => 2],
             ['code' => 'ZAR', 'name' => 'South African Rand', 'symbol' => 'R', 'decimal_places' => 2],
-            ['code' => 'EGP', 'name' => 'Egyptian Pound', 'symbol' => 'E\u{00A3}', 'decimal_places' => 2],
+            ['code' => 'EGP', 'name' => 'Egyptian Pound', 'symbol' => "E\u{00A3}", 'decimal_places' => 2],
 
             // South America
             ['code' => 'BRL', 'name' => 'Brazilian Real', 'symbol' => 'R$', 'decimal_places' => 2],
