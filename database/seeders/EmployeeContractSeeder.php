@@ -27,40 +27,60 @@ class EmployeeContractSeeder extends Seeder
             return;
         }
 
-        $contractsPerEmployee = config('seeders.counts.contracts_per_employee', 1);
+        $contractsPerEmployee = config('seeders.counts.contracts_per_employee', 2);
+        $batchSize = 100;
+        $contracts = [];
         $createdCount = 0;
+        $companyIds = $companies->pluck('id')->toArray();
 
         foreach ($employees as $employee) {
             // Use employee's assigned companies if available, otherwise random
-            $employeeCompanies = $employee->companies;
-            if ($employeeCompanies->isEmpty()) {
-                $employeeCompanies = $companies;
+            $employeeCompanyIds = $employee->companies->pluck('id')->toArray();
+            if (empty($employeeCompanyIds)) {
+                $employeeCompanyIds = $companyIds;
             }
 
             for ($i = 1; $i <= $contractsPerEmployee; $i++) {
-                $company = $faker->randomElement($employeeCompanies->toArray());
-                $startDate = $employee->hire_date ?? $faker->dateTimeBetween('-3 years', '-6 months');
+                $companyId = $faker->randomElement($employeeCompanyIds);
+                $hireDate = $employee->hire_date ?? $faker->dateTimeBetween('-3 years', '-6 months');
+                $startDate = $hireDate instanceof \DateTime ? $hireDate : new \DateTime($hireDate);
 
-                EmployeeContract::create([
+                // Adjust start date for subsequent contracts
+                if ($i > 1) {
+                    $startDate = $faker->dateTimeBetween($startDate, 'now');
+                }
+
+                $contracts[] = [
                     'employee_id' => $employee->id,
-                    'company_id' => $company['id'],
-                    'start_date' => $startDate,
-                    'end_date' => $faker->optional(0.3)->dateTimeBetween('+6 months', '+2 years'),
+                    'company_id' => $companyId,
+                    'start_date' => $startDate->format('Y-m-d'),
+                    'end_date' => $faker->optional(0.3)->dateTimeBetween('+6 months', '+2 years')?->format('Y-m-d'),
                     'salary_amount' => $faker->randomFloat(4, 2000, 10000),
                     'annual_leave_entitled' => $faker->numberBetween(14, 21),
                     'annual_leave_taken' => $faker->numberBetween(0, 10),
                     'sick_leave_entitled' => $faker->numberBetween(14, 30),
                     'sick_leave_taken' => $faker->numberBetween(0, 5),
-                    // No document upload for seeder
                     'document_path' => null,
                     'document_filename' => null,
                     'document_mime_type' => null,
                     'external_document_url' => null,
                     'comments' => $faker->optional(0.3)->sentence(),
-                ]);
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
 
-                $createdCount++;
+                if (count($contracts) >= $batchSize) {
+                    EmployeeContract::insert($contracts);
+                    $createdCount += count($contracts);
+                    $contracts = [];
+                }
             }
+        }
+
+        // Insert remaining
+        if (! empty($contracts)) {
+            EmployeeContract::insert($contracts);
+            $createdCount += count($contracts);
         }
 
         $this->command->info("  Created {$createdCount} employee contracts.");

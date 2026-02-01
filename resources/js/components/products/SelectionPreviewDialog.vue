@@ -24,6 +24,7 @@ const emit = defineEmits<{
     'update:visible': [value: boolean];
     'deselect': [productId: number];
     'clear-all': [];
+    'preview': [productId: number];
 }>();
 
 const dialogVisible = computed({
@@ -41,6 +42,10 @@ function getInitials(product: SelectionProduct): string {
 
 function handleDeselect(productId: number) {
     emit('deselect', productId);
+}
+
+function handlePreview(productId: number) {
+    emit('preview', productId);
 }
 
 function handleClearAll() {
@@ -80,30 +85,36 @@ function handleClose() {
                             ]"
                             style="height: 56px"
                         >
-                            <!-- Image/Avatar -->
-                            <img
-                                v-if="item.image_url"
-                                :src="item.image_url"
-                                :alt="item.product_name"
-                                class="h-10 w-10 shrink-0 rounded object-cover"
-                            />
-                            <Avatar
-                                v-else
-                                :label="getInitials(item)"
-                                shape="square"
-                                class="!h-10 !w-10 shrink-0 rounded bg-primary/10 text-primary"
-                            />
+                            <!-- Clickable product info area -->
+                            <div
+                                class="flex min-w-0 flex-1 cursor-pointer items-center gap-3"
+                                @click="handlePreview(item.id)"
+                            >
+                                <!-- Image/Avatar -->
+                                <img
+                                    v-if="item.image_url"
+                                    :src="item.image_url"
+                                    :alt="item.product_name"
+                                    class="h-10 w-10 shrink-0 rounded object-cover"
+                                />
+                                <Avatar
+                                    v-else
+                                    :label="getInitials(item)"
+                                    shape="square"
+                                    class="!h-10 !w-10 shrink-0 rounded bg-primary/10 text-primary"
+                                />
 
-                            <!-- Product Info -->
-                            <div class="min-w-0 flex-1">
-                                <div class="truncate text-sm font-medium">
-                                    {{ item.product_name }}
-                                </div>
-                                <div class="flex items-center gap-2 text-xs text-muted-foreground">
-                                    <span>{{ item.product_number }}</span>
-                                    <span v-if="item.brand_name" class="truncate">
-                                        {{ item.brand_name }}
-                                    </span>
+                                <!-- Product Info -->
+                                <div class="min-w-0 flex-1">
+                                    <div class="truncate text-sm font-medium">
+                                        {{ item.product_name }}
+                                    </div>
+                                    <div class="flex items-center gap-2 text-xs text-muted-foreground">
+                                        <span>{{ item.product_number }}</span>
+                                        <span v-if="item.brand_name" class="truncate">
+                                            {{ item.brand_name }}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
 

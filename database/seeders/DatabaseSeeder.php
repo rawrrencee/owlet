@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             BrandSeeder::class,
             CategorySeeder::class,
             SupplierSeeder::class,
+            TagSeeder::class,
 
             // Company structure
             CompanySeeder::class,
@@ -51,6 +52,9 @@ class DatabaseSeeder extends Seeder
 
             // Time tracking (depends on employees, stores)
             TimecardSeeder::class,
+
+            // Products (depends on brands, categories, suppliers, stores, tags)
+            ProductSeeder::class,
         ]);
 
         $this->command->newLine();

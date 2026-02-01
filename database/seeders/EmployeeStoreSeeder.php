@@ -31,7 +31,10 @@ class EmployeeStoreSeeder extends Seeder
 
         $allStorePermissions = StorePermissions::keys();
         $allAccessPermissions = StoreAccessPermissions::keys();
+        $storeIds = $stores->pluck('id')->toArray();
 
+        $batchSize = 100;
+        $assignments = [];
         $assignmentCount = 0;
 
         foreach ($employees as $employee) {
@@ -40,29 +43,30 @@ class EmployeeStoreSeeder extends Seeder
 
             if ($isAdmin) {
                 // Admins get access to all stores with full permissions
-                foreach ($stores as $store) {
-                    EmployeeStore::firstOrCreate(
-                        [
-                            'employee_id' => $employee->id,
-                            'store_id' => $store->id,
-                        ],
-                        [
-                            'employee_id' => $employee->id,
-                            'store_id' => $store->id,
-                            'active' => true,
-                            'permissions' => $allStorePermissions,
-                            'access_permissions' => $allAccessPermissions,
-                            'is_creator' => false,
-                        ]
-                    );
-                    $assignmentCount++;
+                foreach ($storeIds as $storeId) {
+                    $assignments[] = [
+                        'employee_id' => $employee->id,
+                        'store_id' => $storeId,
+                        'active' => true,
+                        'permissions' => json_encode($allStorePermissions),
+                        'access_permissions' => json_encode($allAccessPermissions),
+                        'is_creator' => false,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+
+                    if (count($assignments) >= $batchSize) {
+                        EmployeeStore::insert($assignments);
+                        $assignmentCount += count($assignments);
+                        $assignments = [];
+                    }
                 }
             } else {
                 // Staff get assigned to 1-2 stores with subset of permissions
                 $numStores = $faker->randomElement([1, 1, 2]);
-                $assignedStores = $faker->randomElements($stores->toArray(), min($numStores, $stores->count()));
+                $assignedStoreIds = $faker->randomElements($storeIds, min($numStores, count($storeIds)));
 
-                foreach ($assignedStores as $store) {
+                foreach ($assignedStoreIds as $storeId) {
                     // Give staff a random subset of permissions
                     $permissions = $faker->randomElements(
                         $allStorePermissions,
@@ -73,23 +77,30 @@ class EmployeeStoreSeeder extends Seeder
                         $faker->numberBetween(1, count($allAccessPermissions))
                     );
 
-                    EmployeeStore::firstOrCreate(
-                        [
-                            'employee_id' => $employee->id,
-                            'store_id' => $store['id'],
-                        ],
-                        [
-                            'employee_id' => $employee->id,
-                            'store_id' => $store['id'],
-                            'active' => true,
-                            'permissions' => $permissions,
-                            'access_permissions' => $accessPermissions,
-                            'is_creator' => false,
-                        ]
-                    );
-                    $assignmentCount++;
+                    $assignments[] = [
+                        'employee_id' => $employee->id,
+                        'store_id' => $storeId,
+                        'active' => true,
+                        'permissions' => json_encode($permissions),
+                        'access_permissions' => json_encode($accessPermissions),
+                        'is_creator' => false,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+
+                    if (count($assignments) >= $batchSize) {
+                        EmployeeStore::insert($assignments);
+                        $assignmentCount += count($assignments);
+                        $assignments = [];
+                    }
                 }
             }
+        }
+
+        // Insert remaining
+        if (! empty($assignments)) {
+            EmployeeStore::insert($assignments);
+            $assignmentCount += count($assignments);
         }
 
         $this->command->info("  Created {$assignmentCount} employee-store assignments.");

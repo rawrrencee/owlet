@@ -19,30 +19,44 @@ class BrandSeeder extends Seeder
         $faker = Faker::create();
         $countries = Country::where('active', true)->pluck('id')->toArray();
 
-        $count = config('seeders.counts.brands', 3);
+        $count = config('seeders.counts.brands', 300);
+        $batchSize = 50;
+        $brands = [];
+        $createdCount = 0;
 
         for ($i = 1; $i <= $count; $i++) {
-            $brandName = $faker->company();
-            // Generate 4-char code: 3 letters + index number (max 4 chars)
-            $brandCode = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $brandName), 0, 3)).($i % 10);
+            $brandName = $faker->unique()->company();
+            // Generate unique 4-char code: B + 3 digits (supports up to 999)
+            $brandCode = 'B'.str_pad($i, 3, '0', STR_PAD_LEFT);
 
-            Brand::firstOrCreate(
-                ['brand_code' => $brandCode],
-                [
-                    'brand_name' => $brandName,
-                    'brand_code' => $brandCode,
-                    'description' => $faker->sentence(10),
-                    'email' => $faker->companyEmail(),
-                    'phone_number' => $faker->phoneNumber(),
-                    'website' => $faker->url(),
-                    'address_1' => $faker->streetAddress(),
-                    'address_2' => $faker->optional(0.5)->secondaryAddress(),
-                    'country_id' => $faker->randomElement($countries),
-                    'is_active' => true,
-                ]
-            );
+            $brands[] = [
+                'brand_name' => $brandName,
+                'brand_code' => $brandCode,
+                'description' => $faker->sentence(10),
+                'email' => $faker->unique()->companyEmail(),
+                'phone_number' => $faker->phoneNumber(),
+                'website' => $faker->url(),
+                'address_1' => $faker->streetAddress(),
+                'address_2' => $faker->optional(0.5)->secondaryAddress(),
+                'country_id' => $faker->randomElement($countries),
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+
+            if (count($brands) >= $batchSize) {
+                Brand::insert($brands);
+                $createdCount += count($brands);
+                $brands = [];
+            }
         }
 
-        $this->command->info("  Created {$count} brands.");
+        // Insert remaining
+        if (! empty($brands)) {
+            Brand::insert($brands);
+            $createdCount += count($brands);
+        }
+
+        $this->command->info("  Created {$createdCount} brands.");
     }
 }

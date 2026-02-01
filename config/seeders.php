@@ -24,18 +24,29 @@ return [
     |
     */
     'counts' => [
-        'employees' => (int) env('SEEDER_EMPLOYEE_COUNT', 2),
-        'customers' => (int) env('SEEDER_CUSTOMER_COUNT', 2),
-        'companies' => 2,
-        'stores_per_company' => 2,
-        'brands' => 3,
-        'categories' => 3,
-        'subcategories_per_category' => 2,
-        'designations' => 5,
-        'suppliers' => 3,
-        'contracts_per_employee' => 1,
-        'insurances_per_employee' => 1,
-        'timecards_per_employee' => 3,
+        // People - creates ~20 pages of data at 15 per page
+        'employees' => (int) env('SEEDER_EMPLOYEE_COUNT', 300),
+        'employees_with_workos' => (int) env('SEEDER_EMPLOYEE_WORKOS_COUNT', 5), // First N employees get WorkOS accounts
+        'customers' => (int) env('SEEDER_CUSTOMER_COUNT', 300),
+        'customers_with_workos' => (int) env('SEEDER_CUSTOMER_WORKOS_COUNT', 5), // First N customers get WorkOS accounts
+
+        // Organizations
+        'companies' => 30,
+        'stores_per_company' => 3,
+
+        // Product catalog
+        'brands' => 300,
+        'categories' => 50,
+        'subcategories_per_category' => 6,
+        'suppliers' => 300,
+        'products' => 300,
+        'tags' => 100,
+
+        // Employee attributes
+        'designations' => 8, // Limited by predefined list
+        'contracts_per_employee' => 2,
+        'insurances_per_employee' => 2,
+        'timecards_per_employee' => 10,
     ],
 
     /*

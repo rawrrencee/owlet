@@ -4,7 +4,7 @@ import type { Product, ProductAdjacentIds, ProductSearchResult } from '@/types';
 
 interface NavigationEntry {
     productId: number;
-    mode: 'list' | 'search';
+    mode: 'list' | 'search' | 'selection';
     adjacentIds?: ProductAdjacentIds;
 }
 
@@ -24,6 +24,7 @@ export function useProductPreview(filtersRef: Ref<Filters> | ComputedRef<Filters
     const searchLoading = ref(false);
     const navigationStack = ref<NavigationEntry[]>([]);
     const searchResults = ref<ProductSearchResult[]>([]);
+    const selectionIds = ref<number[]>([]);
 
     let searchDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -36,11 +37,35 @@ export function useProductPreview(filtersRef: Ref<Filters> | ComputedRef<Filters
     const canGoBack = computed(() => navigationStack.value.length > 1);
 
     const adjacentIds = computed(() => currentEntry.value?.adjacentIds ?? null);
-    const canGoPrev = computed(() => currentMode.value === 'list' && adjacentIds.value?.prev_id !== null);
-    const canGoNext = computed(() => currentMode.value === 'list' && adjacentIds.value?.next_id !== null);
+
+    // For selection mode, compute adjacent IDs from the client-side selection array
+    const selectionAdjacentIds = computed(() => {
+        if (currentMode.value !== 'selection' || !currentProduct.value) return null;
+        const currentIndex = selectionIds.value.indexOf(currentProduct.value.id);
+        if (currentIndex === -1) return null;
+        return {
+            prev_id: currentIndex > 0 ? selectionIds.value[currentIndex - 1] : null,
+            next_id: currentIndex < selectionIds.value.length - 1 ? selectionIds.value[currentIndex + 1] : null,
+            position: currentIndex + 1,
+            total: selectionIds.value.length,
+        };
+    });
+
+    const effectiveAdjacentIds = computed(() =>
+        currentMode.value === 'selection' ? selectionAdjacentIds.value : adjacentIds.value
+    );
+
+    const canGoPrev = computed(() =>
+        (currentMode.value === 'list' || currentMode.value === 'selection') &&
+        effectiveAdjacentIds.value?.prev_id !== null
+    );
+    const canGoNext = computed(() =>
+        (currentMode.value === 'list' || currentMode.value === 'selection') &&
+        effectiveAdjacentIds.value?.next_id !== null
+    );
     const positionText = computed(() => {
-        if (currentMode.value !== 'list' || !adjacentIds.value) return '';
-        return `${adjacentIds.value.position} of ${adjacentIds.value.total}`;
+        if ((currentMode.value !== 'list' && currentMode.value !== 'selection') || !effectiveAdjacentIds.value) return '';
+        return `${effectiveAdjacentIds.value.position} of ${effectiveAdjacentIds.value.total}`;
     });
 
     function buildFilterParams(): Record<string, string | boolean> {
@@ -102,16 +127,18 @@ export function useProductPreview(filtersRef: Ref<Filters> | ComputedRef<Filters
     }
 
     async function navigatePrev(): Promise<void> {
-        if (!canGoPrev.value || !adjacentIds.value?.prev_id) return;
-        await navigateToProduct(adjacentIds.value.prev_id, 'list');
+        if (!canGoPrev.value || !effectiveAdjacentIds.value?.prev_id) return;
+        const mode = currentMode.value === 'selection' ? 'selection' : 'list';
+        await navigateToProduct(effectiveAdjacentIds.value.prev_id, mode);
     }
 
     async function navigateNext(): Promise<void> {
-        if (!canGoNext.value || !adjacentIds.value?.next_id) return;
-        await navigateToProduct(adjacentIds.value.next_id, 'list');
+        if (!canGoNext.value || !effectiveAdjacentIds.value?.next_id) return;
+        const mode = currentMode.value === 'selection' ? 'selection' : 'list';
+        await navigateToProduct(effectiveAdjacentIds.value.next_id, mode);
     }
 
-    async function navigateToProduct(productId: number, mode: 'list' | 'search'): Promise<void> {
+    async function navigateToProduct(productId: number, mode: 'list' | 'search' | 'selection'): Promise<void> {
         loading.value = true;
 
         const [product, adjacent] = await Promise.all([
@@ -129,6 +156,12 @@ export function useProductPreview(filtersRef: Ref<Filters> | ComputedRef<Filters
                     mode: 'list',
                     adjacentIds: adjacent ?? { prev_id: null, next_id: null, position: null, total: 0 },
                 };
+            } else if (mode === 'selection') {
+                // Replace current entry for selection navigation (adjacent computed client-side)
+                navigationStack.value[navigationStack.value.length - 1] = {
+                    productId,
+                    mode: 'selection',
+                };
             } else {
                 // Push new entry for search navigation
                 navigationStack.value.push({
@@ -137,6 +170,27 @@ export function useProductPreview(filtersRef: Ref<Filters> | ComputedRef<Filters
                 });
             }
         }
+
+        loading.value = false;
+    }
+
+    async function openPreviewFromSelection(productId: number, selectedProductIds: number[]): Promise<void> {
+        loading.value = true;
+        previewVisible.value = true;
+        currentProduct.value = null;
+        navigationStack.value = [];
+        selectionIds.value = selectedProductIds;
+
+        const fullProduct = await fetchProduct(productId);
+
+        if (fullProduct) {
+            currentProduct.value = fullProduct;
+        }
+
+        navigationStack.value.push({
+            productId,
+            mode: 'selection',
+        });
 
         loading.value = false;
     }
@@ -198,6 +252,7 @@ export function useProductPreview(filtersRef: Ref<Filters> | ComputedRef<Filters
         navigationStack.value = [];
         currentProduct.value = null;
         searchResults.value = [];
+        selectionIds.value = [];
     }
 
     return {
@@ -212,6 +267,7 @@ export function useProductPreview(filtersRef: Ref<Filters> | ComputedRef<Filters
         canGoNext,
         positionText,
         openPreview,
+        openPreviewFromSelection,
         navigatePrev,
         navigateNext,
         searchProducts,

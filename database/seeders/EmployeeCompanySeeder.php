@@ -29,36 +29,46 @@ class EmployeeCompanySeeder extends Seeder
             return;
         }
 
+        $batchSize = 100;
+        $assignments = [];
         $assignmentCount = 0;
+        $companyIds = $companies->pluck('id')->toArray();
+        $designationIds = $designations->pluck('id')->toArray();
 
         foreach ($employees as $employee) {
             // Assign employee to one or more companies (most employees belong to one company)
             $numCompanies = $faker->randomElement([1, 1, 1, 2]); // 75% chance of 1 company
-            $assignedCompanies = $faker->randomElements($companies->toArray(), min($numCompanies, $companies->count()));
+            $assignedCompanyIds = $faker->randomElements($companyIds, min($numCompanies, count($companyIds)));
 
-            foreach ($assignedCompanies as $company) {
-                $designation = $designations->isNotEmpty()
-                    ? $faker->randomElement($designations->toArray())
-                    : null;
+            foreach ($assignedCompanyIds as $companyId) {
+                $designationId = ! empty($designationIds) ? $faker->randomElement($designationIds) : null;
+                $hireDate = $employee->hire_date ?? $faker->dateTimeBetween('-3 years', '-1 month');
 
-                EmployeeCompany::firstOrCreate(
-                    [
-                        'employee_id' => $employee->id,
-                        'company_id' => $company['id'],
-                    ],
-                    [
-                        'employee_id' => $employee->id,
-                        'company_id' => $company['id'],
-                        'designation_id' => $designation ? $designation['id'] : null,
-                        'levy_amount' => $faker->boolean(30) ? $faker->randomFloat(4, 0, 100) : 0,
-                        'status' => $faker->randomElement(['FT', 'FT', 'FT', 'PT', 'CT']), // Mostly full-time
-                        'include_shg_donations' => $faker->boolean(30),
-                        'commencement_date' => $employee->hire_date ?? $faker->dateTimeBetween('-3 years', '-1 month'),
-                        'left_date' => null, // Active assignment
-                    ]
-                );
-                $assignmentCount++;
+                $assignments[] = [
+                    'employee_id' => $employee->id,
+                    'company_id' => $companyId,
+                    'designation_id' => $designationId,
+                    'levy_amount' => $faker->boolean(30) ? $faker->randomFloat(4, 0, 100) : 0,
+                    'status' => $faker->randomElement(['FT', 'FT', 'FT', 'PT', 'CT']),
+                    'include_shg_donations' => $faker->boolean(30),
+                    'commencement_date' => $hireDate instanceof \DateTime ? $hireDate->format('Y-m-d') : $hireDate,
+                    'left_date' => null,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+
+                if (count($assignments) >= $batchSize) {
+                    EmployeeCompany::insert($assignments);
+                    $assignmentCount += count($assignments);
+                    $assignments = [];
+                }
             }
+        }
+
+        // Insert remaining
+        if (! empty($assignments)) {
+            EmployeeCompany::insert($assignments);
+            $assignmentCount += count($assignments);
         }
 
         $this->command->info("  Created {$assignmentCount} employee-company assignments.");

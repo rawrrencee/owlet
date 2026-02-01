@@ -21,6 +21,7 @@ class TimecardSeeder extends Seeder
 
         $faker = Faker::create();
         $employees = Employee::with('stores')->get();
+        $allStores = Store::all();
 
         if ($employees->isEmpty()) {
             $this->command->warn('  No employees found. Skipping...');
@@ -28,26 +29,32 @@ class TimecardSeeder extends Seeder
             return;
         }
 
-        $timecardsPerEmployee = config('seeders.counts.timecards_per_employee', 3);
+        $timecardsPerEmployee = config('seeders.counts.timecards_per_employee', 10);
         $createdCount = 0;
+        $batchSize = 50;
+        $timecards = [];
+
+        $this->command->line("  Creating timecards for {$employees->count()} employees...");
 
         foreach ($employees as $employee) {
             // Get stores assigned to this employee
             $stores = $employee->stores;
             if ($stores->isEmpty()) {
-                $stores = Store::all();
+                $stores = $allStores;
             }
 
             if ($stores->isEmpty()) {
                 continue;
             }
 
-            // Create timecards spread over past 30 days
-            for ($i = 1; $i <= $timecardsPerEmployee; $i++) {
-                $store = $faker->randomElement($stores->toArray());
+            $storeIds = $stores->pluck('id')->toArray();
 
-                // Random date within past 30 days (skip today to avoid conflicts)
-                $date = Carbon::today()->subDays($faker->numberBetween(1, 30));
+            // Create timecards spread over past 90 days
+            for ($i = 1; $i <= $timecardsPerEmployee; $i++) {
+                $storeId = $faker->randomElement($storeIds);
+
+                // Random date within past 90 days (skip today to avoid conflicts)
+                $date = Carbon::today()->subDays($faker->numberBetween(1, 90));
 
                 // Work shift: 8-10 hours starting between 8am-10am
                 $startHour = $faker->numberBetween(8, 10);
@@ -55,88 +62,143 @@ class TimecardSeeder extends Seeder
                 $workHours = $faker->randomFloat(2, 7, 10);
                 $endDate = $startDate->copy()->addMinutes((int) ($workHours * 60));
 
-                $timecard = Timecard::create([
+                $timecards[] = [
                     'employee_id' => $employee->id,
-                    'store_id' => $store['id'],
+                    'store_id' => $storeId,
                     'status' => Timecard::STATUS_COMPLETED,
                     'is_incomplete' => false,
-                    'is_inaccurate' => $faker->boolean(10), // 10% chance of being inaccurate
+                    'is_inaccurate' => $faker->boolean(10),
                     'start_date' => $startDate,
                     'end_date' => $endDate,
                     'user_provided_end_date' => null,
                     'hours_worked' => $workHours,
                     'created_by' => $employee->id,
                     'updated_by' => $employee->id,
-                ]);
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
 
-                // Create work and break details
-                $this->createTimecardDetails($faker, $timecard, $startDate, $endDate);
-
-                $createdCount++;
+                if (count($timecards) >= $batchSize) {
+                    Timecard::insert($timecards);
+                    $createdCount += count($timecards);
+                    $timecards = [];
+                }
             }
         }
 
-        $this->command->info("  Created {$createdCount} timecards with details.");
+        // Insert remaining
+        if (! empty($timecards)) {
+            Timecard::insert($timecards);
+            $createdCount += count($timecards);
+        }
+
+        $this->command->info("  Created {$createdCount} timecards.");
+
+        // Add timecard details
+        $this->seedTimecardDetails($faker);
     }
 
     /**
-     * Create work and break details for a timecard.
+     * Seed timecard details (work/break periods).
      */
-    private function createTimecardDetails($faker, Timecard $timecard, Carbon $startDate, Carbon $endDate): void
+    private function seedTimecardDetails($faker): void
     {
-        $currentTime = $startDate->copy();
+        $this->command->line('  Adding timecard details...');
 
-        // Morning work session (before lunch)
-        $morningWorkEnd = $currentTime->copy()->addHours($faker->numberBetween(3, 4));
-        if ($morningWorkEnd->gt($endDate)) {
-            $morningWorkEnd = $endDate->copy();
+        $timecards = Timecard::all();
+        $batchSize = 100;
+        $details = [];
+        $count = 0;
+
+        foreach ($timecards as $timecard) {
+            $startDate = Carbon::parse($timecard->start_date);
+            $endDate = Carbon::parse($timecard->end_date);
+            $currentTime = $startDate->copy();
+
+            // Morning work session (before lunch)
+            $morningWorkEnd = $currentTime->copy()->addHours($faker->numberBetween(3, 4));
+            if ($morningWorkEnd->gt($endDate)) {
+                $morningWorkEnd = $endDate->copy();
+            }
+
+            $morningHours = $currentTime->diffInMinutes($morningWorkEnd) / 60;
+            $details[] = [
+                'timecard_id' => $timecard->id,
+                'type' => TimecardDetail::TYPE_WORK,
+                'start_date' => $currentTime,
+                'end_date' => $morningWorkEnd,
+                'hours' => round($morningHours, 2),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+
+            if ($morningWorkEnd->gte($endDate)) {
+                if (count($details) >= $batchSize) {
+                    TimecardDetail::insert($details);
+                    $count += count($details);
+                    $details = [];
+                }
+
+                continue;
+            }
+
+            $currentTime = $morningWorkEnd->copy();
+
+            // Lunch break (30-60 minutes)
+            $breakDuration = $faker->numberBetween(30, 60);
+            $lunchEnd = $currentTime->copy()->addMinutes($breakDuration);
+            if ($lunchEnd->gt($endDate)) {
+                $lunchEnd = $endDate->copy();
+            }
+
+            $breakHours = $currentTime->diffInMinutes($lunchEnd) / 60;
+            $details[] = [
+                'timecard_id' => $timecard->id,
+                'type' => TimecardDetail::TYPE_BREAK,
+                'start_date' => $currentTime,
+                'end_date' => $lunchEnd,
+                'hours' => round($breakHours, 2),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+
+            if ($lunchEnd->gte($endDate)) {
+                if (count($details) >= $batchSize) {
+                    TimecardDetail::insert($details);
+                    $count += count($details);
+                    $details = [];
+                }
+
+                continue;
+            }
+
+            $currentTime = $lunchEnd->copy();
+
+            // Afternoon work session (until end)
+            $afternoonHours = $currentTime->diffInMinutes($endDate) / 60;
+            $details[] = [
+                'timecard_id' => $timecard->id,
+                'type' => TimecardDetail::TYPE_WORK,
+                'start_date' => $currentTime,
+                'end_date' => $endDate,
+                'hours' => round($afternoonHours, 2),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+
+            if (count($details) >= $batchSize) {
+                TimecardDetail::insert($details);
+                $count += count($details);
+                $details = [];
+            }
         }
 
-        $morningHours = $currentTime->diffInMinutes($morningWorkEnd) / 60;
-        TimecardDetail::create([
-            'timecard_id' => $timecard->id,
-            'type' => TimecardDetail::TYPE_WORK,
-            'start_date' => $currentTime,
-            'end_date' => $morningWorkEnd,
-            'hours' => round($morningHours, 2),
-        ]);
-
-        if ($morningWorkEnd->gte($endDate)) {
-            return;
+        // Insert remaining
+        if (! empty($details)) {
+            TimecardDetail::insert($details);
+            $count += count($details);
         }
 
-        $currentTime = $morningWorkEnd->copy();
-
-        // Lunch break (30-60 minutes)
-        $breakDuration = $faker->numberBetween(30, 60);
-        $lunchEnd = $currentTime->copy()->addMinutes($breakDuration);
-        if ($lunchEnd->gt($endDate)) {
-            $lunchEnd = $endDate->copy();
-        }
-
-        $breakHours = $currentTime->diffInMinutes($lunchEnd) / 60;
-        TimecardDetail::create([
-            'timecard_id' => $timecard->id,
-            'type' => TimecardDetail::TYPE_BREAK,
-            'start_date' => $currentTime,
-            'end_date' => $lunchEnd,
-            'hours' => round($breakHours, 2),
-        ]);
-
-        if ($lunchEnd->gte($endDate)) {
-            return;
-        }
-
-        $currentTime = $lunchEnd->copy();
-
-        // Afternoon work session (until end)
-        $afternoonHours = $currentTime->diffInMinutes($endDate) / 60;
-        TimecardDetail::create([
-            'timecard_id' => $timecard->id,
-            'type' => TimecardDetail::TYPE_WORK,
-            'start_date' => $currentTime,
-            'end_date' => $endDate,
-            'hours' => round($afternoonHours, 2),
-        ]);
+        $this->command->info("  Created {$count} timecard details.");
     }
 }

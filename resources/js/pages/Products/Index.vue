@@ -17,6 +17,7 @@ import { useConfirm } from 'primevue/useconfirm';
 import { computed, reactive, ref, watch } from 'vue';
 import PagePermissionsSplitButton from '@/components/admin/PagePermissionsSplitButton.vue';
 import BatchEditDialog from '@/components/products/BatchEditDialog.vue';
+import DeselectConfirmDialog from '@/components/products/DeselectConfirmDialog.vue';
 import ProductPreviewDialog from '@/components/products/ProductPreviewDialog.vue';
 import SelectAllConfirmDialog from '@/components/products/SelectAllConfirmDialog.vue';
 import SelectionPreviewDialog from '@/components/products/SelectionPreviewDialog.vue';
@@ -90,6 +91,7 @@ const {
     canGoNext,
     positionText,
     openPreview,
+    openPreviewFromSelection,
     navigatePrev,
     navigateNext,
     searchProducts,
@@ -196,6 +198,9 @@ const batchEditVisible = ref(false);
 const selectAllConfirmVisible = ref(false);
 const selectAllLoading = ref(false);
 
+// Deselect confirmation dialog state
+const deselectConfirmVisible = ref(false);
+
 // Selection Preview dialog state
 const selectionPreviewDialogVisible = ref(false);
 
@@ -229,14 +234,24 @@ const allSelectableSelected = computed(() =>
 
 function toggleSelectAll() {
     if (allSelectableSelected.value) {
-        // Deselect all on this page (no dialog)
-        selectedProducts.value = selectedProducts.value.filter(
-            s => !selectableProducts.value.some(p => p.id === s.id)
-        );
+        // Show deselect confirmation dialog
+        deselectConfirmVisible.value = true;
     } else {
-        // Show confirmation dialog
+        // Show select confirmation dialog
         selectAllConfirmVisible.value = true;
     }
+}
+
+function handleDeselectPage() {
+    // Deselect all on this page only
+    selectedProducts.value = selectedProducts.value.filter(
+        s => !selectableProducts.value.some(p => p.id === s.id)
+    );
+}
+
+function handleDeselectAll() {
+    // Deselect all products
+    selectedProducts.value = [];
 }
 
 function handleSelectPage() {
@@ -276,6 +291,11 @@ async function handleSelectAll() {
 
 function openSelectionPreviewDialog() {
     selectionPreviewDialogVisible.value = true;
+}
+
+function handlePreviewFromSelection(productId: number) {
+    const selectedIds = selectedProducts.value.map(p => p.id);
+    openPreviewFromSelection(productId, selectedIds);
 }
 
 function handleDeselectFromPreview(productId: number) {
@@ -772,12 +792,22 @@ function onPage(event: { page: number }) {
             @select-all="handleSelectAll"
         />
 
+        <!-- Deselect Confirmation Dialog -->
+        <DeselectConfirmDialog
+            v-model:visible="deselectConfirmVisible"
+            :page-count="selectableProducts.filter(p => selectedProductIds.has(p.id)).length"
+            :total-count="selectedProducts.length"
+            @deselect-page="handleDeselectPage"
+            @deselect-all="handleDeselectAll"
+        />
+
         <!-- Selection Preview Dialog -->
         <SelectionPreviewDialog
             v-model:visible="selectionPreviewDialogVisible"
             :products="selectedProducts"
             @deselect="handleDeselectFromPreview"
             @clear-all="handleClearAllFromPreview"
+            @preview="handlePreviewFromSelection"
         />
     </AppLayout>
 </template>

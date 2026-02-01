@@ -18,7 +18,7 @@ interface Props {
     loading: boolean;
     searchLoading: boolean;
     searchResults: ProductSearchResult[];
-    currentMode: 'list' | 'search';
+    currentMode: 'list' | 'search' | 'selection';
     canGoBack: boolean;
     canGoPrev: boolean;
     canGoNext: boolean;
@@ -116,8 +116,8 @@ function getTotalStoreQuantity(product: Product): number {
                         v-tooltip.bottom="'Go Back'"
                     />
 
-                    <!-- Prev/Next buttons (list mode only) -->
-                    <template v-if="currentMode === 'list'">
+                    <!-- Prev/Next buttons (list or selection mode) -->
+                    <template v-if="currentMode === 'list' || currentMode === 'selection'">
                         <Button
                             icon="pi pi-chevron-left"
                             severity="secondary"
