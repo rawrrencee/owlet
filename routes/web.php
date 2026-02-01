@@ -1,5 +1,6 @@
 <?php
 
+use App\DataMigration\Http\Controllers\DataMigrationController;
 use App\Http\Controllers\Admin\TimecardController as AdminTimecardController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
@@ -289,6 +290,16 @@ Route::middleware([
             Route::post('timecards/{timecard}/details', [AdminTimecardController::class, 'storeDetail'])->name('timecards.details.store');
             Route::put('timecards/{timecard}/details/{detail}', [AdminTimecardController::class, 'updateDetail'])->name('timecards.details.update');
             Route::delete('timecards/{timecard}/details/{detail}', [AdminTimecardController::class, 'destroyDetail'])->name('timecards.details.destroy');
+        });
+
+        // Data Migration
+        Route::prefix('admin/data-migration')->name('admin.data-migration.')->group(function () {
+            Route::get('/', [DataMigrationController::class, 'index'])->name('index');
+            Route::get('/{modelType}', [DataMigrationController::class, 'show'])->name('show');
+            Route::post('/{modelType}/migrate', [DataMigrationController::class, 'migrate'])->name('migrate');
+            Route::post('/{modelType}/verify', [DataMigrationController::class, 'verify'])->name('verify');
+            Route::post('/{modelType}/retry-failed', [DataMigrationController::class, 'retryFailed'])->name('retry-failed');
+            Route::post('/test-connection', [DataMigrationController::class, 'testConnection'])->name('test-connection');
         });
 
         // Documents

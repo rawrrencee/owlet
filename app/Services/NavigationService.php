@@ -81,6 +81,7 @@ class NavigationService
             $managementItems[] = ['title' => 'Currencies', 'href' => '/currencies', 'icon' => 'Coins'];
             $managementItems[] = ['title' => 'Designations', 'href' => '/designations', 'icon' => 'BadgeCheck'];
             $managementItems[] = ['title' => 'Organisation Chart', 'href' => '/organisation-chart', 'icon' => 'Network'];
+            $managementItems[] = ['title' => 'Data Migration', 'href' => '/admin/data-migration', 'icon' => 'DatabaseZap'];
         }
 
         // Only add the Management section if there are items
