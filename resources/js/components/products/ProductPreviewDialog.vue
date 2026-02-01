@@ -94,6 +94,7 @@ function getTotalStoreQuantity(product: Product): number {
     <Dialog
         :visible="visible"
         modal
+        dismissable-mask
         :style="{ width: '50rem' }"
         :breakpoints="{ '1280px': '90vw', '640px': '100vw' }"
         :closable="false"

@@ -45,8 +45,12 @@ function handleDateClick(date: string) {
 }
 
 function handleMonthChange(month: Date) {
-    const monthString = month.toISOString().split('T')[0];
-    router.get('/management/timecards', { month: monthString }, { preserveState: true });
+    // Format date in local timezone to avoid UTC conversion issues
+    const year = month.getFullYear();
+    const monthNum = String(month.getMonth() + 1).padStart(2, '0');
+    const day = String(month.getDate()).padStart(2, '0');
+    const monthString = `${year}-${monthNum}-${day}`;
+    router.get('/management/timecards', { month: monthString }, { preserveState: false });
 }
 
 function handleEmployeeSearch() {

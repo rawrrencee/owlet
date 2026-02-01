@@ -433,7 +433,7 @@ function confirmRestore(product: Product) {
 }
 
 function onRowClick(event: { data: Product }) {
-    navigateToView(event.data);
+    openPreview(event.data);
 }
 
 function onPage(event: { page: number; rows: number }) {
@@ -794,13 +794,13 @@ function onPage(event: { page: number; rows: number }) {
                         </div>
                         <div v-else class="flex justify-end gap-1">
                             <Button
-                                icon="pi pi-eye"
+                                icon="pi pi-external-link"
                                 severity="info"
                                 text
                                 rounded
                                 size="small"
-                                @click.stop="openPreview(data)"
-                                v-tooltip.top="'Quick Preview'"
+                                @click.stop="navigateToView(data)"
+                                v-tooltip.top="'View Full Page'"
                             />
                             <Button
                                 v-if="canEdit"
@@ -857,11 +857,11 @@ function onPage(event: { page: number; rows: number }) {
                         </div>
                         <div v-else-if="!isDeleted(data)" class="flex gap-2 pt-2">
                             <Button
-                                label="Preview"
-                                icon="pi pi-eye"
+                                label="View"
+                                icon="pi pi-external-link"
                                 severity="info"
                                 size="small"
-                                @click="openPreview(data)"
+                                @click="navigateToView(data)"
                                 class="flex-1"
                             />
                             <Button
