@@ -33,6 +33,7 @@ interface Filters {
     category_id?: string | number;
     supplier_id?: string | number;
     show_deleted?: boolean;
+    per_page?: number;
 }
 
 interface SelectionProduct {
@@ -68,6 +69,8 @@ const filters = reactive({
     supplier_id: props.filters?.supplier_id ?? '',
     showDeleted: props.filters?.show_deleted ?? false,
 });
+
+const perPage = ref(props.products.per_page ?? 15);
 
 // Product preview composable
 const filtersForPreview = computed(() => ({
@@ -166,6 +169,7 @@ function applyFilters() {
     if (filters.category_id) params.category_id = filters.category_id;
     if (filters.supplier_id) params.supplier_id = filters.supplier_id;
     if (filters.showDeleted) params.show_deleted = true;
+    if (perPage.value !== 15) params.per_page = perPage.value;
     router.get('/products', params, { preserveState: true });
 }
 
@@ -398,7 +402,8 @@ function onRowClick(event: { data: Product }) {
     navigateToView(event.data);
 }
 
-function onPage(event: { page: number }) {
+function onPage(event: { page: number; rows: number }) {
+    perPage.value = event.rows;
     const params: Record<string, string | number | boolean> = { page: event.page + 1 };
     if (filters.search) params.search = filters.search;
     if (filters.status) params.status = filters.status;
@@ -406,6 +411,7 @@ function onPage(event: { page: number }) {
     if (filters.category_id) params.category_id = filters.category_id;
     if (filters.supplier_id) params.supplier_id = filters.supplier_id;
     if (filters.showDeleted) params.show_deleted = true;
+    if (event.rows !== 15) params.per_page = event.rows;
     router.get('/products', params, { preserveState: true });
 }
 </script>
@@ -499,9 +505,10 @@ function onPage(event: { page: number }) {
                 dataKey="id"
                 :lazy="true"
                 :paginator="true"
-                :rows="15"
+                :rows="perPage"
+                :rows-per-page-options="[10, 15, 25, 50]"
                 :total-records="products.total"
-                :first="((products.current_page - 1) * 15)"
+                :first="((products.current_page - 1) * perPage)"
                 @page="onPage"
                 @row-click="onRowClick"
                 striped-rows

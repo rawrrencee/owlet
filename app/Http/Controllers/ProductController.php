@@ -39,6 +39,7 @@ class ProductController extends Controller
         $categoryId = $request->query('category_id', '');
         $supplierId = $request->query('supplier_id', '');
         $showDeleted = $request->boolean('show_deleted', false);
+        $perPage = min(max($request->integer('per_page', 15), 10), 100);
 
         $query = Product::with([
             'brand:id,brand_name,brand_code',
@@ -77,7 +78,7 @@ class ProductController extends Controller
 
         $products = $query
             ->orderBy('product_name')
-            ->paginate(15)
+            ->paginate($perPage)
             ->withQueryString();
 
         if ($this->wantsJson($request)) {
@@ -108,6 +109,7 @@ class ProductController extends Controller
                 'category_id' => $categoryId,
                 'supplier_id' => $supplierId,
                 'show_deleted' => $showDeleted,
+                'per_page' => $perPage,
             ],
         ]);
     }

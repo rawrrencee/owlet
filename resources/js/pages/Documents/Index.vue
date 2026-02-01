@@ -43,6 +43,7 @@ interface Filters {
     status?: string;
     company?: string | number;
     show_deleted?: boolean;
+    per_page?: number;
 }
 
 interface Props {
@@ -60,6 +61,8 @@ const filters = reactive({
     company: props.filters?.company ?? '',
     showDeleted: props.filters?.show_deleted ?? false,
 });
+
+const perPage = ref(props.documents.per_page ?? 15);
 
 const statusOptions = [
     { label: 'All', value: '' },
@@ -111,6 +114,7 @@ function applyFilters() {
     if (filters.status) params.status = filters.status;
     if (filters.company) params.company = filters.company;
     if (filters.showDeleted) params.show_deleted = true;
+    if (perPage.value !== 15) params.per_page = perPage.value;
     router.get('/documents', params, { preserveState: true });
 }
 
@@ -180,7 +184,8 @@ function navigateToInsuranceEdit(insurance: InsuranceWithEmployee) {
     router.get(`/documents/insurances/${insurance.id}/edit`);
 }
 
-function onPage(event: { page: number }) {
+function onPage(event: { page: number; rows: number }) {
+    perPage.value = event.rows;
     const params: Record<string, string | number | boolean> = {
         type: props.type,
         page: event.page + 1,
@@ -189,6 +194,7 @@ function onPage(event: { page: number }) {
     if (filters.status) params.status = filters.status;
     if (filters.company) params.company = filters.company;
     if (filters.showDeleted) params.show_deleted = true;
+    if (event.rows !== 15) params.per_page = event.rows;
     router.get('/documents', params, { preserveState: true });
 }
 
@@ -282,9 +288,10 @@ function navigateToCreate() {
                 dataKey="id"
                 :lazy="true"
                 :paginator="true"
-                :rows="15"
+                :rows="perPage"
+                :rows-per-page-options="[10, 15, 25, 50]"
                 :total-records="documents.total"
-                :first="(documents.current_page - 1) * 15"
+                :first="(documents.current_page - 1) * perPage"
                 @page="onPage"
                 @row-click="onContractRowClick"
                 striped-rows
@@ -411,9 +418,10 @@ function navigateToCreate() {
                 dataKey="id"
                 :lazy="true"
                 :paginator="true"
-                :rows="15"
+                :rows="perPage"
+                :rows-per-page-options="[10, 15, 25, 50]"
                 :total-records="documents.total"
-                :first="(documents.current_page - 1) * 15"
+                :first="(documents.current_page - 1) * perPage"
                 @page="onPage"
                 @row-click="onInsuranceRowClick"
                 striped-rows

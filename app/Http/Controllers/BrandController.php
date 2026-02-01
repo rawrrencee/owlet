@@ -26,6 +26,7 @@ class BrandController extends Controller
         $status = $request->query('status', '');
         $countryId = $request->query('country_id', '');
         $showDeleted = $request->boolean('show_deleted', false);
+        $perPage = min(max($request->integer('per_page', 15), 10), 100);
 
         $query = Brand::with(['country']);
 
@@ -53,7 +54,7 @@ class BrandController extends Controller
 
         $brands = $query
             ->orderBy('brand_name')
-            ->paginate(15)
+            ->paginate($perPage)
             ->withQueryString();
 
         if ($this->wantsJson($request)) {
@@ -78,6 +79,7 @@ class BrandController extends Controller
                 'status' => $status,
                 'country_id' => $countryId,
                 'show_deleted' => $showDeleted,
+                'per_page' => $perPage,
             ],
         ]);
     }

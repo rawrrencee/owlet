@@ -41,6 +41,7 @@ class UserController extends Controller
         $status = $request->query('status', '');
         $companyId = $request->query('company', '');
         $showDeleted = $request->boolean('show_deleted');
+        $perPage = min(max($request->integer('per_page', 15), 10), 100);
 
         if ($type === 'customers') {
             $query = Customer::query();
@@ -58,7 +59,7 @@ class UserController extends Controller
             $users = $query
                 ->orderBy('last_name')
                 ->orderBy('first_name')
-                ->paginate(15)
+                ->paginate($perPage)
                 ->withQueryString();
 
             if ($this->wantsJson($request)) {
@@ -100,7 +101,7 @@ class UserController extends Controller
             $users = $query
                 ->orderBy('last_name')
                 ->orderBy('first_name')
-                ->paginate(15)
+                ->paginate($perPage)
                 ->withQueryString();
 
             if ($this->wantsJson($request)) {
@@ -132,6 +133,7 @@ class UserController extends Controller
                 'status' => $status,
                 'company' => $companyId,
                 'show_deleted' => $showDeleted,
+                'per_page' => $perPage,
             ],
             'companies' => $companies,
         ]);

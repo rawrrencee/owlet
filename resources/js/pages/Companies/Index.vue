@@ -21,6 +21,7 @@ interface Filters {
     search?: string;
     status?: string;
     show_deleted?: boolean;
+    per_page?: number;
 }
 
 interface Props {
@@ -35,6 +36,8 @@ const filters = reactive({
     status: props.filters?.status ?? '',
     showDeleted: props.filters?.show_deleted ?? false,
 });
+
+const perPage = ref(props.companies.per_page ?? 15);
 
 const statusOptions = [
     { label: 'All', value: '' },
@@ -73,6 +76,7 @@ function applyFilters() {
     if (filters.search) params.search = filters.search;
     if (filters.status) params.status = filters.status;
     if (filters.showDeleted) params.show_deleted = true;
+    if (perPage.value !== 15) params.per_page = perPage.value;
     router.get('/companies', params, { preserveState: true });
 }
 
@@ -159,11 +163,13 @@ function confirmRestore(company: Company) {
     });
 }
 
-function onPage(event: { page: number }) {
+function onPage(event: { page: number; rows: number }) {
+    perPage.value = event.rows;
     const params: Record<string, string | number | boolean> = { page: event.page + 1 };
     if (filters.search) params.search = filters.search;
     if (filters.status) params.status = filters.status;
     if (filters.showDeleted) params.show_deleted = true;
+    if (event.rows !== 15) params.per_page = event.rows;
     router.get('/companies', params, { preserveState: true });
 }
 </script>
@@ -227,9 +233,10 @@ function onPage(event: { page: number }) {
                 dataKey="id"
                 :lazy="true"
                 :paginator="true"
-                :rows="15"
+                :rows="perPage"
+                :rows-per-page-options="[10, 15, 25, 50]"
                 :total-records="companies.total"
-                :first="((companies.current_page - 1) * 15)"
+                :first="((companies.current_page - 1) * perPage)"
                 @page="onPage"
                 @row-click="(e) => navigateToView(e.data)"
                 striped-rows

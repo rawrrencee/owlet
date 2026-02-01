@@ -20,6 +20,7 @@ class DesignationController extends Controller
     public function index(Request $request): InertiaResponse|JsonResponse
     {
         $search = $request->query('search', '');
+        $perPage = min(max($request->integer('per_page', 15), 10), 100);
 
         $query = Designation::query();
 
@@ -32,7 +33,7 @@ class DesignationController extends Controller
 
         $designations = $query
             ->orderBy('designation_name')
-            ->paginate(15)
+            ->paginate($perPage)
             ->withQueryString();
 
         if ($this->wantsJson($request)) {
@@ -51,6 +52,7 @@ class DesignationController extends Controller
             'designations' => $transformedDesignations,
             'filters' => [
                 'search' => $search,
+                'per_page' => $perPage,
             ],
         ]);
     }

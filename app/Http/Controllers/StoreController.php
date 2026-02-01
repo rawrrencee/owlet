@@ -50,6 +50,7 @@ class StoreController extends Controller
         $status = $request->query('status', '');
         $companyId = $request->query('company_id', '');
         $showDeleted = $request->boolean('show_deleted', false);
+        $perPage = min(max($request->integer('per_page', 15), 10), 100);
 
         $query = Store::with(['company', 'defaultStoreCurrency.currency', 'storeCurrencies']);
 
@@ -83,7 +84,7 @@ class StoreController extends Controller
 
         $stores = $query
             ->orderBy('store_name')
-            ->paginate(15)
+            ->paginate($perPage)
             ->withQueryString();
 
         if ($this->wantsJson($request)) {
@@ -110,6 +111,7 @@ class StoreController extends Controller
                 'status' => $status,
                 'company_id' => $companyId,
                 'show_deleted' => $showDeleted,
+                'per_page' => $perPage,
             ],
         ]);
     }

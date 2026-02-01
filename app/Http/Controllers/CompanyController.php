@@ -33,6 +33,7 @@ class CompanyController extends Controller
         $search = $request->query('search', '');
         $status = $request->query('status', '');
         $showDeleted = $request->boolean('show_deleted', false);
+        $perPage = min(max($request->integer('per_page', 15), 10), 100);
 
         $query = Company::query();
 
@@ -56,7 +57,7 @@ class CompanyController extends Controller
 
         $companies = $query
             ->orderBy('company_name')
-            ->paginate(15)
+            ->paginate($perPage)
             ->withQueryString();
 
         if ($this->wantsJson($request)) {
@@ -77,6 +78,7 @@ class CompanyController extends Controller
                 'search' => $search,
                 'status' => $status,
                 'show_deleted' => $showDeleted,
+                'per_page' => $perPage,
             ],
         ]);
     }

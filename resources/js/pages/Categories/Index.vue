@@ -22,6 +22,7 @@ interface Filters {
     status?: string;
     show_deleted?: boolean;
     search_subcategories?: boolean;
+    per_page?: number;
 }
 
 interface Props {
@@ -41,6 +42,8 @@ const filters = reactive({
     showDeleted: props.filters?.show_deleted ?? false,
     searchSubcategories: props.filters?.search_subcategories ?? false,
 });
+
+const perPage = ref(props.categories.per_page ?? 15);
 
 const statusOptions = [
     { label: 'All', value: '' },
@@ -87,6 +90,7 @@ function applyFilters() {
     if (filters.status) params.status = filters.status;
     if (filters.showDeleted) params.show_deleted = true;
     if (filters.searchSubcategories) params.search_subcategories = true;
+    if (perPage.value !== 15) params.per_page = perPage.value;
     router.get('/categories', params, { preserveState: true });
 }
 
@@ -169,12 +173,14 @@ function onRowClick(event: { data: Category }) {
     navigateToView(event.data);
 }
 
-function onPage(event: { page: number }) {
+function onPage(event: { page: number; rows: number }) {
+    perPage.value = event.rows;
     const params: Record<string, string | number | boolean> = { page: event.page + 1 };
     if (filters.search) params.search = filters.search;
     if (filters.status) params.status = filters.status;
     if (filters.showDeleted) params.show_deleted = true;
     if (filters.searchSubcategories) params.search_subcategories = true;
+    if (event.rows !== 15) params.per_page = event.rows;
     router.get('/categories', params, { preserveState: true });
 }
 </script>
@@ -242,9 +248,10 @@ function onPage(event: { page: number }) {
                 dataKey="id"
                 :lazy="true"
                 :paginator="true"
-                :rows="15"
+                :rows="perPage"
+                :rows-per-page-options="[10, 15, 25, 50]"
                 :total-records="categories.total"
-                :first="((categories.current_page - 1) * 15)"
+                :first="((categories.current_page - 1) * perPage)"
                 @page="onPage"
                 @row-click="onRowClick"
                 striped-rows

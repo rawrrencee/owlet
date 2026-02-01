@@ -26,6 +26,7 @@ class SupplierController extends Controller
         $status = $request->query('status', '');
         $countryId = $request->query('country_id', '');
         $showDeleted = $request->boolean('show_deleted', false);
+        $perPage = min(max($request->integer('per_page', 15), 10), 100);
 
         $query = Supplier::with(['country']);
 
@@ -52,7 +53,7 @@ class SupplierController extends Controller
 
         $suppliers = $query
             ->orderBy('supplier_name')
-            ->paginate(15)
+            ->paginate($perPage)
             ->withQueryString();
 
         if ($this->wantsJson($request)) {
@@ -77,6 +78,7 @@ class SupplierController extends Controller
                 'status' => $status,
                 'country_id' => $countryId,
                 'show_deleted' => $showDeleted,
+                'per_page' => $perPage,
             ],
         ]);
     }

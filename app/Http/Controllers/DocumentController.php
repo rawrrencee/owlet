@@ -26,7 +26,9 @@ class DocumentController extends Controller
         $type = $request->get('type', 'contracts');
         $filters = $request->only(['search', 'status', 'company']);
         $showDeleted = $request->boolean('show_deleted');
+        $perPage = min(max($request->integer('per_page', 15), 10), 100);
         $filters['show_deleted'] = $showDeleted;
+        $filters['per_page'] = $perPage;
 
         if ($type === 'insurances') {
             $data = $this->getInsurances($filters);
@@ -51,6 +53,7 @@ class DocumentController extends Controller
     private function getContracts(array $filters): array
     {
         $showDeleted = ! empty($filters['show_deleted']);
+        $perPage = $filters['per_page'] ?? 15;
 
         $query = EmployeeContract::query()
             ->with(['employee' => fn ($q) => $showDeleted ? $q->withTrashed() : $q, 'company'])
@@ -96,7 +99,7 @@ class DocumentController extends Controller
             $query->where('company_id', $filters['company']);
         }
 
-        $contracts = $query->paginate(15)->withQueryString();
+        $contracts = $query->paginate($perPage)->withQueryString();
 
         return [
             'data' => EmployeeContractResource::collection($contracts->items())->resolve(),
@@ -110,6 +113,7 @@ class DocumentController extends Controller
     private function getInsurances(array $filters): array
     {
         $showDeleted = ! empty($filters['show_deleted']);
+        $perPage = $filters['per_page'] ?? 15;
 
         $query = EmployeeInsurance::query()
             ->with(['employee' => fn ($q) => $showDeleted ? $q->withTrashed() : $q])
@@ -151,7 +155,7 @@ class DocumentController extends Controller
             }
         }
 
-        $insurances = $query->paginate(15)->withQueryString();
+        $insurances = $query->paginate($perPage)->withQueryString();
 
         return [
             'data' => EmployeeInsuranceResource::collection($insurances->items())->resolve(),

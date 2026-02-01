@@ -27,6 +27,7 @@ class CategoryController extends Controller
         $status = $request->query('status', '');
         $showDeleted = $request->boolean('show_deleted', false);
         $searchSubcategories = $request->boolean('search_subcategories', false);
+        $perPage = min(max($request->integer('per_page', 15), 10), 100);
 
         $query = Category::with(['subcategories' => function ($q) {
             $q->orderBy('is_default', 'desc')->orderBy('subcategory_name');
@@ -59,7 +60,7 @@ class CategoryController extends Controller
 
         $categories = $query
             ->orderBy('category_name')
-            ->paginate(15)
+            ->paginate($perPage)
             ->withQueryString();
 
         if ($this->wantsJson($request)) {
@@ -81,6 +82,7 @@ class CategoryController extends Controller
                 'status' => $status,
                 'show_deleted' => $showDeleted,
                 'search_subcategories' => $searchSubcategories,
+                'per_page' => $perPage,
             ],
         ]);
     }

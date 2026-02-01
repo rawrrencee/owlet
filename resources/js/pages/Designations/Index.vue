@@ -14,6 +14,7 @@ import { type BreadcrumbItem, type Designation, type PaginatedData } from '@/typ
 
 interface Filters {
     search?: string;
+    per_page?: number;
 }
 
 interface Props {
@@ -26,6 +27,8 @@ const props = defineProps<Props>();
 const filters = reactive({
     search: props.filters?.search ?? '',
 });
+
+const perPage = ref(props.designations.per_page ?? 15);
 
 let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -42,6 +45,7 @@ watch(
 function applyFilters() {
     const params: Record<string, string | number> = {};
     if (filters.search) params.search = filters.search;
+    if (perPage.value !== 15) params.per_page = perPage.value;
     router.get('/designations', params, { preserveState: true });
 }
 
@@ -88,9 +92,11 @@ function confirmDelete(designation: Designation) {
     });
 }
 
-function onPage(event: { page: number }) {
+function onPage(event: { page: number; rows: number }) {
+    perPage.value = event.rows;
     const params: Record<string, string | number> = { page: event.page + 1 };
     if (filters.search) params.search = filters.search;
+    if (event.rows !== 15) params.per_page = event.rows;
     router.get('/designations', params, { preserveState: true });
 }
 </script>
@@ -139,9 +145,10 @@ function onPage(event: { page: number }) {
                 dataKey="id"
                 :lazy="true"
                 :paginator="true"
-                :rows="15"
+                :rows="perPage"
+                :rows-per-page-options="[10, 15, 25, 50]"
                 :total-records="designations.total"
-                :first="((designations.current_page - 1) * 15)"
+                :first="((designations.current_page - 1) * perPage)"
                 @page="onPage"
                 striped-rows
                 size="small"

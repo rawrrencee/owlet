@@ -24,6 +24,7 @@ interface Filters {
     status?: string;
     company_id?: string | number;
     show_deleted?: boolean;
+    per_page?: number;
 }
 
 interface Props {
@@ -44,6 +45,8 @@ const filters = reactive({
     company_id: props.filters?.company_id ?? '',
     showDeleted: props.filters?.show_deleted ?? false,
 });
+
+const perPage = ref(props.stores.per_page ?? 15);
 
 const statusOptions = [
     { label: 'All', value: '' },
@@ -95,6 +98,7 @@ function applyFilters() {
     if (filters.status) params.status = filters.status;
     if (filters.company_id) params.company_id = filters.company_id;
     if (filters.showDeleted) params.show_deleted = true;
+    if (perPage.value !== 15) params.per_page = perPage.value;
     router.get('/stores', params, { preserveState: true });
 }
 
@@ -181,12 +185,14 @@ function onRowClick(event: { data: Store }) {
     navigateToView(event.data);
 }
 
-function onPage(event: { page: number }) {
+function onPage(event: { page: number; rows: number }) {
+    perPage.value = event.rows;
     const params: Record<string, string | number | boolean> = { page: event.page + 1 };
     if (filters.search) params.search = filters.search;
     if (filters.status) params.status = filters.status;
     if (filters.company_id) params.company_id = filters.company_id;
     if (filters.showDeleted) params.show_deleted = true;
+    if (event.rows !== 15) params.per_page = event.rows;
     router.get('/stores', params, { preserveState: true });
 }
 </script>
@@ -259,9 +265,10 @@ function onPage(event: { page: number }) {
                 dataKey="id"
                 :lazy="true"
                 :paginator="true"
-                :rows="15"
+                :rows="perPage"
+                :rows-per-page-options="[10, 15, 25, 50]"
                 :total-records="stores.total"
-                :first="((stores.current_page - 1) * 15)"
+                :first="((stores.current_page - 1) * perPage)"
                 @page="onPage"
                 @row-click="onRowClick"
                 striped-rows
