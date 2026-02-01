@@ -2,29 +2,33 @@
 
 namespace Database\Seeders;
 
-use App\Models\Currency;
+use App\Services\CurrencyService;
 use Illuminate\Database\Seeder;
 
 class CurrencySeeder extends Seeder
 {
     public function run(): void
     {
-        $currencies = [
-            // Asia & Oceania
+        $fallbackCurrencies = [
+            // Priority Asian currencies
             ['code' => 'SGD', 'name' => 'Singapore Dollar', 'symbol' => 'S$', 'decimal_places' => 2],
+            ['code' => 'MYR', 'name' => 'Malaysian Ringgit', 'symbol' => 'RM', 'decimal_places' => 2],
+
+            // Other Asian currencies
             ['code' => 'JPY', 'name' => 'Japanese Yen', 'symbol' => "\u{00A5}", 'decimal_places' => 0],
             ['code' => 'CNY', 'name' => 'Chinese Yuan', 'symbol' => "\u{00A5}", 'decimal_places' => 2],
             ['code' => 'HKD', 'name' => 'Hong Kong Dollar', 'symbol' => 'HK$', 'decimal_places' => 2],
             ['code' => 'KRW', 'name' => 'South Korean Won', 'symbol' => "\u{20A9}", 'decimal_places' => 0],
-            ['code' => 'INR', 'name' => 'Indian Rupee', 'symbol' => "\u{20B9}", 'decimal_places' => 2],
-            ['code' => 'IDR', 'name' => 'Indonesian Rupiah', 'symbol' => 'Rp', 'decimal_places' => 0],
-            ['code' => 'MYR', 'name' => 'Malaysian Ringgit', 'symbol' => 'RM', 'decimal_places' => 2],
+            ['code' => 'TWD', 'name' => 'New Taiwan Dollar', 'symbol' => 'NT$', 'decimal_places' => 2],
             ['code' => 'THB', 'name' => 'Thai Baht', 'symbol' => "\u{0E3F}", 'decimal_places' => 2],
+            ['code' => 'IDR', 'name' => 'Indonesian Rupiah', 'symbol' => 'Rp', 'decimal_places' => 0],
             ['code' => 'PHP', 'name' => 'Philippine Peso', 'symbol' => "\u{20B1}", 'decimal_places' => 2],
             ['code' => 'VND', 'name' => 'Vietnamese Dong', 'symbol' => "\u{20AB}", 'decimal_places' => 0],
+            ['code' => 'INR', 'name' => 'Indian Rupee', 'symbol' => "\u{20B9}", 'decimal_places' => 2],
+
+            // Oceania
             ['code' => 'AUD', 'name' => 'Australian Dollar', 'symbol' => 'A$', 'decimal_places' => 2],
             ['code' => 'NZD', 'name' => 'New Zealand Dollar', 'symbol' => 'NZ$', 'decimal_places' => 2],
-            ['code' => 'TWD', 'name' => 'New Taiwan Dollar', 'symbol' => 'NT$', 'decimal_places' => 2],
 
             // North America
             ['code' => 'USD', 'name' => 'US Dollar', 'symbol' => '$', 'decimal_places' => 2],
@@ -55,11 +59,11 @@ class CurrencySeeder extends Seeder
             ['code' => 'COP', 'name' => 'Colombian Peso', 'symbol' => '$', 'decimal_places' => 0],
         ];
 
-        foreach ($currencies as $currency) {
-            Currency::firstOrCreate(
-                ['code' => $currency['code']],
-                $currency
-            );
-        }
+        /** @var CurrencyService $currencyService */
+        $currencyService = app(CurrencyService::class);
+        $result = $currencyService->syncCurrenciesFromApi($fallbackCurrencies);
+
+        $source = $result['from_api'] ? 'API' : 'fallback data';
+        $this->command?->info("Synced {$result['synced']} currencies from {$source}");
     }
 }

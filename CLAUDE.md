@@ -30,6 +30,7 @@ Use these references to understand:
 - **Permissions:** `docs/PERMISSIONS.md` - Page and store access control
 - **Product Model:** `docs/PRODUCT.md` - Product (inventory item) model specification
 - **Audit Trail:** `docs/AUDIT_TRAIL.md` - Record creation/modification tracking
+- **Currencies:** `docs/CURRENCIES.md` - Currency management and exchange rate API integration
 
 ## Frontend Request Guidelines
 

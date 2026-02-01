@@ -17,6 +17,8 @@ class Currency extends Model
         'symbol',
         'decimal_places',
         'active',
+        'exchange_rate',
+        'exchange_rate_updated_at',
     ];
 
     protected function casts(): array
@@ -24,6 +26,8 @@ class Currency extends Model
         return [
             'decimal_places' => 'integer',
             'active' => 'boolean',
+            'exchange_rate' => 'decimal:10',
+            'exchange_rate_updated_at' => 'datetime',
         ];
     }
 

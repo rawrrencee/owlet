@@ -15,28 +15,22 @@ class DesignationSeeder extends Seeder
     {
         $this->command->info('Seeding designations...');
 
-        // Job titles are predefined as they represent standard positions
         $designations = [
-            ['designation_name' => 'Store Manager', 'designation_code' => 'MGR'],
-            ['designation_name' => 'Assistant Manager', 'designation_code' => 'AMGR'],
-            ['designation_name' => 'Sales Associate', 'designation_code' => 'SA'],
-            ['designation_name' => 'Cashier', 'designation_code' => 'CSH'],
-            ['designation_name' => 'Stock Clerk', 'designation_code' => 'STK'],
-            ['designation_name' => 'Senior Sales Associate', 'designation_code' => 'SSA'],
-            ['designation_name' => 'Inventory Specialist', 'designation_code' => 'INV'],
-            ['designation_name' => 'Customer Service Rep', 'designation_code' => 'CSR'],
+            ['designation_name' => 'Part Time Sales Associate', 'designation_code' => 'PAR'],
+            ['designation_name' => 'Sales Associate', 'designation_code' => 'SAL'],
+            ['designation_name' => 'Supervisor', 'designation_code' => 'SUP'],
+            ['designation_name' => 'Manager', 'designation_code' => 'MAN'],
+            ['designation_name' => 'Director', 'designation_code' => 'DIR'],
+            ['designation_name' => 'Web Technology Engineer', 'designation_code' => 'WEB'],
         ];
 
-        $count = config('seeders.counts.designations', 5);
-        $designationsToSeed = array_slice($designations, 0, $count);
-
-        foreach ($designationsToSeed as $designation) {
+        foreach ($designations as $designation) {
             Designation::firstOrCreate(
                 ['designation_code' => $designation['designation_code']],
                 $designation
             );
         }
 
-        $this->command->info("  Created {$count} designations.");
+        $this->command->info('  Created '.count($designations).' designations.');
     }
 }

@@ -16,6 +16,8 @@ class CurrencyResource extends JsonResource
             'symbol' => $this->symbol,
             'decimal_places' => $this->decimal_places,
             'active' => $this->active,
+            'exchange_rate' => $this->exchange_rate,
+            'exchange_rate_updated_at' => $this->exchange_rate_updated_at?->toIso8601String(),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

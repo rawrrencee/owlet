@@ -78,6 +78,7 @@ class NavigationService
             $managementItems[] = ['title' => 'Documents', 'href' => '/documents', 'icon' => 'Folder'];
             $managementItems[] = ['title' => 'Timecards', 'href' => '/management/timecards', 'icon' => 'CalendarClock'];
             $managementItems[] = ['title' => 'Companies', 'href' => '/companies', 'icon' => 'Building2'];
+            $managementItems[] = ['title' => 'Currencies', 'href' => '/currencies', 'icon' => 'Coins'];
             $managementItems[] = ['title' => 'Designations', 'href' => '/designations', 'icon' => 'BadgeCheck'];
             $managementItems[] = ['title' => 'Organisation Chart', 'href' => '/organisation-chart', 'icon' => 'Network'];
         }

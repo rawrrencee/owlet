@@ -5,6 +5,8 @@ export interface Currency {
     symbol: string;
     decimal_places: number;
     active: boolean;
+    exchange_rate: number | string | null;
+    exchange_rate_updated_at: string | null;
     created_at: string | null;
     updated_at: string | null;
 }
