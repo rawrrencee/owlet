@@ -18,7 +18,9 @@ export function usePermissions() {
      */
     const canAccessPage = (permission: string): boolean => {
         if (isAdmin.value) return true;
-        return permissions.value?.page_permissions?.includes(permission) ?? false;
+        return (
+            permissions.value?.page_permissions?.includes(permission) ?? false
+        );
     };
 
     /**
@@ -26,7 +28,10 @@ export function usePermissions() {
      * If accessPermission is provided, checks for that specific permission.
      * Admins always have access.
      */
-    const canAccessStore = (storeId: number, accessPermission?: string): boolean => {
+    const canAccessStore = (
+        storeId: number,
+        accessPermission?: string,
+    ): boolean => {
         if (isAdmin.value) return true;
 
         const storePerms = permissions.value?.store_permissions?.[storeId];

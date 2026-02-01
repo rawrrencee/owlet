@@ -8,7 +8,11 @@ import InputText from 'primevue/inputtext';
 import Tag from 'primevue/tag';
 import { computed, ref } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type AvailableSections, type BreadcrumbItem, type SubordinateInfo } from '@/types';
+import {
+    type AvailableSections,
+    type BreadcrumbItem,
+    type SubordinateInfo,
+} from '@/types';
 
 interface Props {
     subordinates: SubordinateInfo[];
@@ -26,7 +30,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 const searchQuery = ref('');
 
 // Flatten subordinates tree into a single list for grid display
-function flattenSubordinates(subs: SubordinateInfo[], depth = 0): Array<SubordinateInfo & { depth: number }> {
+function flattenSubordinates(
+    subs: SubordinateInfo[],
+    depth = 0,
+): Array<SubordinateInfo & { depth: number }> {
     const result: Array<SubordinateInfo & { depth: number }> = [];
     for (const sub of subs) {
         result.push({ ...sub, depth });
@@ -48,14 +55,18 @@ const flattenedSubordinates = computed(() => {
     const query = searchQuery.value.toLowerCase();
     return flattened.filter((sub) => {
         const nameMatch = sub.name.toLowerCase().includes(query);
-        const employeeNumberMatch = sub.employee_number?.toLowerCase().includes(query);
+        const employeeNumberMatch = sub.employee_number
+            ?.toLowerCase()
+            .includes(query);
         const emailMatch = sub.email?.toLowerCase().includes(query);
         return nameMatch || employeeNumberMatch || emailMatch;
     });
 });
 
 // Count total team members
-const totalTeamMembers = computed(() => flattenSubordinates(props.subordinates).length);
+const totalTeamMembers = computed(
+    () => flattenSubordinates(props.subordinates).length,
+);
 
 function getInitials(name: string): string {
     const words = name.split(' ');
@@ -83,10 +94,16 @@ function getSubordinateCountLabel(count: number): string {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <div class="flex items-center gap-3">
                     <h1 class="heading-lg">My Team</h1>
-                    <Tag v-if="totalTeamMembers > 0" :value="`${totalTeamMembers} member${totalTeamMembers === 1 ? '' : 's'}`" severity="secondary" />
+                    <Tag
+                        v-if="totalTeamMembers > 0"
+                        :value="`${totalTeamMembers} member${totalTeamMembers === 1 ? '' : 's'}`"
+                        severity="secondary"
+                    />
                 </div>
             </div>
 
@@ -104,7 +121,10 @@ function getSubordinateCountLabel(count: number): string {
             </div>
 
             <!-- Team Members Grid -->
-            <div v-if="flattenedSubordinates.length > 0" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div
+                v-if="flattenedSubordinates.length > 0"
+                class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            >
                 <div
                     v-for="member in flattenedSubordinates"
                     :key="member.id"
@@ -128,20 +148,34 @@ function getSubordinateCountLabel(count: number): string {
                             class="shrink-0 bg-primary/10 text-primary"
                         />
                         <div class="min-w-0 flex-1">
-                            <h3 class="truncate font-semibold text-foreground group-hover:text-primary">
+                            <h3
+                                class="truncate font-semibold text-foreground group-hover:text-primary"
+                            >
                                 {{ member.name }}
                             </h3>
-                            <p v-if="member.employee_number" class="truncate text-sm text-muted-foreground">
+                            <p
+                                v-if="member.employee_number"
+                                class="truncate text-sm text-muted-foreground"
+                            >
                                 #{{ member.employee_number }}
                             </p>
-                            <p v-if="member.email" class="truncate text-xs text-muted-foreground">
+                            <p
+                                v-if="member.email"
+                                class="truncate text-xs text-muted-foreground"
+                            >
                                 {{ member.email }}
                             </p>
                         </div>
                     </div>
 
                     <!-- Companies Tags -->
-                    <div v-if="canViewSection('companies') && member.companies?.length" class="mt-3 flex flex-wrap gap-1">
+                    <div
+                        v-if="
+                            canViewSection('companies') &&
+                            member.companies?.length
+                        "
+                        class="mt-3 flex flex-wrap gap-1"
+                    >
                         <Tag
                             v-for="company in member.companies.slice(0, 2)"
                             :key="company.id"
@@ -158,7 +192,10 @@ function getSubordinateCountLabel(count: number): string {
                     </div>
 
                     <!-- Stores Tags -->
-                    <div v-if="canViewSection('stores') && member.stores?.length" class="mt-2 flex flex-wrap gap-1">
+                    <div
+                        v-if="canViewSection('stores') && member.stores?.length"
+                        class="mt-2 flex flex-wrap gap-1"
+                    >
                         <Tag
                             v-for="store in member.stores.slice(0, 2)"
                             :key="store.id"
@@ -175,27 +212,41 @@ function getSubordinateCountLabel(count: number): string {
                     </div>
 
                     <!-- Footer with Subordinate Count -->
-                    <div v-if="member.subordinates?.length" class="mt-3 flex items-center gap-1.5 border-t border-border pt-3 text-sm text-muted-foreground">
+                    <div
+                        v-if="member.subordinates?.length"
+                        class="mt-3 flex items-center gap-1.5 border-t border-border pt-3 text-sm text-muted-foreground"
+                    >
                         <i class="pi pi-users text-xs"></i>
-                        <span>{{ getSubordinateCountLabel(member.subordinates.length) }}</span>
+                        <span>{{
+                            getSubordinateCountLabel(member.subordinates.length)
+                        }}</span>
                     </div>
 
                     <!-- Depth Indicator (for nested subordinates) -->
                     <div
                         v-if="member.depth > 0"
-                        class="absolute -left-px top-3 h-6 w-1 rounded-r bg-primary/30"
-                        :style="{ opacity: Math.max(0.3, 1 - member.depth * 0.2) }"
+                        class="absolute top-3 -left-px h-6 w-1 rounded-r bg-primary/30"
+                        :style="{
+                            opacity: Math.max(0.3, 1 - member.depth * 0.2),
+                        }"
                     />
                 </div>
             </div>
 
             <!-- Empty State -->
-            <div v-else class="flex flex-1 flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-border p-8">
+            <div
+                v-else
+                class="flex flex-1 flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-border p-8"
+            >
                 <i class="pi pi-users text-4xl text-muted-foreground"></i>
                 <div class="text-center">
                     <h3 class="font-medium">No team members found</h3>
                     <p class="text-sm text-muted-foreground">
-                        {{ searchQuery ? 'No team members match your search.' : 'You don\'t have any subordinates assigned.' }}
+                        {{
+                            searchQuery
+                                ? 'No team members match your search.'
+                                : "You don't have any subordinates assigned."
+                        }}
                     </p>
                 </div>
                 <Button
@@ -208,7 +259,13 @@ function getSubordinateCountLabel(count: number): string {
             </div>
 
             <!-- Legend -->
-            <div v-if="visibleSections.length > 0 && flattenedSubordinates.length > 0" class="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+            <div
+                v-if="
+                    visibleSections.length > 0 &&
+                    flattenedSubordinates.length > 0
+                "
+                class="flex flex-wrap items-center gap-4 text-sm text-muted-foreground"
+            >
                 <span class="font-medium">Visible information:</span>
                 <span v-for="section in visibleSections" :key="section">
                     {{ availableSections[section] }}

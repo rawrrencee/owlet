@@ -55,7 +55,9 @@ const hierarchyData = ref<EmployeeHierarchyData | null>(null);
 // Permissions data (for staff users only)
 const permissionsLoading = ref(true);
 const pagePermissions = ref<string[]>([]);
-const availablePermissions = ref<Record<string, Array<{ key: string; label: string; group: string }>>>({});
+const availablePermissions = ref<
+    Record<string, Array<{ key: string; label: string; group: string }>>
+>({});
 const isStaffUser = computed(() => props.role === 'staff');
 
 async function fetchPermissions() {
@@ -63,11 +65,14 @@ async function fetchPermissions() {
 
     permissionsLoading.value = true;
     try {
-        const response = await fetch(`/users/${props.employee.id}/permissions`, {
-            headers: {
-                Accept: 'application/json',
+        const response = await fetch(
+            `/users/${props.employee.id}/permissions`,
+            {
+                headers: {
+                    Accept: 'application/json',
+                },
             },
-        });
+        );
         const data = await response.json();
         pagePermissions.value = data.data.page_permissions || [];
         availablePermissions.value = data.available_permissions || {};
@@ -130,19 +135,25 @@ function getTierColor(tier: number): string {
 }
 
 // Pending confirmation status
-const isPendingConfirmation = computed(() => !props.workosUser && !!props.employee.pending_email);
+const isPendingConfirmation = computed(
+    () => !props.workosUser && !!props.employee.pending_email,
+);
 const isResendingInvitation = ref(false);
 
 function resendInvitation() {
     if (isResendingInvitation.value) return;
 
     isResendingInvitation.value = true;
-    router.post(`/users/${props.employee.id}/resend-invitation`, {}, {
-        preserveScroll: true,
-        onFinish: () => {
-            isResendingInvitation.value = false;
+    router.post(
+        `/users/${props.employee.id}/resend-invitation`,
+        {},
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                isResendingInvitation.value = false;
+            },
         },
-    });
+    );
 }
 
 // Active tab state
@@ -172,10 +183,10 @@ function getInitials(): string {
 
 function getStatusLabel(status: string): string {
     const labels: Record<string, string> = {
-        'FT': 'Full Time',
-        'PT': 'Part Time',
-        'CT': 'Contract',
-        'CA': 'Casual',
+        FT: 'Full Time',
+        PT: 'Part Time',
+        CT: 'Contract',
+        CA: 'Casual',
     };
     return labels[status] ?? status;
 }
@@ -187,7 +198,10 @@ function formatBoolean(value: boolean): string {
 function formatCurrency(value: string | number | null): string {
     if (value === null || value === undefined) return '-';
     const num = typeof value === 'string' ? parseFloat(value) : value;
-    return new Intl.NumberFormat('en-SG', { style: 'currency', currency: 'SGD' }).format(num);
+    return new Intl.NumberFormat('en-SG', {
+        style: 'currency',
+        currency: 'SGD',
+    }).format(num);
 }
 
 function getLeaveDisplay(entitled: number, taken: number): string {
@@ -221,15 +235,27 @@ function navigateToEdit() {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <div class="flex items-center gap-4">
                     <BackButton fallback-url="/users" />
-                    <h1 class="heading-lg">{{ employee.first_name }} {{ employee.last_name }}</h1>
-                    <Tag v-if="employee.is_deleted" value="Deleted" severity="danger" />
+                    <h1 class="heading-lg">
+                        {{ employee.first_name }} {{ employee.last_name }}
+                    </h1>
+                    <Tag
+                        v-if="employee.is_deleted"
+                        value="Deleted"
+                        severity="danger"
+                    />
                     <Tag
                         v-else
-                        :value="employee.termination_date ? 'Terminated' : 'Active'"
-                        :severity="employee.termination_date ? 'danger' : 'success'"
+                        :value="
+                            employee.termination_date ? 'Terminated' : 'Active'
+                        "
+                        :severity="
+                            employee.termination_date ? 'danger' : 'success'
+                        "
                     />
                 </div>
                 <Button
@@ -251,38 +277,70 @@ function navigateToEdit() {
                                 <Tab value="contracts">Contracts</Tab>
                                 <Tab value="insurances">Insurances</Tab>
                                 <Tab value="stores">Stores</Tab>
-                                <Tab v-if="isAdmin && isStaffUser" value="permissions">Permissions</Tab>
-                                <Tab v-if="isAdmin" value="hierarchy">Hierarchy</Tab>
+                                <Tab
+                                    v-if="isAdmin && isStaffUser"
+                                    value="permissions"
+                                    >Permissions</Tab
+                                >
+                                <Tab v-if="isAdmin" value="hierarchy"
+                                    >Hierarchy</Tab
+                                >
                             </TabList>
                             <TabPanels>
                                 <TabPanel value="basic">
                                     <div class="flex flex-col gap-6 pt-4">
                                         <!-- Pending Confirmation Banner -->
-                                        <Message v-if="isPendingConfirmation" severity="warn" :closable="false">
-                                            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                        <Message
+                                            v-if="isPendingConfirmation"
+                                            severity="warn"
+                                            :closable="false"
+                                        >
+                                            <div
+                                                class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+                                            >
                                                 <span>
-                                                    This account is pending confirmation. An invitation was sent to
-                                                    <strong>{{ employee.pending_email }}</strong>.
+                                                    This account is pending
+                                                    confirmation. An invitation
+                                                    was sent to
+                                                    <strong>{{
+                                                        employee.pending_email
+                                                    }}</strong
+                                                    >.
                                                 </span>
                                                 <Button
                                                     label="Resend Invitation"
                                                     icon="pi pi-send"
                                                     size="small"
                                                     severity="warn"
-                                                    :loading="isResendingInvitation"
+                                                    :loading="
+                                                        isResendingInvitation
+                                                    "
                                                     @click="resendInvitation"
                                                 />
                                             </div>
                                         </Message>
 
                                         <!-- Profile Header -->
-                                        <div class="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
+                                        <div
+                                            class="flex flex-col items-center gap-4 sm:flex-row sm:items-start"
+                                        >
                                             <Image
-                                                v-if="employee.profile_picture_url"
-                                                :src="employee.profile_picture_url"
+                                                v-if="
+                                                    employee.profile_picture_url
+                                                "
+                                                :src="
+                                                    employee.profile_picture_url
+                                                "
                                                 :alt="`${employee.first_name} ${employee.last_name}`"
                                                 image-class="!h-24 !w-24 rounded-full object-cover cursor-pointer"
-                                                :pt="{ root: { class: 'rounded-full overflow-hidden' }, previewMask: { class: 'rounded-full' } }"
+                                                :pt="{
+                                                    root: {
+                                                        class: 'rounded-full overflow-hidden',
+                                                    },
+                                                    previewMask: {
+                                                        class: 'rounded-full',
+                                                    },
+                                                }"
                                                 preview
                                             />
                                             <Avatar
@@ -291,13 +349,43 @@ function navigateToEdit() {
                                                 shape="circle"
                                                 class="!h-24 !w-24 bg-primary/10 text-3xl text-primary"
                                             />
-                                            <div class="flex flex-col gap-1 text-center sm:text-left">
-                                                <h2 class="text-xl font-semibold">{{ employee.first_name }} {{ employee.last_name }}</h2>
-                                                <p v-if="employee.chinese_name" class="text-muted-foreground">{{ employee.chinese_name }}</p>
-                                                <p v-if="workosUser?.email || employee.pending_email" class="text-muted-foreground">
-                                                    {{ workosUser?.email ?? employee.pending_email }}
+                                            <div
+                                                class="flex flex-col gap-1 text-center sm:text-left"
+                                            >
+                                                <h2
+                                                    class="text-xl font-semibold"
+                                                >
+                                                    {{ employee.first_name }}
+                                                    {{ employee.last_name }}
+                                                </h2>
+                                                <p
+                                                    v-if="employee.chinese_name"
+                                                    class="text-muted-foreground"
+                                                >
+                                                    {{ employee.chinese_name }}
                                                 </p>
-                                                <p v-if="employee.employee_number" class="text-sm text-muted-foreground">Employee #{{ employee.employee_number }}</p>
+                                                <p
+                                                    v-if="
+                                                        workosUser?.email ||
+                                                        employee.pending_email
+                                                    "
+                                                    class="text-muted-foreground"
+                                                >
+                                                    {{
+                                                        workosUser?.email ??
+                                                        employee.pending_email
+                                                    }}
+                                                </p>
+                                                <p
+                                                    v-if="
+                                                        employee.employee_number
+                                                    "
+                                                    class="text-sm text-muted-foreground"
+                                                >
+                                                    Employee #{{
+                                                        employee.employee_number
+                                                    }}
+                                                </p>
                                             </div>
                                         </div>
 
@@ -305,23 +393,57 @@ function navigateToEdit() {
 
                                         <!-- Basic Information -->
                                         <div>
-                                            <h3 class="mb-4 text-lg font-medium">Basic Information</h3>
-                                            <div class="grid gap-4 sm:grid-cols-2">
-                                                <div class="flex flex-col gap-1">
-                                                    <span class="text-sm text-muted-foreground">NRIC</span>
-                                                    <span>{{ employee.nric ?? '-' }}</span>
+                                            <h3
+                                                class="mb-4 text-lg font-medium"
+                                            >
+                                                Basic Information
+                                            </h3>
+                                            <div
+                                                class="grid gap-4 sm:grid-cols-2"
+                                            >
+                                                <div
+                                                    class="flex flex-col gap-1"
+                                                >
+                                                    <span
+                                                        class="text-sm text-muted-foreground"
+                                                        >NRIC</span
+                                                    >
+                                                    <span>{{
+                                                        employee.nric ?? '-'
+                                                    }}</span>
                                                 </div>
-                                                <div class="flex flex-col gap-1">
-                                                    <span class="text-sm text-muted-foreground">Phone</span>
-                                                    <span>{{ employee.phone ?? '-' }}</span>
+                                                <div
+                                                    class="flex flex-col gap-1"
+                                                >
+                                                    <span
+                                                        class="text-sm text-muted-foreground"
+                                                        >Phone</span
+                                                    >
+                                                    <span>{{
+                                                        employee.phone ?? '-'
+                                                    }}</span>
                                                 </div>
-                                                <div class="flex flex-col gap-1">
-                                                    <span class="text-sm text-muted-foreground">Mobile</span>
-                                                    <span>{{ employee.mobile ?? '-' }}</span>
+                                                <div
+                                                    class="flex flex-col gap-1"
+                                                >
+                                                    <span
+                                                        class="text-sm text-muted-foreground"
+                                                        >Mobile</span
+                                                    >
+                                                    <span>{{
+                                                        employee.mobile ?? '-'
+                                                    }}</span>
                                                 </div>
-                                                <div class="flex flex-col gap-1">
-                                                    <span class="text-sm text-muted-foreground">Role</span>
-                                                    <span class="capitalize">{{ role ?? '-' }}</span>
+                                                <div
+                                                    class="flex flex-col gap-1"
+                                                >
+                                                    <span
+                                                        class="text-sm text-muted-foreground"
+                                                        >Role</span
+                                                    >
+                                                    <span class="capitalize">{{
+                                                        role ?? '-'
+                                                    }}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -330,31 +452,87 @@ function navigateToEdit() {
 
                                         <!-- Personal Details -->
                                         <div>
-                                            <h3 class="mb-4 text-lg font-medium">Personal Details</h3>
-                                            <div class="grid gap-4 sm:grid-cols-2">
-                                                <div class="flex flex-col gap-1">
-                                                    <span class="text-sm text-muted-foreground">Gender</span>
-                                                    <span>{{ employee.gender ?? '-' }}</span>
+                                            <h3
+                                                class="mb-4 text-lg font-medium"
+                                            >
+                                                Personal Details
+                                            </h3>
+                                            <div
+                                                class="grid gap-4 sm:grid-cols-2"
+                                            >
+                                                <div
+                                                    class="flex flex-col gap-1"
+                                                >
+                                                    <span
+                                                        class="text-sm text-muted-foreground"
+                                                        >Gender</span
+                                                    >
+                                                    <span>{{
+                                                        employee.gender ?? '-'
+                                                    }}</span>
                                                 </div>
-                                                <div class="flex flex-col gap-1">
-                                                    <span class="text-sm text-muted-foreground">Date of Birth</span>
-                                                    <span>{{ formatDate(employee.date_of_birth) }}</span>
+                                                <div
+                                                    class="flex flex-col gap-1"
+                                                >
+                                                    <span
+                                                        class="text-sm text-muted-foreground"
+                                                        >Date of Birth</span
+                                                    >
+                                                    <span>{{
+                                                        formatDate(
+                                                            employee.date_of_birth,
+                                                        )
+                                                    }}</span>
                                                 </div>
-                                                <div class="flex flex-col gap-1">
-                                                    <span class="text-sm text-muted-foreground">Nationality</span>
-                                                    <span>{{ employee.nationality_name ?? employee.nationality ?? '-' }}</span>
+                                                <div
+                                                    class="flex flex-col gap-1"
+                                                >
+                                                    <span
+                                                        class="text-sm text-muted-foreground"
+                                                        >Nationality</span
+                                                    >
+                                                    <span>{{
+                                                        employee.nationality_name ??
+                                                        employee.nationality ??
+                                                        '-'
+                                                    }}</span>
                                                 </div>
-                                                <div class="flex flex-col gap-1">
-                                                    <span class="text-sm text-muted-foreground">Race</span>
-                                                    <span>{{ employee.race ?? '-' }}</span>
+                                                <div
+                                                    class="flex flex-col gap-1"
+                                                >
+                                                    <span
+                                                        class="text-sm text-muted-foreground"
+                                                        >Race</span
+                                                    >
+                                                    <span>{{
+                                                        employee.race ?? '-'
+                                                    }}</span>
                                                 </div>
-                                                <div class="flex flex-col gap-1">
-                                                    <span class="text-sm text-muted-foreground">Residency Status</span>
-                                                    <span>{{ employee.residency_status ?? '-' }}</span>
+                                                <div
+                                                    class="flex flex-col gap-1"
+                                                >
+                                                    <span
+                                                        class="text-sm text-muted-foreground"
+                                                        >Residency Status</span
+                                                    >
+                                                    <span>{{
+                                                        employee.residency_status ??
+                                                        '-'
+                                                    }}</span>
                                                 </div>
-                                                <div class="flex flex-col gap-1">
-                                                    <span class="text-sm text-muted-foreground">PR Conversion Date</span>
-                                                    <span>{{ formatDate(employee.pr_conversion_date) }}</span>
+                                                <div
+                                                    class="flex flex-col gap-1"
+                                                >
+                                                    <span
+                                                        class="text-sm text-muted-foreground"
+                                                        >PR Conversion
+                                                        Date</span
+                                                    >
+                                                    <span>{{
+                                                        formatDate(
+                                                            employee.pr_conversion_date,
+                                                        )
+                                                    }}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -363,15 +541,61 @@ function navigateToEdit() {
 
                                         <!-- Address -->
                                         <div>
-                                            <h3 class="mb-4 text-lg font-medium">Address</h3>
+                                            <h3
+                                                class="mb-4 text-lg font-medium"
+                                            >
+                                                Address
+                                            </h3>
                                             <div class="flex flex-col gap-1">
-                                                <span v-if="employee.address_1">{{ employee.address_1 }}</span>
-                                                <span v-if="employee.address_2">{{ employee.address_2 }}</span>
-                                                <span v-if="employee.city || employee.state || employee.postal_code">
-                                                    {{ [employee.city, employee.state, employee.postal_code].filter(Boolean).join(', ') }}
+                                                <span
+                                                    v-if="employee.address_1"
+                                                    >{{
+                                                        employee.address_1
+                                                    }}</span
+                                                >
+                                                <span
+                                                    v-if="employee.address_2"
+                                                    >{{
+                                                        employee.address_2
+                                                    }}</span
+                                                >
+                                                <span
+                                                    v-if="
+                                                        employee.city ||
+                                                        employee.state ||
+                                                        employee.postal_code
+                                                    "
+                                                >
+                                                    {{
+                                                        [
+                                                            employee.city,
+                                                            employee.state,
+                                                            employee.postal_code,
+                                                        ]
+                                                            .filter(Boolean)
+                                                            .join(', ')
+                                                    }}
                                                 </span>
-                                                <span v-if="employee.country_name || employee.country">{{ employee.country_name ?? employee.country }}</span>
-                                                <span v-if="!employee.address_1 && !employee.address_2 && !employee.city && !employee.country_name && !employee.country" class="text-muted-foreground">
+                                                <span
+                                                    v-if="
+                                                        employee.country_name ||
+                                                        employee.country
+                                                    "
+                                                    >{{
+                                                        employee.country_name ??
+                                                        employee.country
+                                                    }}</span
+                                                >
+                                                <span
+                                                    v-if="
+                                                        !employee.address_1 &&
+                                                        !employee.address_2 &&
+                                                        !employee.city &&
+                                                        !employee.country_name &&
+                                                        !employee.country
+                                                    "
+                                                    class="text-muted-foreground"
+                                                >
                                                     No address provided
                                                 </span>
                                             </div>
@@ -381,23 +605,63 @@ function navigateToEdit() {
 
                                         <!-- Employment Details -->
                                         <div>
-                                            <h3 class="mb-4 text-lg font-medium">Employment Details</h3>
-                                            <div class="grid gap-4 sm:grid-cols-2">
-                                                <div class="flex flex-col gap-1">
-                                                    <span class="text-sm text-muted-foreground">Hire Date</span>
-                                                    <span>{{ formatDate(employee.hire_date) }}</span>
+                                            <h3
+                                                class="mb-4 text-lg font-medium"
+                                            >
+                                                Employment Details
+                                            </h3>
+                                            <div
+                                                class="grid gap-4 sm:grid-cols-2"
+                                            >
+                                                <div
+                                                    class="flex flex-col gap-1"
+                                                >
+                                                    <span
+                                                        class="text-sm text-muted-foreground"
+                                                        >Hire Date</span
+                                                    >
+                                                    <span>{{
+                                                        formatDate(
+                                                            employee.hire_date,
+                                                        )
+                                                    }}</span>
                                                 </div>
-                                                <div class="flex flex-col gap-1">
-                                                    <span class="text-sm text-muted-foreground">Status</span>
+                                                <div
+                                                    class="flex flex-col gap-1"
+                                                >
+                                                    <span
+                                                        class="text-sm text-muted-foreground"
+                                                        >Status</span
+                                                    >
                                                     <Tag
-                                                        :value="employee.termination_date ? 'Terminated' : 'Active'"
-                                                        :severity="employee.termination_date ? 'danger' : 'success'"
+                                                        :value="
+                                                            employee.termination_date
+                                                                ? 'Terminated'
+                                                                : 'Active'
+                                                        "
+                                                        :severity="
+                                                            employee.termination_date
+                                                                ? 'danger'
+                                                                : 'success'
+                                                        "
                                                         class="w-fit"
                                                     />
                                                 </div>
-                                                <div v-if="employee.termination_date" class="flex flex-col gap-1">
-                                                    <span class="text-sm text-muted-foreground">Termination Date</span>
-                                                    <span>{{ formatDate(employee.termination_date) }}</span>
+                                                <div
+                                                    v-if="
+                                                        employee.termination_date
+                                                    "
+                                                    class="flex flex-col gap-1"
+                                                >
+                                                    <span
+                                                        class="text-sm text-muted-foreground"
+                                                        >Termination Date</span
+                                                    >
+                                                    <span>{{
+                                                        formatDate(
+                                                            employee.termination_date,
+                                                        )
+                                                    }}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -406,15 +670,37 @@ function navigateToEdit() {
 
                                         <!-- Bank Account Details -->
                                         <div>
-                                            <h3 class="mb-4 text-lg font-medium">Bank Account Details</h3>
-                                            <div class="grid gap-4 sm:grid-cols-2">
-                                                <div class="flex flex-col gap-1">
-                                                    <span class="text-sm text-muted-foreground">Bank Name</span>
-                                                    <span>{{ employee.bank_name ?? '-' }}</span>
+                                            <h3
+                                                class="mb-4 text-lg font-medium"
+                                            >
+                                                Bank Account Details
+                                            </h3>
+                                            <div
+                                                class="grid gap-4 sm:grid-cols-2"
+                                            >
+                                                <div
+                                                    class="flex flex-col gap-1"
+                                                >
+                                                    <span
+                                                        class="text-sm text-muted-foreground"
+                                                        >Bank Name</span
+                                                    >
+                                                    <span>{{
+                                                        employee.bank_name ??
+                                                        '-'
+                                                    }}</span>
                                                 </div>
-                                                <div class="flex flex-col gap-1">
-                                                    <span class="text-sm text-muted-foreground">Account Number</span>
-                                                    <span>{{ employee.bank_account_number ?? '-' }}</span>
+                                                <div
+                                                    class="flex flex-col gap-1"
+                                                >
+                                                    <span
+                                                        class="text-sm text-muted-foreground"
+                                                        >Account Number</span
+                                                    >
+                                                    <span>{{
+                                                        employee.bank_account_number ??
+                                                        '-'
+                                                    }}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -423,25 +709,78 @@ function navigateToEdit() {
 
                                         <!-- Emergency Contact -->
                                         <div>
-                                            <h3 class="mb-4 text-lg font-medium">Emergency Contact</h3>
-                                            <div class="grid gap-4 sm:grid-cols-2">
-                                                <div class="flex flex-col gap-1">
-                                                    <span class="text-sm text-muted-foreground">Contact Name</span>
-                                                    <span>{{ employee.emergency_name ?? '-' }}</span>
+                                            <h3
+                                                class="mb-4 text-lg font-medium"
+                                            >
+                                                Emergency Contact
+                                            </h3>
+                                            <div
+                                                class="grid gap-4 sm:grid-cols-2"
+                                            >
+                                                <div
+                                                    class="flex flex-col gap-1"
+                                                >
+                                                    <span
+                                                        class="text-sm text-muted-foreground"
+                                                        >Contact Name</span
+                                                    >
+                                                    <span>{{
+                                                        employee.emergency_name ??
+                                                        '-'
+                                                    }}</span>
                                                 </div>
-                                                <div class="flex flex-col gap-1">
-                                                    <span class="text-sm text-muted-foreground">Relationship</span>
-                                                    <span>{{ employee.emergency_relationship ?? '-' }}</span>
+                                                <div
+                                                    class="flex flex-col gap-1"
+                                                >
+                                                    <span
+                                                        class="text-sm text-muted-foreground"
+                                                        >Relationship</span
+                                                    >
+                                                    <span>{{
+                                                        employee.emergency_relationship ??
+                                                        '-'
+                                                    }}</span>
                                                 </div>
-                                                <div class="flex flex-col gap-1">
-                                                    <span class="text-sm text-muted-foreground">Contact Number</span>
-                                                    <span>{{ employee.emergency_contact ?? '-' }}</span>
+                                                <div
+                                                    class="flex flex-col gap-1"
+                                                >
+                                                    <span
+                                                        class="text-sm text-muted-foreground"
+                                                        >Contact Number</span
+                                                    >
+                                                    <span>{{
+                                                        employee.emergency_contact ??
+                                                        '-'
+                                                    }}</span>
                                                 </div>
                                             </div>
-                                            <div v-if="employee.emergency_address_1 || employee.emergency_address_2" class="mt-4 flex flex-col gap-1">
-                                                <span class="text-sm text-muted-foreground">Address</span>
-                                                <span v-if="employee.emergency_address_1">{{ employee.emergency_address_1 }}</span>
-                                                <span v-if="employee.emergency_address_2">{{ employee.emergency_address_2 }}</span>
+                                            <div
+                                                v-if="
+                                                    employee.emergency_address_1 ||
+                                                    employee.emergency_address_2
+                                                "
+                                                class="mt-4 flex flex-col gap-1"
+                                            >
+                                                <span
+                                                    class="text-sm text-muted-foreground"
+                                                    >Address</span
+                                                >
+                                                <span
+                                                    v-if="
+                                                        employee.emergency_address_1
+                                                    "
+                                                    >{{
+                                                        employee.emergency_address_1
+                                                    }}</span
+                                                >
+                                                <span
+                                                    v-if="
+                                                        employee.emergency_address_2
+                                                    "
+                                                    >{{
+                                                        employee.emergency_address_2
+                                                    }}</span
+                                                >
                                             </div>
                                         </div>
 
@@ -449,8 +788,15 @@ function navigateToEdit() {
                                         <template v-if="employee.notes">
                                             <Divider />
                                             <div>
-                                                <h3 class="mb-4 text-lg font-medium">Notes</h3>
-                                                <div class="prose prose-sm dark:prose-invert max-w-none" v-html="employee.notes"></div>
+                                                <h3
+                                                    class="mb-4 text-lg font-medium"
+                                                >
+                                                    Notes
+                                                </h3>
+                                                <div
+                                                    class="prose prose-sm dark:prose-invert max-w-none"
+                                                    v-html="employee.notes"
+                                                ></div>
                                             </div>
                                         </template>
 
@@ -458,15 +804,39 @@ function navigateToEdit() {
                                         <template v-if="workosUser">
                                             <Divider />
                                             <div>
-                                                <h3 class="mb-3 text-sm font-medium text-muted-foreground">WorkOS Account Info</h3>
+                                                <h3
+                                                    class="mb-3 text-sm font-medium text-muted-foreground"
+                                                >
+                                                    WorkOS Account Info
+                                                </h3>
                                                 <div class="grid gap-2 text-sm">
-                                                    <div class="flex justify-between">
-                                                        <span class="text-muted-foreground">WorkOS ID</span>
-                                                        <span class="font-mono text-xs">{{ workosUser.id }}</span>
+                                                    <div
+                                                        class="flex justify-between"
+                                                    >
+                                                        <span
+                                                            class="text-muted-foreground"
+                                                            >WorkOS ID</span
+                                                        >
+                                                        <span
+                                                            class="font-mono text-xs"
+                                                            >{{
+                                                                workosUser.id
+                                                            }}</span
+                                                        >
                                                     </div>
-                                                    <div class="flex justify-between">
-                                                        <span class="text-muted-foreground">Email Verified</span>
-                                                        <span>{{ workosUser.emailVerified ? 'Yes' : 'No' }}</span>
+                                                    <div
+                                                        class="flex justify-between"
+                                                    >
+                                                        <span
+                                                            class="text-muted-foreground"
+                                                            >Email
+                                                            Verified</span
+                                                        >
+                                                        <span>{{
+                                                            workosUser.emailVerified
+                                                                ? 'Yes'
+                                                                : 'No'
+                                                        }}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -478,354 +848,894 @@ function navigateToEdit() {
                                         <AuditInfo
                                             :created-by="employee.created_by"
                                             :updated-by="employee.updated_by"
-                                            :previous-updated-by="employee.previous_updated_by"
+                                            :previous-updated-by="
+                                                employee.previous_updated_by
+                                            "
                                             :created-at="employee.created_at"
                                             :updated-at="employee.updated_at"
-                                            :previous-updated-at="employee.previous_updated_at"
+                                            :previous-updated-at="
+                                                employee.previous_updated_at
+                                            "
                                         />
                                     </div>
                                 </TabPanel>
 
                                 <TabPanel value="companies">
                                     <div class="pt-4">
-                                        <h3 class="mb-4 text-lg font-medium">Company Assignments</h3>
-                                        <template v-if="employeeCompanies && employeeCompanies.length > 0">
+                                        <h3 class="mb-4 text-lg font-medium">
+                                            Company Assignments
+                                        </h3>
+                                        <template
+                                            v-if="
+                                                employeeCompanies &&
+                                                employeeCompanies.length > 0
+                                            "
+                                        >
                                             <DataTable
-                                                v-model:expandedRows="expandedCompanyRows"
+                                                v-model:expandedRows="
+                                                    expandedCompanyRows
+                                                "
                                                 :value="employeeCompanies"
                                                 dataKey="id"
                                                 size="small"
                                                 stripedRows
                                                 class="rounded-lg border border-border"
                                             >
-                                                <Column expander style="width: 3rem" class="!pr-0 lg:hidden" />
-                                                <Column field="company.company_name" header="Company">
+                                                <Column
+                                                    expander
+                                                    style="width: 3rem"
+                                                    class="!pr-0 lg:hidden"
+                                                />
+                                                <Column
+                                                    field="company.company_name"
+                                                    header="Company"
+                                                >
                                                     <template #body="{ data }">
-                                                        {{ data.company?.company_name ?? '-' }}
+                                                        {{
+                                                            data.company
+                                                                ?.company_name ??
+                                                            '-'
+                                                        }}
                                                     </template>
                                                 </Column>
-                                                <Column field="designation.designation_name" header="Designation" class="hidden md:table-cell">
+                                                <Column
+                                                    field="designation.designation_name"
+                                                    header="Designation"
+                                                    class="hidden md:table-cell"
+                                                >
                                                     <template #body="{ data }">
-                                                        {{ data.designation?.designation_name ?? '-' }}
+                                                        {{
+                                                            data.designation
+                                                                ?.designation_name ??
+                                                            '-'
+                                                        }}
                                                     </template>
                                                 </Column>
-                                                <Column field="status" header="Type" class="hidden sm:table-cell">
+                                                <Column
+                                                    field="status"
+                                                    header="Type"
+                                                    class="hidden sm:table-cell"
+                                                >
                                                     <template #body="{ data }">
-                                                        {{ data.status_label ?? getStatusLabel(data.status) }}
+                                                        {{
+                                                            data.status_label ??
+                                                            getStatusLabel(
+                                                                data.status,
+                                                            )
+                                                        }}
                                                     </template>
                                                 </Column>
-                                                <Column field="levy_amount" header="Levy" class="hidden xl:table-cell">
+                                                <Column
+                                                    field="levy_amount"
+                                                    header="Levy"
+                                                    class="hidden xl:table-cell"
+                                                >
                                                     <template #body="{ data }">
-                                                        {{ formatCurrency(data.levy_amount) }}
+                                                        {{
+                                                            formatCurrency(
+                                                                data.levy_amount,
+                                                            )
+                                                        }}
                                                     </template>
                                                 </Column>
-                                                <Column field="commencement_date" header="Start Date" class="hidden lg:table-cell">
+                                                <Column
+                                                    field="commencement_date"
+                                                    header="Start Date"
+                                                    class="hidden lg:table-cell"
+                                                >
                                                     <template #body="{ data }">
-                                                        {{ formatDate(data.commencement_date) }}
+                                                        {{
+                                                            formatDate(
+                                                                data.commencement_date,
+                                                            )
+                                                        }}
                                                     </template>
                                                 </Column>
-                                                <Column field="left_date" header="End Date" class="hidden xl:table-cell">
+                                                <Column
+                                                    field="left_date"
+                                                    header="End Date"
+                                                    class="hidden xl:table-cell"
+                                                >
                                                     <template #body="{ data }">
-                                                        {{ formatDate(data.left_date) }}
+                                                        {{
+                                                            formatDate(
+                                                                data.left_date,
+                                                            )
+                                                        }}
                                                     </template>
                                                 </Column>
-                                                <Column field="is_active" header="Status">
+                                                <Column
+                                                    field="is_active"
+                                                    header="Status"
+                                                >
                                                     <template #body="{ data }">
                                                         <Tag
-                                                            :value="data.is_active ? 'Active' : 'Inactive'"
-                                                            :severity="data.is_active ? 'success' : 'secondary'"
+                                                            :value="
+                                                                data.is_active
+                                                                    ? 'Active'
+                                                                    : 'Inactive'
+                                                            "
+                                                            :severity="
+                                                                data.is_active
+                                                                    ? 'success'
+                                                                    : 'secondary'
+                                                            "
                                                         />
                                                     </template>
                                                 </Column>
                                                 <template #expansion="{ data }">
-                                                    <div class="grid gap-3 p-3 text-sm lg:hidden">
-                                                        <div class="flex justify-between gap-4 border-b border-border pb-2 md:hidden">
-                                                            <span class="shrink-0 text-muted-foreground">Designation</span>
-                                                            <span class="text-right">{{ data.designation?.designation_name ?? '-' }}</span>
+                                                    <div
+                                                        class="grid gap-3 p-3 text-sm lg:hidden"
+                                                    >
+                                                        <div
+                                                            class="flex justify-between gap-4 border-b border-border pb-2 md:hidden"
+                                                        >
+                                                            <span
+                                                                class="shrink-0 text-muted-foreground"
+                                                                >Designation</span
+                                                            >
+                                                            <span
+                                                                class="text-right"
+                                                                >{{
+                                                                    data
+                                                                        .designation
+                                                                        ?.designation_name ??
+                                                                    '-'
+                                                                }}</span
+                                                            >
                                                         </div>
-                                                        <div class="flex justify-between gap-4 border-b border-border pb-2 sm:hidden">
-                                                            <span class="shrink-0 text-muted-foreground">Type</span>
-                                                            <span class="text-right">{{ data.status_label ?? getStatusLabel(data.status) }}</span>
+                                                        <div
+                                                            class="flex justify-between gap-4 border-b border-border pb-2 sm:hidden"
+                                                        >
+                                                            <span
+                                                                class="shrink-0 text-muted-foreground"
+                                                                >Type</span
+                                                            >
+                                                            <span
+                                                                class="text-right"
+                                                                >{{
+                                                                    data.status_label ??
+                                                                    getStatusLabel(
+                                                                        data.status,
+                                                                    )
+                                                                }}</span
+                                                            >
                                                         </div>
-                                                        <div class="flex justify-between gap-4 border-b border-border pb-2 xl:hidden">
-                                                            <span class="shrink-0 text-muted-foreground">Levy Amount</span>
-                                                            <span class="text-right">{{ formatCurrency(data.levy_amount) }}</span>
+                                                        <div
+                                                            class="flex justify-between gap-4 border-b border-border pb-2 xl:hidden"
+                                                        >
+                                                            <span
+                                                                class="shrink-0 text-muted-foreground"
+                                                                >Levy
+                                                                Amount</span
+                                                            >
+                                                            <span
+                                                                class="text-right"
+                                                                >{{
+                                                                    formatCurrency(
+                                                                        data.levy_amount,
+                                                                    )
+                                                                }}</span
+                                                            >
                                                         </div>
-                                                        <div class="flex justify-between gap-4 border-b border-border pb-2">
-                                                            <span class="shrink-0 text-muted-foreground">Start Date</span>
-                                                            <span class="text-right">{{ formatDate(data.commencement_date) }}</span>
+                                                        <div
+                                                            class="flex justify-between gap-4 border-b border-border pb-2"
+                                                        >
+                                                            <span
+                                                                class="shrink-0 text-muted-foreground"
+                                                                >Start
+                                                                Date</span
+                                                            >
+                                                            <span
+                                                                class="text-right"
+                                                                >{{
+                                                                    formatDate(
+                                                                        data.commencement_date,
+                                                                    )
+                                                                }}</span
+                                                            >
                                                         </div>
-                                                        <div class="flex justify-between gap-4 border-b border-border pb-2 xl:hidden">
-                                                            <span class="shrink-0 text-muted-foreground">End Date</span>
-                                                            <span class="text-right">{{ formatDate(data.left_date) }}</span>
+                                                        <div
+                                                            class="flex justify-between gap-4 border-b border-border pb-2 xl:hidden"
+                                                        >
+                                                            <span
+                                                                class="shrink-0 text-muted-foreground"
+                                                                >End Date</span
+                                                            >
+                                                            <span
+                                                                class="text-right"
+                                                                >{{
+                                                                    formatDate(
+                                                                        data.left_date,
+                                                                    )
+                                                                }}</span
+                                                            >
                                                         </div>
-                                                        <div class="flex justify-between gap-4">
-                                                            <span class="shrink-0 text-muted-foreground">Include SHG Donations</span>
-                                                            <span class="text-right">{{ formatBoolean(data.include_shg_donations) }}</span>
+                                                        <div
+                                                            class="flex justify-between gap-4"
+                                                        >
+                                                            <span
+                                                                class="shrink-0 text-muted-foreground"
+                                                                >Include SHG
+                                                                Donations</span
+                                                            >
+                                                            <span
+                                                                class="text-right"
+                                                                >{{
+                                                                    formatBoolean(
+                                                                        data.include_shg_donations,
+                                                                    )
+                                                                }}</span
+                                                            >
                                                         </div>
                                                     </div>
                                                 </template>
                                             </DataTable>
                                         </template>
-                                        <p v-else class="text-muted-foreground">No company assignments.</p>
+                                        <p v-else class="text-muted-foreground">
+                                            No company assignments.
+                                        </p>
                                     </div>
                                 </TabPanel>
 
                                 <TabPanel value="contracts">
                                     <div class="pt-4">
-                                        <h3 class="mb-4 text-lg font-medium">Contracts</h3>
-                                        <template v-if="contracts && contracts.length > 0">
+                                        <h3 class="mb-4 text-lg font-medium">
+                                            Contracts
+                                        </h3>
+                                        <template
+                                            v-if="
+                                                contracts &&
+                                                contracts.length > 0
+                                            "
+                                        >
                                             <DataTable
-                                                v-model:expandedRows="expandedContractRows"
+                                                v-model:expandedRows="
+                                                    expandedContractRows
+                                                "
                                                 :value="contracts"
                                                 dataKey="id"
                                                 size="small"
                                                 stripedRows
                                                 class="rounded-lg border border-border"
                                             >
-                                                <Column expander style="width: 3rem" class="!pr-0 lg:hidden" />
-                                                <Column field="company.company_name" header="Company">
+                                                <Column
+                                                    expander
+                                                    style="width: 3rem"
+                                                    class="!pr-0 lg:hidden"
+                                                />
+                                                <Column
+                                                    field="company.company_name"
+                                                    header="Company"
+                                                >
                                                     <template #body="{ data }">
-                                                        {{ data.company?.company_name ?? '-' }}
+                                                        {{
+                                                            data.company
+                                                                ?.company_name ??
+                                                            '-'
+                                                        }}
                                                     </template>
                                                 </Column>
-                                                <Column field="start_date" header="Start Date" class="hidden sm:table-cell">
+                                                <Column
+                                                    field="start_date"
+                                                    header="Start Date"
+                                                    class="hidden sm:table-cell"
+                                                >
                                                     <template #body="{ data }">
-                                                        {{ formatDate(data.start_date) }}
+                                                        {{
+                                                            formatDate(
+                                                                data.start_date,
+                                                            )
+                                                        }}
                                                     </template>
                                                 </Column>
-                                                <Column field="end_date" header="End Date" class="hidden md:table-cell">
+                                                <Column
+                                                    field="end_date"
+                                                    header="End Date"
+                                                    class="hidden md:table-cell"
+                                                >
                                                     <template #body="{ data }">
-                                                        {{ formatDate(data.end_date) }}
+                                                        {{
+                                                            formatDate(
+                                                                data.end_date,
+                                                            )
+                                                        }}
                                                     </template>
                                                 </Column>
-                                                <Column field="salary_amount" header="Salary" class="hidden lg:table-cell">
+                                                <Column
+                                                    field="salary_amount"
+                                                    header="Salary"
+                                                    class="hidden lg:table-cell"
+                                                >
                                                     <template #body="{ data }">
-                                                        {{ formatCurrency(data.salary_amount) }}
+                                                        {{
+                                                            formatCurrency(
+                                                                data.salary_amount,
+                                                            )
+                                                        }}
                                                     </template>
                                                 </Column>
-                                                <Column header="Annual Leave" class="hidden xl:table-cell">
+                                                <Column
+                                                    header="Annual Leave"
+                                                    class="hidden xl:table-cell"
+                                                >
                                                     <template #body="{ data }">
-                                                        {{ getLeaveDisplay(data.annual_leave_entitled, data.annual_leave_taken) }}
+                                                        {{
+                                                            getLeaveDisplay(
+                                                                data.annual_leave_entitled,
+                                                                data.annual_leave_taken,
+                                                            )
+                                                        }}
                                                     </template>
                                                 </Column>
-                                                <Column header="Sick Leave" class="hidden xl:table-cell">
+                                                <Column
+                                                    header="Sick Leave"
+                                                    class="hidden xl:table-cell"
+                                                >
                                                     <template #body="{ data }">
-                                                        {{ getLeaveDisplay(data.sick_leave_entitled, data.sick_leave_taken) }}
+                                                        {{
+                                                            getLeaveDisplay(
+                                                                data.sick_leave_entitled,
+                                                                data.sick_leave_taken,
+                                                            )
+                                                        }}
                                                     </template>
                                                 </Column>
                                                 <Column header="Status">
                                                     <template #body="{ data }">
                                                         <Tag
-                                                            :value="data.is_active ? 'Active' : 'Expired'"
-                                                            :severity="data.is_active ? 'success' : 'secondary'"
+                                                            :value="
+                                                                data.is_active
+                                                                    ? 'Active'
+                                                                    : 'Expired'
+                                                            "
+                                                            :severity="
+                                                                data.is_active
+                                                                    ? 'success'
+                                                                    : 'secondary'
+                                                            "
                                                         />
                                                     </template>
                                                 </Column>
-                                                <Column header="Doc" class="w-12">
+                                                <Column
+                                                    header="Doc"
+                                                    class="w-12"
+                                                >
                                                     <template #body="{ data }">
                                                         <Button
-                                                            v-if="data.has_document"
+                                                            v-if="
+                                                                data.has_document
+                                                            "
                                                             icon="pi pi-file"
                                                             severity="secondary"
                                                             text
                                                             rounded
                                                             size="small"
-                                                            @click="viewContractDocument(data)"
-                                                            v-tooltip.top="'View Document'"
+                                                            @click="
+                                                                viewContractDocument(
+                                                                    data,
+                                                                )
+                                                            "
+                                                            v-tooltip.top="
+                                                                'View Document'
+                                                            "
                                                         />
                                                     </template>
                                                 </Column>
                                                 <template #expansion="{ data }">
-                                                    <div class="grid gap-3 p-3 text-sm lg:hidden">
-                                                        <div class="flex justify-between gap-4 border-b border-border pb-2 sm:hidden">
-                                                            <span class="shrink-0 text-muted-foreground">Start Date</span>
-                                                            <span class="text-right">{{ formatDate(data.start_date) }}</span>
+                                                    <div
+                                                        class="grid gap-3 p-3 text-sm lg:hidden"
+                                                    >
+                                                        <div
+                                                            class="flex justify-between gap-4 border-b border-border pb-2 sm:hidden"
+                                                        >
+                                                            <span
+                                                                class="shrink-0 text-muted-foreground"
+                                                                >Start
+                                                                Date</span
+                                                            >
+                                                            <span
+                                                                class="text-right"
+                                                                >{{
+                                                                    formatDate(
+                                                                        data.start_date,
+                                                                    )
+                                                                }}</span
+                                                            >
                                                         </div>
-                                                        <div class="flex justify-between gap-4 border-b border-border pb-2 md:hidden">
-                                                            <span class="shrink-0 text-muted-foreground">End Date</span>
-                                                            <span class="text-right">{{ formatDate(data.end_date) }}</span>
+                                                        <div
+                                                            class="flex justify-between gap-4 border-b border-border pb-2 md:hidden"
+                                                        >
+                                                            <span
+                                                                class="shrink-0 text-muted-foreground"
+                                                                >End Date</span
+                                                            >
+                                                            <span
+                                                                class="text-right"
+                                                                >{{
+                                                                    formatDate(
+                                                                        data.end_date,
+                                                                    )
+                                                                }}</span
+                                                            >
                                                         </div>
-                                                        <div class="flex justify-between gap-4 border-b border-border pb-2">
-                                                            <span class="shrink-0 text-muted-foreground">Salary</span>
-                                                            <span class="text-right">{{ formatCurrency(data.salary_amount) }}</span>
+                                                        <div
+                                                            class="flex justify-between gap-4 border-b border-border pb-2"
+                                                        >
+                                                            <span
+                                                                class="shrink-0 text-muted-foreground"
+                                                                >Salary</span
+                                                            >
+                                                            <span
+                                                                class="text-right"
+                                                                >{{
+                                                                    formatCurrency(
+                                                                        data.salary_amount,
+                                                                    )
+                                                                }}</span
+                                                            >
                                                         </div>
-                                                        <div class="flex justify-between gap-4 border-b border-border pb-2 xl:hidden">
-                                                            <span class="shrink-0 text-muted-foreground">Annual Leave</span>
-                                                            <span class="text-right">{{ getLeaveDisplay(data.annual_leave_entitled, data.annual_leave_taken) }}</span>
+                                                        <div
+                                                            class="flex justify-between gap-4 border-b border-border pb-2 xl:hidden"
+                                                        >
+                                                            <span
+                                                                class="shrink-0 text-muted-foreground"
+                                                                >Annual
+                                                                Leave</span
+                                                            >
+                                                            <span
+                                                                class="text-right"
+                                                                >{{
+                                                                    getLeaveDisplay(
+                                                                        data.annual_leave_entitled,
+                                                                        data.annual_leave_taken,
+                                                                    )
+                                                                }}</span
+                                                            >
                                                         </div>
-                                                        <div class="flex justify-between gap-4 border-b border-border pb-2 xl:hidden">
-                                                            <span class="shrink-0 text-muted-foreground">Sick Leave</span>
-                                                            <span class="text-right">{{ getLeaveDisplay(data.sick_leave_entitled, data.sick_leave_taken) }}</span>
+                                                        <div
+                                                            class="flex justify-between gap-4 border-b border-border pb-2 xl:hidden"
+                                                        >
+                                                            <span
+                                                                class="shrink-0 text-muted-foreground"
+                                                                >Sick
+                                                                Leave</span
+                                                            >
+                                                            <span
+                                                                class="text-right"
+                                                                >{{
+                                                                    getLeaveDisplay(
+                                                                        data.sick_leave_entitled,
+                                                                        data.sick_leave_taken,
+                                                                    )
+                                                                }}</span
+                                                            >
                                                         </div>
-                                                        <div v-if="data.comments" class="flex flex-col gap-1">
-                                                            <span class="shrink-0 text-muted-foreground">Comments</span>
-                                                            <div class="prose prose-sm dark:prose-invert max-w-none text-sm" v-html="data.comments"></div>
+                                                        <div
+                                                            v-if="data.comments"
+                                                            class="flex flex-col gap-1"
+                                                        >
+                                                            <span
+                                                                class="shrink-0 text-muted-foreground"
+                                                                >Comments</span
+                                                            >
+                                                            <div
+                                                                class="prose prose-sm dark:prose-invert max-w-none text-sm"
+                                                                v-html="
+                                                                    data.comments
+                                                                "
+                                                            ></div>
                                                         </div>
                                                     </div>
                                                 </template>
                                             </DataTable>
                                         </template>
-                                        <p v-else class="text-muted-foreground">No contracts.</p>
+                                        <p v-else class="text-muted-foreground">
+                                            No contracts.
+                                        </p>
                                     </div>
                                 </TabPanel>
 
                                 <TabPanel value="insurances">
                                     <div class="pt-4">
-                                        <h3 class="mb-4 text-lg font-medium">Insurances</h3>
-                                        <template v-if="insurances && insurances.length > 0">
+                                        <h3 class="mb-4 text-lg font-medium">
+                                            Insurances
+                                        </h3>
+                                        <template
+                                            v-if="
+                                                insurances &&
+                                                insurances.length > 0
+                                            "
+                                        >
                                             <DataTable
-                                                v-model:expandedRows="expandedInsuranceRows"
+                                                v-model:expandedRows="
+                                                    expandedInsuranceRows
+                                                "
                                                 :value="insurances"
                                                 dataKey="id"
                                                 size="small"
                                                 stripedRows
                                                 class="rounded-lg border border-border"
                                             >
-                                                <Column expander style="width: 3rem" class="!pr-0 lg:hidden" />
-                                                <Column field="title" header="Title">
+                                                <Column
+                                                    expander
+                                                    style="width: 3rem"
+                                                    class="!pr-0 lg:hidden"
+                                                />
+                                                <Column
+                                                    field="title"
+                                                    header="Title"
+                                                >
                                                     <template #body="{ data }">
                                                         {{ data.title }}
                                                     </template>
                                                 </Column>
-                                                <Column field="insurer_name" header="Insurer" class="hidden sm:table-cell">
+                                                <Column
+                                                    field="insurer_name"
+                                                    header="Insurer"
+                                                    class="hidden sm:table-cell"
+                                                >
                                                     <template #body="{ data }">
                                                         {{ data.insurer_name }}
                                                     </template>
                                                 </Column>
-                                                <Column field="policy_number" header="Policy #" class="hidden md:table-cell">
+                                                <Column
+                                                    field="policy_number"
+                                                    header="Policy #"
+                                                    class="hidden md:table-cell"
+                                                >
                                                     <template #body="{ data }">
                                                         {{ data.policy_number }}
                                                     </template>
                                                 </Column>
-                                                <Column field="start_date" header="Start Date" class="hidden lg:table-cell">
+                                                <Column
+                                                    field="start_date"
+                                                    header="Start Date"
+                                                    class="hidden lg:table-cell"
+                                                >
                                                     <template #body="{ data }">
-                                                        {{ formatDate(data.start_date) }}
+                                                        {{
+                                                            formatDate(
+                                                                data.start_date,
+                                                            )
+                                                        }}
                                                     </template>
                                                 </Column>
-                                                <Column field="end_date" header="End Date" class="hidden xl:table-cell">
+                                                <Column
+                                                    field="end_date"
+                                                    header="End Date"
+                                                    class="hidden xl:table-cell"
+                                                >
                                                     <template #body="{ data }">
-                                                        {{ formatDate(data.end_date) }}
+                                                        {{
+                                                            formatDate(
+                                                                data.end_date,
+                                                            )
+                                                        }}
                                                     </template>
                                                 </Column>
                                                 <Column header="Status">
                                                     <template #body="{ data }">
                                                         <Tag
-                                                            :value="data.is_active ? 'Active' : 'Expired'"
-                                                            :severity="data.is_active ? 'success' : 'secondary'"
+                                                            :value="
+                                                                data.is_active
+                                                                    ? 'Active'
+                                                                    : 'Expired'
+                                                            "
+                                                            :severity="
+                                                                data.is_active
+                                                                    ? 'success'
+                                                                    : 'secondary'
+                                                            "
                                                         />
                                                     </template>
                                                 </Column>
-                                                <Column header="Doc" class="w-12">
+                                                <Column
+                                                    header="Doc"
+                                                    class="w-12"
+                                                >
                                                     <template #body="{ data }">
                                                         <Button
-                                                            v-if="data.has_document"
+                                                            v-if="
+                                                                data.has_document
+                                                            "
                                                             icon="pi pi-file"
                                                             severity="secondary"
                                                             text
                                                             rounded
                                                             size="small"
-                                                            @click="viewInsuranceDocument(data)"
-                                                            v-tooltip.top="'View Document'"
+                                                            @click="
+                                                                viewInsuranceDocument(
+                                                                    data,
+                                                                )
+                                                            "
+                                                            v-tooltip.top="
+                                                                'View Document'
+                                                            "
                                                         />
                                                     </template>
                                                 </Column>
                                                 <template #expansion="{ data }">
-                                                    <div class="grid gap-3 p-3 text-sm lg:hidden">
-                                                        <div class="flex justify-between gap-4 border-b border-border pb-2 sm:hidden">
-                                                            <span class="shrink-0 text-muted-foreground">Insurer</span>
-                                                            <span class="text-right">{{ data.insurer_name }}</span>
+                                                    <div
+                                                        class="grid gap-3 p-3 text-sm lg:hidden"
+                                                    >
+                                                        <div
+                                                            class="flex justify-between gap-4 border-b border-border pb-2 sm:hidden"
+                                                        >
+                                                            <span
+                                                                class="shrink-0 text-muted-foreground"
+                                                                >Insurer</span
+                                                            >
+                                                            <span
+                                                                class="text-right"
+                                                                >{{
+                                                                    data.insurer_name
+                                                                }}</span
+                                                            >
                                                         </div>
-                                                        <div class="flex justify-between gap-4 border-b border-border pb-2 md:hidden">
-                                                            <span class="shrink-0 text-muted-foreground">Policy #</span>
-                                                            <span class="text-right">{{ data.policy_number }}</span>
+                                                        <div
+                                                            class="flex justify-between gap-4 border-b border-border pb-2 md:hidden"
+                                                        >
+                                                            <span
+                                                                class="shrink-0 text-muted-foreground"
+                                                                >Policy #</span
+                                                            >
+                                                            <span
+                                                                class="text-right"
+                                                                >{{
+                                                                    data.policy_number
+                                                                }}</span
+                                                            >
                                                         </div>
-                                                        <div class="flex justify-between gap-4 border-b border-border pb-2">
-                                                            <span class="shrink-0 text-muted-foreground">Start Date</span>
-                                                            <span class="text-right">{{ formatDate(data.start_date) }}</span>
+                                                        <div
+                                                            class="flex justify-between gap-4 border-b border-border pb-2"
+                                                        >
+                                                            <span
+                                                                class="shrink-0 text-muted-foreground"
+                                                                >Start
+                                                                Date</span
+                                                            >
+                                                            <span
+                                                                class="text-right"
+                                                                >{{
+                                                                    formatDate(
+                                                                        data.start_date,
+                                                                    )
+                                                                }}</span
+                                                            >
                                                         </div>
-                                                        <div class="flex justify-between gap-4 border-b border-border pb-2 xl:hidden">
-                                                            <span class="shrink-0 text-muted-foreground">End Date</span>
-                                                            <span class="text-right">{{ formatDate(data.end_date) }}</span>
+                                                        <div
+                                                            class="flex justify-between gap-4 border-b border-border pb-2 xl:hidden"
+                                                        >
+                                                            <span
+                                                                class="shrink-0 text-muted-foreground"
+                                                                >End Date</span
+                                                            >
+                                                            <span
+                                                                class="text-right"
+                                                                >{{
+                                                                    formatDate(
+                                                                        data.end_date,
+                                                                    )
+                                                                }}</span
+                                                            >
                                                         </div>
-                                                        <div v-if="data.comments" class="flex flex-col gap-1">
-                                                            <span class="shrink-0 text-muted-foreground">Comments</span>
-                                                            <div class="prose prose-sm dark:prose-invert max-w-none text-sm" v-html="data.comments"></div>
+                                                        <div
+                                                            v-if="data.comments"
+                                                            class="flex flex-col gap-1"
+                                                        >
+                                                            <span
+                                                                class="shrink-0 text-muted-foreground"
+                                                                >Comments</span
+                                                            >
+                                                            <div
+                                                                class="prose prose-sm dark:prose-invert max-w-none text-sm"
+                                                                v-html="
+                                                                    data.comments
+                                                                "
+                                                            ></div>
                                                         </div>
                                                     </div>
                                                 </template>
                                             </DataTable>
                                         </template>
-                                        <p v-else class="text-muted-foreground">No insurances.</p>
+                                        <p v-else class="text-muted-foreground">
+                                            No insurances.
+                                        </p>
                                     </div>
                                 </TabPanel>
 
                                 <TabPanel value="stores">
                                     <div class="pt-4">
-                                        <h3 class="mb-4 text-lg font-medium">Store Assignments</h3>
-                                        <template v-if="stores && stores.length > 0">
+                                        <h3 class="mb-4 text-lg font-medium">
+                                            Store Assignments
+                                        </h3>
+                                        <template
+                                            v-if="stores && stores.length > 0"
+                                        >
                                             <DataTable
-                                                v-model:expandedRows="expandedStoreRows"
+                                                v-model:expandedRows="
+                                                    expandedStoreRows
+                                                "
                                                 :value="stores"
                                                 dataKey="id"
                                                 size="small"
                                                 stripedRows
                                                 class="rounded-lg border border-border"
                                             >
-                                                <Column expander style="width: 3rem" class="!pr-0 md:hidden" />
-                                                <Column field="store.store_name" header="Store">
+                                                <Column
+                                                    expander
+                                                    style="width: 3rem"
+                                                    class="!pr-0 md:hidden"
+                                                />
+                                                <Column
+                                                    field="store.store_name"
+                                                    header="Store"
+                                                >
                                                     <template #body="{ data }">
-                                                        <div class="flex items-center gap-2">
-                                                            <span>{{ data.store?.store_name ?? '-' }}</span>
-                                                            <Tag v-if="data.store?.store_code" :value="data.store.store_code" severity="secondary" class="!text-xs" />
+                                                        <div
+                                                            class="flex items-center gap-2"
+                                                        >
+                                                            <span>{{
+                                                                data.store
+                                                                    ?.store_name ??
+                                                                '-'
+                                                            }}</span>
+                                                            <Tag
+                                                                v-if="
+                                                                    data.store
+                                                                        ?.store_code
+                                                                "
+                                                                :value="
+                                                                    data.store
+                                                                        .store_code
+                                                                "
+                                                                severity="secondary"
+                                                                class="!text-xs"
+                                                            />
                                                         </div>
                                                     </template>
                                                 </Column>
-                                                <Column field="permissions" header="Permissions" class="hidden md:table-cell">
+                                                <Column
+                                                    field="permissions"
+                                                    header="Permissions"
+                                                    class="hidden md:table-cell"
+                                                >
                                                     <template #body="{ data }">
-                                                        <div class="flex flex-wrap gap-1">
+                                                        <div
+                                                            class="flex flex-wrap gap-1"
+                                                        >
                                                             <Tag
-                                                                v-for="perm in (data.permissions_with_labels || []).slice(0, 3)"
+                                                                v-for="perm in (
+                                                                    data.permissions_with_labels ||
+                                                                    []
+                                                                ).slice(0, 3)"
                                                                 :key="perm.key"
-                                                                :value="perm.label"
+                                                                :value="
+                                                                    perm.label
+                                                                "
                                                                 severity="secondary"
                                                                 class="!text-xs"
                                                             />
                                                             <Tag
-                                                                v-if="(data.permissions_with_labels || []).length > 3"
+                                                                v-if="
+                                                                    (
+                                                                        data.permissions_with_labels ||
+                                                                        []
+                                                                    ).length > 3
+                                                                "
                                                                 :value="`+${(data.permissions_with_labels || []).length - 3}`"
                                                                 severity="info"
                                                                 class="!text-xs"
-                                                                v-tooltip.top="(data.permissions_with_labels || []).slice(3).map((p: any) => p.label).join(', ')"
+                                                                v-tooltip.top="
+                                                                    (
+                                                                        data.permissions_with_labels ||
+                                                                        []
+                                                                    )
+                                                                        .slice(
+                                                                            3,
+                                                                        )
+                                                                        .map(
+                                                                            (
+                                                                                p: any,
+                                                                            ) =>
+                                                                                p.label,
+                                                                        )
+                                                                        .join(
+                                                                            ', ',
+                                                                        )
+                                                                "
                                                             />
-                                                            <span v-if="!(data.permissions_with_labels || []).length" class="text-muted-foreground text-sm">
+                                                            <span
+                                                                v-if="
+                                                                    !(
+                                                                        data.permissions_with_labels ||
+                                                                        []
+                                                                    ).length
+                                                                "
+                                                                class="text-sm text-muted-foreground"
+                                                            >
                                                                 No permissions
                                                             </span>
                                                         </div>
                                                     </template>
                                                 </Column>
-                                                <Column field="active" header="Status">
+                                                <Column
+                                                    field="active"
+                                                    header="Status"
+                                                >
                                                     <template #body="{ data }">
                                                         <Tag
-                                                            :value="data.active ? 'Active' : 'Inactive'"
-                                                            :severity="data.active ? 'success' : 'secondary'"
+                                                            :value="
+                                                                data.active
+                                                                    ? 'Active'
+                                                                    : 'Inactive'
+                                                            "
+                                                            :severity="
+                                                                data.active
+                                                                    ? 'success'
+                                                                    : 'secondary'
+                                                            "
                                                         />
                                                     </template>
                                                 </Column>
                                                 <template #expansion="{ data }">
-                                                    <div class="grid gap-3 p-3 text-sm md:hidden">
-                                                        <div class="flex flex-col gap-2">
-                                                            <span class="shrink-0 text-muted-foreground">Permissions</span>
-                                                            <div class="flex flex-wrap gap-1">
+                                                    <div
+                                                        class="grid gap-3 p-3 text-sm md:hidden"
+                                                    >
+                                                        <div
+                                                            class="flex flex-col gap-2"
+                                                        >
+                                                            <span
+                                                                class="shrink-0 text-muted-foreground"
+                                                                >Permissions</span
+                                                            >
+                                                            <div
+                                                                class="flex flex-wrap gap-1"
+                                                            >
                                                                 <Tag
-                                                                    v-for="perm in (data.permissions_with_labels || [])"
-                                                                    :key="perm.key"
-                                                                    :value="perm.label"
+                                                                    v-for="perm in data.permissions_with_labels ||
+                                                                    []"
+                                                                    :key="
+                                                                        perm.key
+                                                                    "
+                                                                    :value="
+                                                                        perm.label
+                                                                    "
                                                                     severity="secondary"
                                                                     class="!text-xs"
                                                                 />
-                                                                <span v-if="!(data.permissions_with_labels || []).length" class="text-muted-foreground text-sm">
-                                                                    No permissions
+                                                                <span
+                                                                    v-if="
+                                                                        !(
+                                                                            data.permissions_with_labels ||
+                                                                            []
+                                                                        ).length
+                                                                    "
+                                                                    class="text-sm text-muted-foreground"
+                                                                >
+                                                                    No
+                                                                    permissions
                                                                 </span>
                                                             </div>
                                                         </div>
@@ -833,24 +1743,49 @@ function navigateToEdit() {
                                                 </template>
                                             </DataTable>
                                         </template>
-                                        <p v-else class="text-muted-foreground">No store assignments.</p>
+                                        <p v-else class="text-muted-foreground">
+                                            No store assignments.
+                                        </p>
                                     </div>
                                 </TabPanel>
 
-                                <TabPanel v-if="isAdmin && isStaffUser" value="permissions">
+                                <TabPanel
+                                    v-if="isAdmin && isStaffUser"
+                                    value="permissions"
+                                >
                                     <div class="pt-4">
-                                        <h3 class="mb-4 text-lg font-medium">Global Page Permissions</h3>
-                                        <div v-if="permissionsLoading" class="flex items-center justify-center py-8">
-                                            <i class="pi pi-spin pi-spinner text-2xl text-muted-foreground"></i>
+                                        <h3 class="mb-4 text-lg font-medium">
+                                            Global Page Permissions
+                                        </h3>
+                                        <div
+                                            v-if="permissionsLoading"
+                                            class="flex items-center justify-center py-8"
+                                        >
+                                            <i
+                                                class="pi pi-spin pi-spinner text-2xl text-muted-foreground"
+                                            ></i>
                                         </div>
-                                        <div v-else-if="Object.keys(availablePermissions).length > 0" class="flex flex-col gap-4">
+                                        <div
+                                            v-else-if="
+                                                Object.keys(
+                                                    availablePermissions,
+                                                ).length > 0
+                                            "
+                                            class="flex flex-col gap-4"
+                                        >
                                             <div
-                                                v-for="(permissions, group) in availablePermissions"
+                                                v-for="(
+                                                    permissions, group
+                                                ) in availablePermissions"
                                                 :key="group"
                                                 class="rounded border border-border p-4"
                                             >
-                                                <div class="mb-3 font-medium">{{ group }}</div>
-                                                <div class="ml-2 grid gap-2 sm:grid-cols-2">
+                                                <div class="mb-3 font-medium">
+                                                    {{ group }}
+                                                </div>
+                                                <div
+                                                    class="ml-2 grid gap-2 sm:grid-cols-2"
+                                                >
                                                     <div
                                                         v-for="perm in permissions"
                                                         :key="perm.key"
@@ -858,12 +1793,21 @@ function navigateToEdit() {
                                                     >
                                                         <i
                                                             :class="[
-                                                                hasPermission(perm.key) ? 'pi pi-check-circle text-green-600' : 'pi pi-times-circle text-muted-foreground',
+                                                                hasPermission(
+                                                                    perm.key,
+                                                                )
+                                                                    ? 'pi pi-check-circle text-green-600'
+                                                                    : 'pi pi-times-circle text-muted-foreground',
                                                             ]"
                                                         ></i>
                                                         <span
                                                             class="text-sm"
-                                                            :class="{ 'text-muted-foreground': !hasPermission(perm.key) }"
+                                                            :class="{
+                                                                'text-muted-foreground':
+                                                                    !hasPermission(
+                                                                        perm.key,
+                                                                    ),
+                                                            }"
                                                         >
                                                             {{ perm.label }}
                                                         </span>
@@ -871,7 +1815,9 @@ function navigateToEdit() {
                                                 </div>
                                             </div>
                                         </div>
-                                        <p v-else class="text-muted-foreground">No permissions available.</p>
+                                        <p v-else class="text-muted-foreground">
+                                            No permissions available.
+                                        </p>
                                     </div>
                                 </TabPanel>
 
@@ -879,54 +1825,126 @@ function navigateToEdit() {
                                     <div class="pt-4">
                                         <div class="flex flex-col gap-4">
                                             <div>
-                                                <h3 class="text-lg font-medium">Organization Chart</h3>
-                                                <p class="text-sm text-muted-foreground">
-                                                    Visual representation of this employee's position in the hierarchy.
+                                                <h3 class="text-lg font-medium">
+                                                    Organization Chart
+                                                </h3>
+                                                <p
+                                                    class="text-sm text-muted-foreground"
+                                                >
+                                                    Visual representation of
+                                                    this employee's position in
+                                                    the hierarchy.
                                                 </p>
                                             </div>
-                                            <div v-if="hierarchyLoading" class="flex items-center justify-center p-8">
-                                                <i class="pi pi-spin pi-spinner text-2xl text-muted-foreground"></i>
+                                            <div
+                                                v-if="hierarchyLoading"
+                                                class="flex items-center justify-center p-8"
+                                            >
+                                                <i
+                                                    class="pi pi-spin pi-spinner text-2xl text-muted-foreground"
+                                                ></i>
                                             </div>
-                                            <div v-else-if="hierarchyData?.subtree?.length" class="overflow-x-auto rounded-lg border border-border p-4">
+                                            <div
+                                                v-else-if="
+                                                    hierarchyData?.subtree
+                                                        ?.length
+                                                "
+                                                class="overflow-x-auto rounded-lg border border-border p-4"
+                                            >
                                                 <OrganizationChart
                                                     v-for="node in hierarchyData.subtree"
                                                     :key="node.key"
                                                     :value="node"
                                                     collapsible
                                                 >
-                                                    <template #employee="{ node: chartNode }">
-                                                        <div class="flex flex-col items-center gap-2 p-2">
+                                                    <template
+                                                        #employee="{
+                                                            node: chartNode,
+                                                        }"
+                                                    >
+                                                        <div
+                                                            class="flex flex-col items-center gap-2 p-2"
+                                                        >
                                                             <Avatar
-                                                                v-if="chartNode.data.profile_picture_url"
-                                                                :image="chartNode.data.profile_picture_url"
+                                                                v-if="
+                                                                    chartNode
+                                                                        .data
+                                                                        .profile_picture_url
+                                                                "
+                                                                :image="
+                                                                    chartNode
+                                                                        .data
+                                                                        .profile_picture_url
+                                                                "
                                                                 shape="circle"
                                                                 size="normal"
                                                             />
                                                             <Avatar
                                                                 v-else
-                                                                :label="getHierarchyInitials(chartNode.data.name)"
+                                                                :label="
+                                                                    getHierarchyInitials(
+                                                                        chartNode
+                                                                            .data
+                                                                            .name,
+                                                                    )
+                                                                "
                                                                 shape="circle"
                                                                 size="normal"
                                                                 class="bg-primary/10 text-primary"
                                                             />
-                                                            <div class="text-center">
-                                                                <div class="text-sm font-medium">{{ chartNode.data.name }}</div>
-                                                                <div v-if="chartNode.data.designation" class="text-xs text-muted-foreground">
-                                                                    {{ chartNode.data.designation }}
+                                                            <div
+                                                                class="text-center"
+                                                            >
+                                                                <div
+                                                                    class="text-sm font-medium"
+                                                                >
+                                                                    {{
+                                                                        chartNode
+                                                                            .data
+                                                                            .name
+                                                                    }}
+                                                                </div>
+                                                                <div
+                                                                    v-if="
+                                                                        chartNode
+                                                                            .data
+                                                                            .designation
+                                                                    "
+                                                                    class="text-xs text-muted-foreground"
+                                                                >
+                                                                    {{
+                                                                        chartNode
+                                                                            .data
+                                                                            .designation
+                                                                    }}
                                                                 </div>
                                                             </div>
                                                             <Tag
                                                                 :value="`Tier ${chartNode.data.tier}`"
-                                                                :severity="getTierColor(chartNode.data.tier)"
+                                                                :severity="
+                                                                    getTierColor(
+                                                                        chartNode
+                                                                            .data
+                                                                            .tier,
+                                                                    )
+                                                                "
                                                                 class="!text-xs"
                                                             />
                                                         </div>
                                                     </template>
                                                 </OrganizationChart>
                                             </div>
-                                            <div v-else class="rounded-lg border border-dashed border-border p-6 text-center text-muted-foreground">
-                                                <i class="pi pi-sitemap mb-2 text-2xl"></i>
-                                                <p>No subordinates in hierarchy.</p>
+                                            <div
+                                                v-else
+                                                class="rounded-lg border border-dashed border-border p-6 text-center text-muted-foreground"
+                                            >
+                                                <i
+                                                    class="pi pi-sitemap mb-2 text-2xl"
+                                                ></i>
+                                                <p>
+                                                    No subordinates in
+                                                    hierarchy.
+                                                </p>
                                             </div>
                                         </div>
                                     </div>

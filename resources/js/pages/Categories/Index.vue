@@ -15,7 +15,12 @@ import { computed, reactive, ref, watch } from 'vue';
 import PagePermissionsSplitButton from '@/components/admin/PagePermissionsSplitButton.vue';
 import { usePermissions } from '@/composables/usePermissions';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type Category, type PaginatedData, type Subcategory } from '@/types';
+import {
+    type BreadcrumbItem,
+    type Category,
+    type PaginatedData,
+    type Subcategory,
+} from '@/types';
 
 interface Filters {
     search?: string;
@@ -108,7 +113,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const expandedRows = ref({});
-const hasActiveFilters = computed(() => filters.search || filters.status || filters.showDeleted || filters.searchSubcategories);
+const hasActiveFilters = computed(
+    () =>
+        filters.search ||
+        filters.status ||
+        filters.showDeleted ||
+        filters.searchSubcategories,
+);
 const confirm = useConfirm();
 
 function isDeleted(category: Category): boolean {
@@ -175,7 +186,9 @@ function onRowClick(event: { data: Category }) {
 
 function onPage(event: { page: number; rows: number }) {
     perPage.value = event.rows;
-    const params: Record<string, string | number | boolean> = { page: event.page + 1 };
+    const params: Record<string, string | number | boolean> = {
+        page: event.page + 1,
+    };
     if (filters.search) params.search = filters.search;
     if (filters.status) params.status = filters.status;
     if (filters.showDeleted) params.show_deleted = true;
@@ -190,7 +203,9 @@ function onPage(event: { page: number; rows: number }) {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <h1 class="heading-lg">Categories</h1>
                 <PagePermissionsSplitButton
                     page="categories"
@@ -201,12 +216,18 @@ function onPage(event: { page: number; rows: number }) {
             </div>
 
             <!-- Filter Section -->
-            <div class="filter-section flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div
+                class="filter-section flex flex-col gap-3 sm:flex-row sm:items-center"
+            >
                 <IconField class="flex-1">
                     <InputIcon class="pi pi-search" />
                     <InputText
                         v-model="filters.search"
-                        :placeholder="filters.searchSubcategories ? 'Search categories and subcategories...' : 'Search by name or code...'"
+                        :placeholder="
+                            filters.searchSubcategories
+                                ? 'Search categories and subcategories...'
+                                : 'Search by name or code...'
+                        "
                         size="small"
                         fluid
                     />
@@ -223,11 +244,15 @@ function onPage(event: { page: number; rows: number }) {
                     />
                     <label class="flex cursor-pointer items-center gap-2">
                         <ToggleSwitch v-model="filters.searchSubcategories" />
-                        <span class="whitespace-nowrap text-sm">Include Subcategories</span>
+                        <span class="text-sm whitespace-nowrap"
+                            >Include Subcategories</span
+                        >
                     </label>
                     <label class="flex cursor-pointer items-center gap-2">
                         <ToggleSwitch v-model="filters.showDeleted" />
-                        <span class="whitespace-nowrap text-sm">Show Deleted</span>
+                        <span class="text-sm whitespace-nowrap"
+                            >Show Deleted</span
+                        >
                     </label>
                     <Button
                         v-if="hasActiveFilters"
@@ -251,7 +276,7 @@ function onPage(event: { page: number; rows: number }) {
                 :rows="perPage"
                 :rows-per-page-options="[10, 15, 25, 50]"
                 :total-records="categories.total"
-                :first="((categories.current_page - 1) * perPage)"
+                :first="(categories.current_page - 1) * perPage"
                 @page="onPage"
                 @row-click="onRowClick"
                 striped-rows
@@ -264,16 +289,28 @@ function onPage(event: { page: number; rows: number }) {
                     </div>
                 </template>
                 <Column expander class="w-12 !pr-0" />
-                <Column field="category_name" header="Category Name" class="!pl-4">
+                <Column
+                    field="category_name"
+                    header="Category Name"
+                    class="!pl-4"
+                >
                     <template #body="{ data }">
                         <div class="flex items-center gap-2">
                             <span
                                 class="font-medium"
-                                :class="{ 'text-muted-foreground line-through': isDeleted(data) }"
+                                :class="{
+                                    'text-muted-foreground line-through':
+                                        isDeleted(data),
+                                }"
                             >
                                 {{ data.category_name }}
                             </span>
-                            <Tag v-if="isDeleted(data)" value="Deleted" severity="danger" class="!text-xs" />
+                            <Tag
+                                v-if="isDeleted(data)"
+                                value="Deleted"
+                                severity="danger"
+                                class="!text-xs"
+                            />
                         </div>
                     </template>
                 </Column>
@@ -282,10 +319,15 @@ function onPage(event: { page: number; rows: number }) {
                         <Tag :value="data.category_code" severity="secondary" />
                     </template>
                 </Column>
-                <Column field="subcategories_count" header="Subcategories" class="hidden w-32 md:table-cell">
+                <Column
+                    field="subcategories_count"
+                    header="Subcategories"
+                    class="hidden w-32 md:table-cell"
+                >
                     <template #body="{ data }">
                         <span class="text-muted-foreground">
-                            {{ data.active_subcategories_count ?? 0 }} / {{ data.subcategories_count ?? 0 }}
+                            {{ data.active_subcategories_count ?? 0 }} /
+                            {{ data.subcategories_count ?? 0 }}
                         </span>
                     </template>
                 </Column>
@@ -299,7 +341,10 @@ function onPage(event: { page: number; rows: number }) {
                 </Column>
                 <Column header="" class="w-24 !pr-4">
                     <template #body="{ data }">
-                        <div v-if="isDeleted(data)" class="flex justify-end gap-1">
+                        <div
+                            v-if="isDeleted(data)"
+                            class="flex justify-end gap-1"
+                        >
                             <Button
                                 v-if="canManage"
                                 icon="pi pi-history"
@@ -337,15 +382,34 @@ function onPage(event: { page: number; rows: number }) {
                     <div class="bg-muted/30 p-4">
                         <!-- Mobile-only info -->
                         <div class="mb-4 grid gap-3 text-sm md:hidden">
-                            <div class="flex justify-between border-b border-border pb-2">
-                                <span class="text-muted-foreground">Subcategories</span>
-                                <span>{{ data.active_subcategories_count ?? 0 }} active / {{ data.subcategories_count ?? 0 }} total</span>
+                            <div
+                                class="flex justify-between border-b border-border pb-2"
+                            >
+                                <span class="text-muted-foreground"
+                                    >Subcategories</span
+                                >
+                                <span
+                                    >{{ data.active_subcategories_count ?? 0 }}
+                                    active /
+                                    {{ data.subcategories_count ?? 0 }}
+                                    total</span
+                                >
                             </div>
-                            <div v-if="data.description" class="flex flex-col gap-1 border-b border-border pb-2">
-                                <span class="text-muted-foreground">Description</span>
-                                <span class="text-sm">{{ data.description }}</span>
+                            <div
+                                v-if="data.description"
+                                class="flex flex-col gap-1 border-b border-border pb-2"
+                            >
+                                <span class="text-muted-foreground"
+                                    >Description</span
+                                >
+                                <span class="text-sm">{{
+                                    data.description
+                                }}</span>
                             </div>
-                            <div v-if="isDeleted(data) && canManage" class="flex gap-2 pt-2">
+                            <div
+                                v-if="isDeleted(data) && canManage"
+                                class="flex gap-2 pt-2"
+                            >
                                 <Button
                                     label="Restore"
                                     icon="pi pi-history"
@@ -355,7 +419,10 @@ function onPage(event: { page: number; rows: number }) {
                                     class="flex-1"
                                 />
                             </div>
-                            <div v-else-if="!isDeleted(data) && canManage" class="flex gap-2 pt-2">
+                            <div
+                                v-else-if="!isDeleted(data) && canManage"
+                                class="flex gap-2 pt-2"
+                            >
                                 <Button
                                     label="Edit"
                                     icon="pi pi-pencil"
@@ -377,7 +444,11 @@ function onPage(event: { page: number; rows: number }) {
 
                         <!-- Subcategories table -->
                         <div>
-                            <h4 class="mb-2 text-sm font-medium text-muted-foreground">Subcategories</h4>
+                            <h4
+                                class="mb-2 text-sm font-medium text-muted-foreground"
+                            >
+                                Subcategories
+                            </h4>
                             <DataTable
                                 :value="data.subcategories"
                                 dataKey="id"
@@ -385,36 +456,84 @@ function onPage(event: { page: number; rows: number }) {
                                 class="overflow-hidden rounded-lg border border-border"
                             >
                                 <template #empty>
-                                    <div class="p-3 text-center text-sm text-muted-foreground">
+                                    <div
+                                        class="p-3 text-center text-sm text-muted-foreground"
+                                    >
                                         No subcategories found.
                                     </div>
                                 </template>
-                                <Column field="subcategory_name" header="Name" class="!pl-3">
+                                <Column
+                                    field="subcategory_name"
+                                    header="Name"
+                                    class="!pl-3"
+                                >
                                     <template #body="{ data: sub }">
                                         <div class="flex items-center gap-2">
-                                            <span :class="{ 'text-muted-foreground line-through': isSubcategoryDeleted(sub) }">
+                                            <span
+                                                :class="{
+                                                    'text-muted-foreground line-through':
+                                                        isSubcategoryDeleted(
+                                                            sub,
+                                                        ),
+                                                }"
+                                            >
                                                 {{ sub.subcategory_name }}
                                             </span>
-                                            <Tag v-if="sub.is_default" value="Default" severity="info" class="!text-xs" />
-                                            <Tag v-if="isSubcategoryDeleted(sub)" value="Deleted" severity="danger" class="!text-xs" />
+                                            <Tag
+                                                v-if="sub.is_default"
+                                                value="Default"
+                                                severity="info"
+                                                class="!text-xs"
+                                            />
+                                            <Tag
+                                                v-if="isSubcategoryDeleted(sub)"
+                                                value="Deleted"
+                                                severity="danger"
+                                                class="!text-xs"
+                                            />
                                         </div>
                                     </template>
                                 </Column>
-                                <Column field="subcategory_code" header="Code" class="w-20">
-                                    <template #body="{ data: sub }">
-                                        <Tag :value="sub.subcategory_code" severity="secondary" />
-                                    </template>
-                                </Column>
-                                <Column field="description" header="Description" class="hidden md:table-cell">
-                                    <template #body="{ data: sub }">
-                                        <span class="text-muted-foreground">{{ sub.description ?? '-' }}</span>
-                                    </template>
-                                </Column>
-                                <Column field="is_active" header="Status" class="w-24">
+                                <Column
+                                    field="subcategory_code"
+                                    header="Code"
+                                    class="w-20"
+                                >
                                     <template #body="{ data: sub }">
                                         <Tag
-                                            :value="sub.is_active ? 'Active' : 'Inactive'"
-                                            :severity="sub.is_active ? 'success' : 'danger'"
+                                            :value="sub.subcategory_code"
+                                            severity="secondary"
+                                        />
+                                    </template>
+                                </Column>
+                                <Column
+                                    field="description"
+                                    header="Description"
+                                    class="hidden md:table-cell"
+                                >
+                                    <template #body="{ data: sub }">
+                                        <span class="text-muted-foreground">{{
+                                            sub.description ?? '-'
+                                        }}</span>
+                                    </template>
+                                </Column>
+                                <Column
+                                    field="is_active"
+                                    header="Status"
+                                    class="w-24"
+                                >
+                                    <template #body="{ data: sub }">
+                                        <Tag
+                                            :value="
+                                                sub.is_active
+                                                    ? 'Active'
+                                                    : 'Inactive'
+                                            "
+                                            :severity="
+                                                sub.is_active
+                                                    ? 'success'
+                                                    : 'danger'
+                                            "
                                         />
                                     </template>
                                 </Column>

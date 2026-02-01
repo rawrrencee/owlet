@@ -68,7 +68,7 @@ watch(
             currentTimecard.value = newVal;
         }
     },
-    { immediate: true }
+    { immediate: true },
 );
 
 watch(
@@ -78,7 +78,7 @@ watch(
             isOnBreak.value = newVal;
         }
     },
-    { immediate: true }
+    { immediate: true },
 );
 
 watch(
@@ -88,7 +88,7 @@ watch(
             stores.value = newVal;
         }
     },
-    { immediate: true }
+    { immediate: true },
 );
 
 onMounted(() => {
@@ -100,7 +100,9 @@ onMounted(() => {
     <!-- Only show if user has an employee record -->
     <div v-if="hasEmployee" class="floating-clock-panel">
         <!-- Floating Action Button Container -->
-        <div class="fixed bottom-6 right-6 z-[100] flex flex-col items-center gap-2">
+        <div
+            class="fixed right-6 bottom-6 z-[100] flex flex-col items-center gap-2"
+        >
             <!-- Status Badge above FAB -->
             <Tag
                 v-if="statusBadge"
@@ -135,12 +137,16 @@ onMounted(() => {
             <template #header>
                 <div class="flex w-full items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                        <div
+                            class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10"
+                        >
                             <Clock class="h-5 w-5 text-primary" />
                         </div>
                         <div>
                             <h2 class="text-lg font-semibold">Time Clock</h2>
-                            <p class="text-xs text-muted-foreground">Track your work hours</p>
+                            <p class="text-xs text-muted-foreground">
+                                Track your work hours
+                            </p>
                         </div>
                     </div>
                 </div>

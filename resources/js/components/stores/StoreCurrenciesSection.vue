@@ -39,8 +39,12 @@ const currencyOptions = computed(() =>
 
 // Filter out currencies that are already assigned when adding new
 const availableCurrencyOptions = computed(() => {
-    const assignedCurrencyIds = storeCurrencies.value.map((sc) => sc.currency_id);
-    return currencyOptions.value.filter((c) => !assignedCurrencyIds.includes(c.value));
+    const assignedCurrencyIds = storeCurrencies.value.map(
+        (sc) => sc.currency_id,
+    );
+    return currencyOptions.value.filter(
+        (c) => !assignedCurrencyIds.includes(c.value),
+    );
 });
 
 async function fetchStoreCurrencies() {
@@ -156,28 +160,43 @@ const expandedRows = ref({});
         >
             <template #empty>
                 <div class="p-4 text-center text-muted-foreground">
-                    No currencies assigned to this store. Click "Add Currency" to assign a currency.
+                    No currencies assigned to this store. Click "Add Currency"
+                    to assign a currency.
                 </div>
             </template>
             <Column expander style="width: 3rem" class="!pr-0 md:hidden" />
             <Column field="currency" header="Currency">
                 <template #body="{ data }">
                     <div class="flex items-center gap-2">
-                        <span class="font-medium">{{ data.currency?.code }}</span>
-                        <span class="hidden text-muted-foreground sm:inline">{{ data.currency?.name }}</span>
+                        <span class="font-medium">{{
+                            data.currency?.code
+                        }}</span>
+                        <span class="hidden text-muted-foreground sm:inline">{{
+                            data.currency?.name
+                        }}</span>
                     </div>
                 </template>
             </Column>
-            <Column field="currency.symbol" header="Symbol" class="hidden md:table-cell w-24">
+            <Column
+                field="currency.symbol"
+                header="Symbol"
+                class="hidden w-24 md:table-cell"
+            >
                 <template #body="{ data }">
                     {{ data.currency?.symbol ?? '-' }}
                 </template>
             </Column>
-            <Column field="exchange_rate" class="hidden md:table-cell w-44">
+            <Column field="exchange_rate" class="hidden w-44 md:table-cell">
                 <template #header>
-                    <span v-tooltip.top="'Exchange rate relative to SGD (base currency)'">
+                    <span
+                        v-tooltip.top="
+                            'Exchange rate relative to SGD (base currency)'
+                        "
+                    >
                         Exchange Rate
-                        <i class="pi pi-info-circle ml-1 text-xs text-muted-foreground"></i>
+                        <i
+                            class="pi pi-info-circle ml-1 text-xs text-muted-foreground"
+                        ></i>
                     </span>
                 </template>
                 <template #body="{ data }">
@@ -201,20 +220,34 @@ const expandedRows = ref({});
             </Column>
             <template #expansion="{ data }">
                 <div class="grid gap-3 p-3 text-sm md:hidden">
-                    <div class="flex justify-between gap-4 border-b border-border pb-2 sm:hidden">
+                    <div
+                        class="flex justify-between gap-4 border-b border-border pb-2 sm:hidden"
+                    >
                         <span class="shrink-0 text-muted-foreground">Name</span>
-                        <span class="text-right">{{ data.currency?.name ?? '-' }}</span>
+                        <span class="text-right">{{
+                            data.currency?.name ?? '-'
+                        }}</span>
                     </div>
-                    <div class="flex justify-between gap-4 border-b border-border pb-2">
-                        <span class="shrink-0 text-muted-foreground">Symbol</span>
-                        <span class="text-right">{{ data.currency?.symbol ?? '-' }}</span>
+                    <div
+                        class="flex justify-between gap-4 border-b border-border pb-2"
+                    >
+                        <span class="shrink-0 text-muted-foreground"
+                            >Symbol</span
+                        >
+                        <span class="text-right">{{
+                            data.currency?.symbol ?? '-'
+                        }}</span>
                     </div>
-                    <div class="flex justify-between gap-4 border-b border-border pb-2">
+                    <div
+                        class="flex justify-between gap-4 border-b border-border pb-2"
+                    >
                         <span class="shrink-0 text-muted-foreground">
                             Exchange Rate
                             <span class="text-xs">(vs SGD)</span>
                         </span>
-                        <span class="text-right">{{ formatExchangeRate(data.currency?.exchange_rate) }}</span>
+                        <span class="text-right">{{
+                            formatExchangeRate(data.currency?.exchange_rate)
+                        }}</span>
                     </div>
                     <div class="flex justify-end gap-1 pt-1">
                         <Button
@@ -239,7 +272,9 @@ const expandedRows = ref({});
         >
             <form @submit.prevent="saveAssignment" class="flex flex-col gap-4">
                 <div class="flex flex-col gap-2">
-                    <label for="sc_currency_id" class="font-medium">Currency *</label>
+                    <label for="sc_currency_id" class="font-medium"
+                        >Currency *</label
+                    >
                     <Select
                         id="sc_currency_id"
                         v-model="form.currency_id"
@@ -266,7 +301,12 @@ const expandedRows = ref({});
                         @click="dialogVisible = false"
                         :disabled="saving"
                     />
-                    <Button type="submit" label="Add Currency" size="small" :loading="saving" />
+                    <Button
+                        type="submit"
+                        label="Add Currency"
+                        size="small"
+                        :loading="saving"
+                    />
                 </div>
             </form>
         </Dialog>

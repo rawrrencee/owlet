@@ -36,8 +36,10 @@ function filterNodes(nodes: OrgChartNode[], query: string): OrgChartNode[] {
         .map((node) => {
             const matchesSearch =
                 node.data.name.toLowerCase().includes(lowerQuery) ||
-                (node.data.designation?.toLowerCase().includes(lowerQuery) ?? false) ||
-                (node.data.company?.toLowerCase().includes(lowerQuery) ?? false);
+                (node.data.designation?.toLowerCase().includes(lowerQuery) ??
+                    false) ||
+                (node.data.company?.toLowerCase().includes(lowerQuery) ??
+                    false);
 
             const filteredChildren = filterNodes(node.children, query);
 
@@ -53,7 +55,9 @@ function filterNodes(nodes: OrgChartNode[], query: string): OrgChartNode[] {
         .filter((node): node is OrgChartNode => node !== null);
 }
 
-const filteredOrgChart = computed(() => filterNodes(props.orgChart, searchQuery.value));
+const filteredOrgChart = computed(() =>
+    filterNodes(props.orgChart, searchQuery.value),
+);
 
 function navigateToEmployee(employeeId: number) {
     router.visit(`/users/${employeeId}/edit`);
@@ -102,7 +106,9 @@ function collapseAll() {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <h1 class="heading-lg">Organisation Chart</h1>
                 <Button
                     label="Edit Chart"
@@ -113,7 +119,9 @@ function collapseAll() {
             </div>
 
             <!-- Filter Section -->
-            <div class="filter-section flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div
+                class="filter-section flex flex-col gap-3 sm:flex-row sm:items-center"
+            >
                 <IconField class="flex-1">
                     <InputIcon class="pi pi-search" />
                     <InputText
@@ -144,8 +152,15 @@ function collapseAll() {
             </div>
 
             <!-- Organisation Chart -->
-            <div v-if="filteredOrgChart.length > 0" class="flex flex-col gap-6 overflow-x-auto">
-                <Card v-for="rootNode in filteredOrgChart" :key="rootNode.key" class="min-w-max">
+            <div
+                v-if="filteredOrgChart.length > 0"
+                class="flex flex-col gap-6 overflow-x-auto"
+            >
+                <Card
+                    v-for="rootNode in filteredOrgChart"
+                    :key="rootNode.key"
+                    class="min-w-max"
+                >
                     <template #content>
                         <OrganizationChart
                             :key="`${rootNode.key}-${searchQuery}`"
@@ -155,7 +170,7 @@ function collapseAll() {
                         >
                             <template #employee="{ node }">
                                 <div
-                                    class="flex cursor-pointer flex-col items-center gap-2 p-3 transition-colors hover:bg-surface-100 dark:hover:bg-surface-700"
+                                    class="hover:bg-surface-100 dark:hover:bg-surface-700 flex cursor-pointer flex-col items-center gap-2 p-3 transition-colors"
                                     @click="navigateToEmployee(node.data.id)"
                                 >
                                     <Avatar
@@ -172,11 +187,19 @@ function collapseAll() {
                                         class="bg-primary/10 text-primary"
                                     />
                                     <div class="text-center">
-                                        <div class="font-semibold">{{ node.data.name }}</div>
-                                        <div v-if="node.data.designation" class="text-sm text-muted-foreground">
+                                        <div class="font-semibold">
+                                            {{ node.data.name }}
+                                        </div>
+                                        <div
+                                            v-if="node.data.designation"
+                                            class="text-sm text-muted-foreground"
+                                        >
                                             {{ node.data.designation }}
                                         </div>
-                                        <div v-if="node.data.company" class="text-xs text-muted-foreground">
+                                        <div
+                                            v-if="node.data.company"
+                                            class="text-xs text-muted-foreground"
+                                        >
                                             {{ node.data.company }}
                                         </div>
                                     </div>
@@ -193,12 +216,19 @@ function collapseAll() {
             </div>
 
             <!-- Empty State -->
-            <div v-else class="flex flex-1 flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-border p-8 ">
+            <div
+                v-else
+                class="flex flex-1 flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-border p-8"
+            >
                 <i class="pi pi-sitemap text-4xl text-muted-foreground"></i>
                 <div class="text-center">
                     <h3 class="font-medium">No employees in hierarchy</h3>
                     <p class="text-sm text-muted-foreground">
-                        {{ searchQuery ? 'No employees match your search.' : 'Create hierarchy relationships by editing employees.' }}
+                        {{
+                            searchQuery
+                                ? 'No employees match your search.'
+                                : 'Create hierarchy relationships by editing employees.'
+                        }}
                     </p>
                 </div>
                 <Button

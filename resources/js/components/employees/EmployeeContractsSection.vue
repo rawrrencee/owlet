@@ -57,7 +57,10 @@ const companyOptions = computed(() =>
 // Get the current editing contract from props (updated after upload/delete)
 const currentEditingContract = computed(() => {
     if (!editingId.value) return null;
-    return props.contracts.find(c => c.id === editingId.value) || editingContract.value;
+    return (
+        props.contracts.find((c) => c.id === editingId.value) ||
+        editingContract.value
+    );
 });
 
 // File input ref
@@ -73,7 +76,10 @@ function formatDate(dateString: string | null): string {
 function formatCurrency(value: string | number | null): string {
     if (value === null || value === undefined) return '-';
     const num = typeof value === 'string' ? parseFloat(value) : value;
-    return new Intl.NumberFormat('en-SG', { style: 'currency', currency: 'SGD' }).format(num);
+    return new Intl.NumberFormat('en-SG', {
+        style: 'currency',
+        currency: 'SGD',
+    }).format(num);
 }
 
 function resetForm() {
@@ -106,7 +112,9 @@ function openEditDialog(contract: EmployeeContract) {
     editingId.value = contract.id;
     editingContract.value = contract;
     form.company_id = contract.company_id;
-    form.start_date = contract.start_date ? new Date(contract.start_date) : null;
+    form.start_date = contract.start_date
+        ? new Date(contract.start_date)
+        : null;
     form.end_date = contract.end_date ? new Date(contract.end_date) : null;
     form.salary_amount = Number(contract.salary_amount) || 0;
     form.annual_leave_entitled = contract.annual_leave_entitled;
@@ -134,15 +142,31 @@ function saveContract() {
     // For new contracts, use FormData to include file
     if (!editingId.value && selectedFile.value) {
         const formData = new FormData();
-        if (form.company_id) formData.append('company_id', String(form.company_id));
-        if (form.start_date) formData.append('start_date', formatDateForBackend(form.start_date)!);
-        if (form.end_date) formData.append('end_date', formatDateForBackend(form.end_date)!);
+        if (form.company_id)
+            formData.append('company_id', String(form.company_id));
+        if (form.start_date)
+            formData.append(
+                'start_date',
+                formatDateForBackend(form.start_date)!,
+            );
+        if (form.end_date)
+            formData.append('end_date', formatDateForBackend(form.end_date)!);
         formData.append('salary_amount', String(form.salary_amount));
-        formData.append('annual_leave_entitled', String(form.annual_leave_entitled));
+        formData.append(
+            'annual_leave_entitled',
+            String(form.annual_leave_entitled),
+        );
         formData.append('annual_leave_taken', String(form.annual_leave_taken));
-        formData.append('sick_leave_entitled', String(form.sick_leave_entitled));
+        formData.append(
+            'sick_leave_entitled',
+            String(form.sick_leave_entitled),
+        );
         formData.append('sick_leave_taken', String(form.sick_leave_taken));
-        if (form.external_document_url) formData.append('external_document_url', form.external_document_url);
+        if (form.external_document_url)
+            formData.append(
+                'external_document_url',
+                form.external_document_url,
+            );
         if (form.comments) formData.append('comments', form.comments);
         formData.append('document', selectedFile.value);
 
@@ -208,9 +232,12 @@ function confirmRemoveContract(contract: EmployeeContract) {
             size: 'small',
         },
         accept: () => {
-            router.delete(`/users/${props.employeeId}/contracts/${contract.id}`, {
-                preserveScroll: true,
-            });
+            router.delete(
+                `/users/${props.employeeId}/contracts/${contract.id}`,
+                {
+                    preserveScroll: true,
+                },
+            );
         },
     });
 }
@@ -262,20 +289,24 @@ function uploadDocumentInDialog() {
     const formData = new FormData();
     formData.append('document', selectedFile.value);
 
-    router.post(`/users/${props.employeeId}/contracts/${editingContract.value.id}/document`, formData, {
-        preserveScroll: true,
-        forceFormData: true,
-        onSuccess: () => {
-            selectedFile.value = null;
-            if (fileInput.value) {
-                fileInput.value.value = '';
-            }
-            // Update the editingContract with new document info (will be refreshed from page props)
+    router.post(
+        `/users/${props.employeeId}/contracts/${editingContract.value.id}/document`,
+        formData,
+        {
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => {
+                selectedFile.value = null;
+                if (fileInput.value) {
+                    fileInput.value.value = '';
+                }
+                // Update the editingContract with new document info (will be refreshed from page props)
+            },
+            onFinish: () => {
+                uploadingDocument.value = false;
+            },
         },
-        onFinish: () => {
-            uploadingDocument.value = false;
-        },
-    });
+    );
 }
 
 function confirmDeleteDocumentInDialog() {
@@ -296,9 +327,12 @@ function confirmDeleteDocumentInDialog() {
             size: 'small',
         },
         accept: () => {
-            router.delete(`/users/${props.employeeId}/contracts/${editingContract.value!.id}/document`, {
-                preserveScroll: true,
-            });
+            router.delete(
+                `/users/${props.employeeId}/contracts/${editingContract.value!.id}/document`,
+                {
+                    preserveScroll: true,
+                },
+            );
         },
     });
 }
@@ -318,7 +352,12 @@ function getLeaveDisplay(entitled: number, taken: number): string {
     <div class="flex flex-col gap-4">
         <div class="flex items-center justify-between">
             <h3 class="text-lg font-medium">Contracts</h3>
-            <Button label="Add Contract" icon="pi pi-plus" size="small" @click="openAddDialog" />
+            <Button
+                label="Add Contract"
+                icon="pi pi-plus"
+                size="small"
+                @click="openAddDialog"
+            />
         </div>
 
         <DataTable
@@ -331,46 +370,74 @@ function getLeaveDisplay(entitled: number, taken: number): string {
         >
             <template #empty>
                 <div class="p-4 text-center text-muted-foreground">
-                    No contracts found. Click "Add Contract" to add a new contract.
+                    No contracts found. Click "Add Contract" to add a new
+                    contract.
                 </div>
             </template>
             <Column expander style="width: 3rem" class="!pr-0 sm:hidden" />
             <Column field="company.company_name" header="Company">
                 <template #body="{ data }">
-                    <span class="font-medium">{{ data.company?.company_name ?? '-' }}</span>
+                    <span class="font-medium">{{
+                        data.company?.company_name ?? '-'
+                    }}</span>
                 </template>
             </Column>
-            <Column field="start_date" header="Start Date" class="hidden md:table-cell">
+            <Column
+                field="start_date"
+                header="Start Date"
+                class="hidden md:table-cell"
+            >
                 <template #body="{ data }">
                     {{ formatDate(data.start_date) }}
                 </template>
             </Column>
-            <Column field="end_date" header="End Date" class="hidden lg:table-cell">
+            <Column
+                field="end_date"
+                header="End Date"
+                class="hidden lg:table-cell"
+            >
                 <template #body="{ data }">
                     {{ formatDate(data.end_date) }}
                 </template>
             </Column>
-            <Column field="salary_amount" header="Salary" class="hidden md:table-cell">
+            <Column
+                field="salary_amount"
+                header="Salary"
+                class="hidden md:table-cell"
+            >
                 <template #body="{ data }">
                     {{ formatCurrency(data.salary_amount) }}
                 </template>
             </Column>
             <Column header="Annual Leave" class="hidden sm:table-cell">
                 <template #body="{ data }">
-                    {{ getLeaveDisplay(data.annual_leave_entitled, data.annual_leave_taken) }}
+                    {{
+                        getLeaveDisplay(
+                            data.annual_leave_entitled,
+                            data.annual_leave_taken,
+                        )
+                    }}
                 </template>
             </Column>
             <Column header="Sick Leave" class="hidden lg:table-cell">
                 <template #body="{ data }">
-                    {{ getLeaveDisplay(data.sick_leave_entitled, data.sick_leave_taken) }}
+                    {{
+                        getLeaveDisplay(
+                            data.sick_leave_entitled,
+                            data.sick_leave_taken,
+                        )
+                    }}
                 </template>
             </Column>
             <Column header="Status">
                 <template #body="{ data }">
-                    <Tag :value="data.is_active ? 'Active' : 'Expired'" :severity="data.is_active ? 'success' : 'secondary'" />
+                    <Tag
+                        :value="data.is_active ? 'Active' : 'Expired'"
+                        :severity="data.is_active ? 'success' : 'secondary'"
+                    />
                 </template>
             </Column>
-            <Column header="Doc" class="w-12 hidden sm:table-cell">
+            <Column header="Doc" class="hidden w-12 sm:table-cell">
                 <template #body="{ data }">
                     <Button
                         v-if="data.has_document"
@@ -384,7 +451,7 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                     />
                 </template>
             </Column>
-            <Column header="" class="w-32 !pr-4 hidden sm:table-cell">
+            <Column header="" class="hidden w-32 !pr-4 sm:table-cell">
                 <template #body="{ data }">
                     <div class="flex justify-end gap-1">
                         <Button
@@ -410,28 +477,68 @@ function getLeaveDisplay(entitled: number, taken: number): string {
             </Column>
             <template #expansion="{ data }">
                 <div class="grid gap-3 p-3 text-sm sm:hidden">
-                    <div class="flex justify-between gap-4 border-b border-border pb-2">
-                        <span class="shrink-0 text-muted-foreground">Start Date</span>
-                        <span class="text-right">{{ formatDate(data.start_date) }}</span>
+                    <div
+                        class="flex justify-between gap-4 border-b border-border pb-2"
+                    >
+                        <span class="shrink-0 text-muted-foreground"
+                            >Start Date</span
+                        >
+                        <span class="text-right">{{
+                            formatDate(data.start_date)
+                        }}</span>
                     </div>
-                    <div class="flex justify-between gap-4 border-b border-border pb-2">
-                        <span class="shrink-0 text-muted-foreground">End Date</span>
-                        <span class="text-right">{{ formatDate(data.end_date) }}</span>
+                    <div
+                        class="flex justify-between gap-4 border-b border-border pb-2"
+                    >
+                        <span class="shrink-0 text-muted-foreground"
+                            >End Date</span
+                        >
+                        <span class="text-right">{{
+                            formatDate(data.end_date)
+                        }}</span>
                     </div>
-                    <div class="flex justify-between gap-4 border-b border-border pb-2">
-                        <span class="shrink-0 text-muted-foreground">Salary</span>
-                        <span class="text-right">{{ formatCurrency(data.salary_amount) }}</span>
+                    <div
+                        class="flex justify-between gap-4 border-b border-border pb-2"
+                    >
+                        <span class="shrink-0 text-muted-foreground"
+                            >Salary</span
+                        >
+                        <span class="text-right">{{
+                            formatCurrency(data.salary_amount)
+                        }}</span>
                     </div>
-                    <div class="flex justify-between gap-4 border-b border-border pb-2">
-                        <span class="shrink-0 text-muted-foreground">Annual Leave</span>
-                        <span class="text-right">{{ getLeaveDisplay(data.annual_leave_entitled, data.annual_leave_taken) }}</span>
+                    <div
+                        class="flex justify-between gap-4 border-b border-border pb-2"
+                    >
+                        <span class="shrink-0 text-muted-foreground"
+                            >Annual Leave</span
+                        >
+                        <span class="text-right">{{
+                            getLeaveDisplay(
+                                data.annual_leave_entitled,
+                                data.annual_leave_taken,
+                            )
+                        }}</span>
                     </div>
-                    <div class="flex justify-between gap-4 border-b border-border pb-2">
-                        <span class="shrink-0 text-muted-foreground">Sick Leave</span>
-                        <span class="text-right">{{ getLeaveDisplay(data.sick_leave_entitled, data.sick_leave_taken) }}</span>
+                    <div
+                        class="flex justify-between gap-4 border-b border-border pb-2"
+                    >
+                        <span class="shrink-0 text-muted-foreground"
+                            >Sick Leave</span
+                        >
+                        <span class="text-right">{{
+                            getLeaveDisplay(
+                                data.sick_leave_entitled,
+                                data.sick_leave_taken,
+                            )
+                        }}</span>
                     </div>
-                    <div class="flex justify-between gap-4 border-b border-border pb-2">
-                        <span class="shrink-0 text-muted-foreground">Document</span>
+                    <div
+                        class="flex justify-between gap-4 border-b border-border pb-2"
+                    >
+                        <span class="shrink-0 text-muted-foreground"
+                            >Document</span
+                        >
                         <span class="text-right">
                             <Button
                                 v-if="data.has_document"
@@ -476,7 +583,9 @@ function getLeaveDisplay(entitled: number, taken: number): string {
         >
             <form @submit.prevent="saveContract" class="flex flex-col gap-4">
                 <div class="flex flex-col gap-2">
-                    <label for="contract_company_id" class="font-medium">Company</label>
+                    <label for="contract_company_id" class="font-medium"
+                        >Company</label
+                    >
                     <Select
                         id="contract_company_id"
                         v-model="form.company_id"
@@ -497,7 +606,9 @@ function getLeaveDisplay(entitled: number, taken: number): string {
 
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div class="flex flex-col gap-2">
-                        <label for="contract_start_date" class="font-medium">Start Date *</label>
+                        <label for="contract_start_date" class="font-medium"
+                            >Start Date *</label
+                        >
                         <DatePicker
                             id="contract_start_date"
                             v-model="form.start_date"
@@ -507,13 +618,18 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                             size="small"
                             fluid
                         />
-                        <small v-if="formErrors.start_date" class="text-red-500">
+                        <small
+                            v-if="formErrors.start_date"
+                            class="text-red-500"
+                        >
                             {{ formErrors.start_date }}
                         </small>
                     </div>
 
                     <div class="flex flex-col gap-2">
-                        <label for="contract_end_date" class="font-medium">End Date</label>
+                        <label for="contract_end_date" class="font-medium"
+                            >End Date</label
+                        >
                         <DatePicker
                             id="contract_end_date"
                             v-model="form.end_date"
@@ -531,7 +647,9 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                 </div>
 
                 <div class="flex flex-col gap-2">
-                    <label for="contract_salary" class="font-medium">Salary *</label>
+                    <label for="contract_salary" class="font-medium"
+                        >Salary *</label
+                    >
                     <InputNumber
                         id="contract_salary"
                         v-model="form.salary_amount"
@@ -554,10 +672,14 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                         <label class="font-medium">Annual Leave *</label>
                         <div class="grid grid-cols-2 gap-2">
                             <div>
-                                <label class="text-xs text-muted-foreground">Entitled</label>
+                                <label class="text-xs text-muted-foreground"
+                                    >Entitled</label
+                                >
                                 <InputNumber
                                     v-model="form.annual_leave_entitled"
-                                    :invalid="!!formErrors.annual_leave_entitled"
+                                    :invalid="
+                                        !!formErrors.annual_leave_entitled
+                                    "
                                     :min="0"
                                     :max="255"
                                     size="small"
@@ -565,7 +687,9 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                                 />
                             </div>
                             <div>
-                                <label class="text-xs text-muted-foreground">Taken</label>
+                                <label class="text-xs text-muted-foreground"
+                                    >Taken</label
+                                >
                                 <InputNumber
                                     v-model="form.annual_leave_taken"
                                     :invalid="!!formErrors.annual_leave_taken"
@@ -576,10 +700,16 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                                 />
                             </div>
                         </div>
-                        <small v-if="formErrors.annual_leave_entitled" class="text-red-500">
+                        <small
+                            v-if="formErrors.annual_leave_entitled"
+                            class="text-red-500"
+                        >
                             {{ formErrors.annual_leave_entitled }}
                         </small>
-                        <small v-if="formErrors.annual_leave_taken" class="text-red-500">
+                        <small
+                            v-if="formErrors.annual_leave_taken"
+                            class="text-red-500"
+                        >
                             {{ formErrors.annual_leave_taken }}
                         </small>
                     </div>
@@ -588,7 +718,9 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                         <label class="font-medium">Sick Leave *</label>
                         <div class="grid grid-cols-2 gap-2">
                             <div>
-                                <label class="text-xs text-muted-foreground">Entitled</label>
+                                <label class="text-xs text-muted-foreground"
+                                    >Entitled</label
+                                >
                                 <InputNumber
                                     v-model="form.sick_leave_entitled"
                                     :invalid="!!formErrors.sick_leave_entitled"
@@ -599,7 +731,9 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                                 />
                             </div>
                             <div>
-                                <label class="text-xs text-muted-foreground">Taken</label>
+                                <label class="text-xs text-muted-foreground"
+                                    >Taken</label
+                                >
                                 <InputNumber
                                     v-model="form.sick_leave_taken"
                                     :invalid="!!formErrors.sick_leave_taken"
@@ -610,17 +744,25 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                                 />
                             </div>
                         </div>
-                        <small v-if="formErrors.sick_leave_entitled" class="text-red-500">
+                        <small
+                            v-if="formErrors.sick_leave_entitled"
+                            class="text-red-500"
+                        >
                             {{ formErrors.sick_leave_entitled }}
                         </small>
-                        <small v-if="formErrors.sick_leave_taken" class="text-red-500">
+                        <small
+                            v-if="formErrors.sick_leave_taken"
+                            class="text-red-500"
+                        >
                             {{ formErrors.sick_leave_taken }}
                         </small>
                     </div>
                 </div>
 
                 <div class="flex flex-col gap-2">
-                    <label for="contract_external_url" class="font-medium">External Document URL</label>
+                    <label for="contract_external_url" class="font-medium"
+                        >External Document URL</label
+                    >
                     <InputText
                         id="contract_external_url"
                         v-model="form.external_document_url"
@@ -629,7 +771,10 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                         size="small"
                         fluid
                     />
-                    <small v-if="formErrors.external_document_url" class="text-red-500">
+                    <small
+                        v-if="formErrors.external_document_url"
+                        class="text-red-500"
+                    >
                         {{ formErrors.external_document_url }}
                     </small>
                 </div>
@@ -637,12 +782,22 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                 <!-- Document Upload -->
                 <div class="flex flex-col gap-2">
                     <label class="font-medium">Document Upload</label>
-                    <div class="rounded-lg border border-border p-3 dark:border-border">
+                    <div
+                        class="rounded-lg border border-border p-3 dark:border-border"
+                    >
                         <!-- Show existing document if present (only when editing) -->
-                        <div v-if="editingId && currentEditingContract?.document_url" class="flex items-center justify-between">
+                        <div
+                            v-if="
+                                editingId &&
+                                currentEditingContract?.document_url
+                            "
+                            class="flex items-center justify-between"
+                        >
                             <div class="flex items-center gap-2">
                                 <i class="pi pi-file text-primary"></i>
-                                <span class="text-sm">{{ currentEditingContract.document_filename }}</span>
+                                <span class="text-sm">{{
+                                    currentEditingContract.document_filename
+                                }}</span>
                             </div>
                             <div class="flex items-center gap-1">
                                 <Button
@@ -678,10 +833,14 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                                 />
                                 <label
                                     for="contract-file-upload"
-                                    class="cursor-pointer rounded border border-border bg-surface-50 px-3 py-1.5 text-sm hover:bg-surface-100 dark:bg-surface-800 dark:hover:bg-surface-700"
+                                    class="bg-surface-50 hover:bg-surface-100 dark:bg-surface-800 dark:hover:bg-surface-700 cursor-pointer rounded border border-border px-3 py-1.5 text-sm"
                                 >
                                     <i class="pi pi-upload mr-2"></i>
-                                    {{ selectedFile ? selectedFile.name : 'Choose file' }}
+                                    {{
+                                        selectedFile
+                                            ? selectedFile.name
+                                            : 'Choose file'
+                                    }}
                                 </label>
                                 <!-- For existing contracts, show separate upload button -->
                                 <Button
@@ -705,9 +864,11 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                                 />
                             </div>
                             <small class="text-xs text-muted-foreground">
-                                Max 5MB. Supported: PDF, JPG, PNG, GIF, DOC, DOCX
+                                Max 5MB. Supported: PDF, JPG, PNG, GIF, DOC,
+                                DOCX
                                 <template v-if="!editingId && selectedFile">
-                                    <br />File will be uploaded when you save the contract.
+                                    <br />File will be uploaded when you save
+                                    the contract.
                                 </template>
                             </small>
                         </div>
@@ -715,7 +876,9 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                 </div>
 
                 <div class="flex flex-col gap-2">
-                    <label for="contract_comments" class="font-medium">Comments</label>
+                    <label for="contract_comments" class="font-medium"
+                        >Comments</label
+                    >
                     <Editor
                         id="contract_comments"
                         v-model="form.comments"
@@ -723,16 +886,36 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                     >
                         <template #toolbar>
                             <span class="ql-formats">
-                                <button class="ql-bold" v-tooltip.bottom="'Bold'"></button>
-                                <button class="ql-italic" v-tooltip.bottom="'Italic'"></button>
-                                <button class="ql-underline" v-tooltip.bottom="'Underline'"></button>
+                                <button
+                                    class="ql-bold"
+                                    v-tooltip.bottom="'Bold'"
+                                ></button>
+                                <button
+                                    class="ql-italic"
+                                    v-tooltip.bottom="'Italic'"
+                                ></button>
+                                <button
+                                    class="ql-underline"
+                                    v-tooltip.bottom="'Underline'"
+                                ></button>
                             </span>
                             <span class="ql-formats">
-                                <button class="ql-list" value="ordered" v-tooltip.bottom="'Numbered List'"></button>
-                                <button class="ql-list" value="bullet" v-tooltip.bottom="'Bullet List'"></button>
+                                <button
+                                    class="ql-list"
+                                    value="ordered"
+                                    v-tooltip.bottom="'Numbered List'"
+                                ></button>
+                                <button
+                                    class="ql-list"
+                                    value="bullet"
+                                    v-tooltip.bottom="'Bullet List'"
+                                ></button>
                             </span>
                             <span class="ql-formats">
-                                <button class="ql-clean" v-tooltip.bottom="'Clear Formatting'"></button>
+                                <button
+                                    class="ql-clean"
+                                    v-tooltip.bottom="'Clear Formatting'"
+                                ></button>
                             </span>
                         </template>
                     </Editor>
@@ -750,7 +933,12 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                         @click="dialogVisible = false"
                         :disabled="saving"
                     />
-                    <Button type="submit" :label="editingId ? 'Save Changes' : 'Add Contract'" size="small" :loading="saving" />
+                    <Button
+                        type="submit"
+                        :label="editingId ? 'Save Changes' : 'Add Contract'"
+                        size="small"
+                        :loading="saving"
+                    />
                 </div>
             </form>
         </Dialog>

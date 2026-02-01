@@ -11,7 +11,10 @@ import { computed, ref } from 'vue';
 import BackButton from '@/components/BackButton.vue';
 import ImageSelect from '@/components/ImageSelect.vue';
 import ImageUpload from '@/components/ImageUpload.vue';
-import { clearSkipPageInHistory, skipCurrentPageInHistory } from '@/composables/useSmartBack';
+import {
+    clearSkipPageInHistory,
+    skipCurrentPageInHistory,
+} from '@/composables/useSmartBack';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type Country, type Supplier } from '@/types';
 
@@ -23,7 +26,9 @@ interface Props {
 const props = defineProps<Props>();
 
 const isEditing = computed(() => !!props.supplier);
-const pageTitle = computed(() => (isEditing.value ? 'Edit Supplier' : 'Create Supplier'));
+const pageTitle = computed(() =>
+    isEditing.value ? 'Edit Supplier' : 'Create Supplier',
+);
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -92,7 +97,10 @@ function cancel() {
             <div class="mx-auto w-full max-w-4xl">
                 <Card>
                     <template #content>
-                        <form @submit.prevent="submit" class="flex flex-col gap-6">
+                        <form
+                            @submit.prevent="submit"
+                            class="flex flex-col gap-6"
+                        >
                             <!-- Logo for create mode -->
                             <ImageSelect
                                 v-if="!isEditing"
@@ -116,7 +124,7 @@ function cancel() {
                                 alt="Supplier logo"
                                 :circular="false"
                                 :preview-size="96"
-                                @uploaded="(url) => logoUrl = url"
+                                @uploaded="(url) => (logoUrl = url)"
                                 @deleted="logoUrl = null"
                             />
 
@@ -124,19 +132,32 @@ function cancel() {
 
                             <!-- Basic Information -->
                             <div>
-                                <h3 class="mb-4 text-lg font-medium">Basic Information</h3>
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Basic Information
+                                </h3>
                                 <div class="grid gap-4 sm:grid-cols-2">
-                                    <div class="flex flex-col gap-2 sm:col-span-2">
-                                        <label for="supplier_name" class="font-medium">Supplier Name *</label>
+                                    <div
+                                        class="flex flex-col gap-2 sm:col-span-2"
+                                    >
+                                        <label
+                                            for="supplier_name"
+                                            class="font-medium"
+                                            >Supplier Name *</label
+                                        >
                                         <InputText
                                             id="supplier_name"
                                             v-model="form.supplier_name"
-                                            :invalid="!!form.errors.supplier_name"
+                                            :invalid="
+                                                !!form.errors.supplier_name
+                                            "
                                             placeholder="ABC Supplies Inc."
                                             size="small"
                                             fluid
                                         />
-                                        <small v-if="form.errors.supplier_name" class="text-red-500">
+                                        <small
+                                            v-if="form.errors.supplier_name"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.supplier_name }}
                                         </small>
                                     </div>
@@ -147,11 +168,17 @@ function cancel() {
 
                             <!-- Contact Information -->
                             <div>
-                                <h3 class="mb-4 text-lg font-medium">Contact Information</h3>
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Contact Information
+                                </h3>
                                 <div class="flex flex-col gap-4">
                                     <div class="grid gap-4 sm:grid-cols-2">
                                         <div class="flex flex-col gap-2">
-                                            <label for="email" class="font-medium">Email</label>
+                                            <label
+                                                for="email"
+                                                class="font-medium"
+                                                >Email</label
+                                            >
                                             <InputText
                                                 id="email"
                                                 v-model="form.email"
@@ -161,13 +188,20 @@ function cancel() {
                                                 size="small"
                                                 fluid
                                             />
-                                            <small v-if="form.errors.email" class="text-red-500">
+                                            <small
+                                                v-if="form.errors.email"
+                                                class="text-red-500"
+                                            >
                                                 {{ form.errors.email }}
                                             </small>
                                         </div>
 
                                         <div class="flex flex-col gap-2">
-                                            <label for="website" class="font-medium">Website</label>
+                                            <label
+                                                for="website"
+                                                class="font-medium"
+                                                >Website</label
+                                            >
                                             <InputText
                                                 id="website"
                                                 v-model="form.website"
@@ -176,7 +210,10 @@ function cancel() {
                                                 size="small"
                                                 fluid
                                             />
-                                            <small v-if="form.errors.website" class="text-red-500">
+                                            <small
+                                                v-if="form.errors.website"
+                                                class="text-red-500"
+                                            >
                                                 {{ form.errors.website }}
                                             </small>
                                         </div>
@@ -184,31 +221,49 @@ function cancel() {
 
                                     <div class="grid gap-4 sm:grid-cols-2">
                                         <div class="flex flex-col gap-2">
-                                            <label for="phone_number" class="font-medium">Phone Number</label>
+                                            <label
+                                                for="phone_number"
+                                                class="font-medium"
+                                                >Phone Number</label
+                                            >
                                             <InputText
                                                 id="phone_number"
                                                 v-model="form.phone_number"
-                                                :invalid="!!form.errors.phone_number"
+                                                :invalid="
+                                                    !!form.errors.phone_number
+                                                "
                                                 placeholder="+65 6123 4567"
                                                 size="small"
                                                 fluid
                                             />
-                                            <small v-if="form.errors.phone_number" class="text-red-500">
+                                            <small
+                                                v-if="form.errors.phone_number"
+                                                class="text-red-500"
+                                            >
                                                 {{ form.errors.phone_number }}
                                             </small>
                                         </div>
 
                                         <div class="flex flex-col gap-2">
-                                            <label for="mobile_number" class="font-medium">Mobile Number</label>
+                                            <label
+                                                for="mobile_number"
+                                                class="font-medium"
+                                                >Mobile Number</label
+                                            >
                                             <InputText
                                                 id="mobile_number"
                                                 v-model="form.mobile_number"
-                                                :invalid="!!form.errors.mobile_number"
+                                                :invalid="
+                                                    !!form.errors.mobile_number
+                                                "
                                                 placeholder="+65 9123 4567"
                                                 size="small"
                                                 fluid
                                             />
-                                            <small v-if="form.errors.mobile_number" class="text-red-500">
+                                            <small
+                                                v-if="form.errors.mobile_number"
+                                                class="text-red-500"
+                                            >
                                                 {{ form.errors.mobile_number }}
                                             </small>
                                         </div>
@@ -220,10 +275,16 @@ function cancel() {
 
                             <!-- Address -->
                             <div>
-                                <h3 class="mb-4 text-lg font-medium">Address</h3>
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Address
+                                </h3>
                                 <div class="flex flex-col gap-4">
                                     <div class="flex flex-col gap-2">
-                                        <label for="address_1" class="font-medium">Address Line 1</label>
+                                        <label
+                                            for="address_1"
+                                            class="font-medium"
+                                            >Address Line 1</label
+                                        >
                                         <InputText
                                             id="address_1"
                                             v-model="form.address_1"
@@ -232,13 +293,20 @@ function cancel() {
                                             size="small"
                                             fluid
                                         />
-                                        <small v-if="form.errors.address_1" class="text-red-500">
+                                        <small
+                                            v-if="form.errors.address_1"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.address_1 }}
                                         </small>
                                     </div>
 
                                     <div class="flex flex-col gap-2">
-                                        <label for="address_2" class="font-medium">Address Line 2</label>
+                                        <label
+                                            for="address_2"
+                                            class="font-medium"
+                                            >Address Line 2</label
+                                        >
                                         <InputText
                                             id="address_2"
                                             v-model="form.address_2"
@@ -247,13 +315,20 @@ function cancel() {
                                             size="small"
                                             fluid
                                         />
-                                        <small v-if="form.errors.address_2" class="text-red-500">
+                                        <small
+                                            v-if="form.errors.address_2"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.address_2 }}
                                         </small>
                                     </div>
 
                                     <div class="flex flex-col gap-2">
-                                        <label for="country_id" class="font-medium">Country</label>
+                                        <label
+                                            for="country_id"
+                                            class="font-medium"
+                                            >Country</label
+                                        >
                                         <Select
                                             id="country_id"
                                             v-model="form.country_id"
@@ -267,7 +342,10 @@ function cancel() {
                                             size="small"
                                             fluid
                                         />
-                                        <small v-if="form.errors.country_id" class="text-red-500">
+                                        <small
+                                            v-if="form.errors.country_id"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.country_id }}
                                         </small>
                                     </div>
@@ -278,36 +356,74 @@ function cancel() {
 
                             <!-- Description -->
                             <div>
-                                <h3 class="mb-4 text-lg font-medium">Description</h3>
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Description
+                                </h3>
                                 <div class="flex flex-col gap-2">
                                     <Editor
                                         v-model="form.description"
                                         editor-style="height: 200px"
                                         :pt="{
                                             root: { class: 'border-border' },
-                                            toolbar: { class: 'border-border bg-muted/50' },
+                                            toolbar: {
+                                                class: 'border-border bg-muted/50',
+                                            },
                                             content: { class: 'border-border' },
                                         }"
                                     >
                                         <template #toolbar>
                                             <span class="ql-formats">
-                                                <button class="ql-bold" v-tooltip.bottom="'Bold'"></button>
-                                                <button class="ql-italic" v-tooltip.bottom="'Italic'"></button>
-                                                <button class="ql-underline" v-tooltip.bottom="'Underline'"></button>
+                                                <button
+                                                    class="ql-bold"
+                                                    v-tooltip.bottom="'Bold'"
+                                                ></button>
+                                                <button
+                                                    class="ql-italic"
+                                                    v-tooltip.bottom="'Italic'"
+                                                ></button>
+                                                <button
+                                                    class="ql-underline"
+                                                    v-tooltip.bottom="
+                                                        'Underline'
+                                                    "
+                                                ></button>
                                             </span>
                                             <span class="ql-formats">
-                                                <button class="ql-list" value="ordered" v-tooltip.bottom="'Ordered List'"></button>
-                                                <button class="ql-list" value="bullet" v-tooltip.bottom="'Bullet List'"></button>
+                                                <button
+                                                    class="ql-list"
+                                                    value="ordered"
+                                                    v-tooltip.bottom="
+                                                        'Ordered List'
+                                                    "
+                                                ></button>
+                                                <button
+                                                    class="ql-list"
+                                                    value="bullet"
+                                                    v-tooltip.bottom="
+                                                        'Bullet List'
+                                                    "
+                                                ></button>
                                             </span>
                                             <span class="ql-formats">
-                                                <button class="ql-link" v-tooltip.bottom="'Link'"></button>
+                                                <button
+                                                    class="ql-link"
+                                                    v-tooltip.bottom="'Link'"
+                                                ></button>
                                             </span>
                                             <span class="ql-formats">
-                                                <button class="ql-clean" v-tooltip.bottom="'Clear Formatting'"></button>
+                                                <button
+                                                    class="ql-clean"
+                                                    v-tooltip.bottom="
+                                                        'Clear Formatting'
+                                                    "
+                                                ></button>
                                             </span>
                                         </template>
                                     </Editor>
-                                    <small v-if="form.errors.description" class="text-red-500">
+                                    <small
+                                        v-if="form.errors.description"
+                                        class="text-red-500"
+                                    >
                                         {{ form.errors.description }}
                                     </small>
                                 </div>
@@ -320,13 +436,23 @@ function cancel() {
                                 <h3 class="mb-4 text-lg font-medium">Status</h3>
                                 <div class="flex items-center gap-3">
                                     <ToggleSwitch v-model="form.active" />
-                                    <span :class="form.active ? 'text-green-600' : 'text-red-600'">
-                                        {{ form.active ? 'Active' : 'Inactive' }}
+                                    <span
+                                        :class="
+                                            form.active
+                                                ? 'text-green-600'
+                                                : 'text-red-600'
+                                        "
+                                    >
+                                        {{
+                                            form.active ? 'Active' : 'Inactive'
+                                        }}
                                     </span>
                                 </div>
                             </div>
 
-                            <div class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                            <div
+                                class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"
+                            >
                                 <Button
                                     type="button"
                                     label="Cancel"
@@ -337,7 +463,11 @@ function cancel() {
                                 />
                                 <Button
                                     type="submit"
-                                    :label="isEditing ? 'Save Changes' : 'Create Supplier'"
+                                    :label="
+                                        isEditing
+                                            ? 'Save Changes'
+                                            : 'Create Supplier'
+                                    "
                                     size="small"
                                     :loading="form.processing"
                                 />

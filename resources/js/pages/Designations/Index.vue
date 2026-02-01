@@ -10,7 +10,11 @@ import InputText from 'primevue/inputtext';
 import { useConfirm } from 'primevue/useconfirm';
 import { computed, reactive, ref, watch } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type Designation, type PaginatedData } from '@/types';
+import {
+    type BreadcrumbItem,
+    type Designation,
+    type PaginatedData,
+} from '@/types';
 
 interface Filters {
     search?: string;
@@ -106,7 +110,9 @@ function onPage(event: { page: number; rows: number }) {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <h1 class="heading-lg">Designations</h1>
                 <Button
                     label="Create Designation"
@@ -117,7 +123,9 @@ function onPage(event: { page: number; rows: number }) {
             </div>
 
             <!-- Filter Section -->
-            <div class="filter-section flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div
+                class="filter-section flex flex-col gap-3 sm:flex-row sm:items-center"
+            >
                 <IconField class="flex-1">
                     <InputIcon class="pi pi-search" />
                     <InputText
@@ -148,11 +156,11 @@ function onPage(event: { page: number; rows: number }) {
                 :rows="perPage"
                 :rows-per-page-options="[10, 15, 25, 50]"
                 :total-records="designations.total"
-                :first="((designations.current_page - 1) * perPage)"
+                :first="(designations.current_page - 1) * perPage"
                 @page="onPage"
                 striped-rows
                 size="small"
-                class="overflow-hidden rounded-lg border border-border "
+                class="overflow-hidden rounded-lg border border-border"
             >
                 <template #empty>
                     <div class="p-4 text-center text-muted-foreground">
@@ -162,12 +170,20 @@ function onPage(event: { page: number; rows: number }) {
                 <Column expander class="w-12 !pr-0 md:hidden" />
                 <Column field="designation_name" header="Name" class="!pl-4">
                     <template #body="{ data }">
-                        <span class="font-medium">{{ data.designation_name }}</span>
+                        <span class="font-medium">{{
+                            data.designation_name
+                        }}</span>
                     </template>
                 </Column>
-                <Column field="designation_code" header="Code" class="hidden md:table-cell">
+                <Column
+                    field="designation_code"
+                    header="Code"
+                    class="hidden md:table-cell"
+                >
                     <template #body="{ data }">
-                        <code class="rounded bg-surface-100 px-2 py-1 text-sm dark:bg-surface-800">
+                        <code
+                            class="bg-surface-100 dark:bg-surface-800 rounded px-2 py-1 text-sm"
+                        >
                             {{ data.designation_code }}
                         </code>
                     </template>
@@ -196,9 +212,13 @@ function onPage(event: { page: number; rows: number }) {
                 </Column>
                 <template #expansion="{ data }">
                     <div class="grid gap-3 p-3 text-sm md:hidden">
-                        <div class="flex justify-between border-b border-border pb-2">
+                        <div
+                            class="flex justify-between border-b border-border pb-2"
+                        >
                             <span class="text-muted-foreground">Code</span>
-                            <code class="rounded bg-surface-100 px-2 py-0.5 text-sm dark:bg-surface-800">
+                            <code
+                                class="bg-surface-100 dark:bg-surface-800 rounded px-2 py-0.5 text-sm"
+                            >
                                 {{ data.designation_code }}
                             </code>
                         </div>

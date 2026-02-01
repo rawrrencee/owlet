@@ -18,7 +18,13 @@ import ToggleSwitch from 'primevue/toggleswitch';
 import { useConfirm } from 'primevue/useconfirm';
 import { computed, reactive, ref, watch } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type Company, type Customer, type Employee, type PaginatedData } from '@/types';
+import {
+    type BreadcrumbItem,
+    type Company,
+    type Customer,
+    type Employee,
+    type PaginatedData,
+} from '@/types';
 
 interface Filters {
     search?: string;
@@ -55,7 +61,10 @@ const statusOptions = [
 
 const companyOptions = computed(() => [
     { label: 'All Companies', value: '' },
-    ...(props.companies ?? []).map(c => ({ label: c.company_name, value: c.id })),
+    ...(props.companies ?? []).map((c) => ({
+        label: c.company_name,
+        value: c.id,
+    })),
 ]);
 
 // Debounce timer for search
@@ -94,7 +103,9 @@ watch(
 );
 
 function applyFilters() {
-    const params: Record<string, string | number | boolean> = { type: props.type };
+    const params: Record<string, string | number | boolean> = {
+        type: props.type,
+    };
     if (filters.search) params.search = filters.search;
     if (filters.status) params.status = filters.status;
     if (filters.company) params.company = filters.company;
@@ -123,7 +134,13 @@ const pageTitle = computed(() =>
 const expandedEmployeeRows = ref({});
 const expandedCustomerRows = ref({});
 
-const hasActiveFilters = computed(() => filters.search || filters.status || filters.company || filters.showDeleted);
+const hasActiveFilters = computed(
+    () =>
+        filters.search ||
+        filters.status ||
+        filters.company ||
+        filters.showDeleted,
+);
 
 const confirm = useConfirm();
 
@@ -165,11 +182,14 @@ function getEmployeeEmail(employee: Employee): string {
     return employee.user?.email ?? '-';
 }
 
-function getEmployeeCompanies(employee: Employee): { text: string; full: string } {
+function getEmployeeCompanies(employee: Employee): {
+    text: string;
+    full: string;
+} {
     if (!employee.companies || employee.companies.length === 0) {
         return { text: '-', full: '-' };
     }
-    const full = employee.companies.map(c => c.name).join(', ');
+    const full = employee.companies.map((c) => c.name).join(', ');
     if (employee.companies.length === 1) {
         return { text: employee.companies[0].name, full };
     }
@@ -308,7 +328,9 @@ function onPage(event: { page: number; rows: number }) {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <h1 class="heading-lg">Users</h1>
                 <Button
                     v-if="type === 'employees'"
@@ -334,17 +356,26 @@ function onPage(event: { page: number; rows: number }) {
             </Tabs>
 
             <!-- Filter Section -->
-            <div class="filter-section flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div
+                class="filter-section flex flex-col gap-3 sm:flex-row sm:items-center"
+            >
                 <IconField class="flex-1">
                     <InputIcon class="pi pi-search" />
                     <InputText
                         v-model="filters.search"
-                        :placeholder="type === 'employees' ? 'Search by name or email...' : 'Search by name, email, phone, or company...'"
+                        :placeholder="
+                            type === 'employees'
+                                ? 'Search by name or email...'
+                                : 'Search by name, email, phone, or company...'
+                        "
                         size="small"
                         fluid
                     />
                 </IconField>
-                <div v-if="type === 'employees'" class="flex flex-wrap items-center gap-2">
+                <div
+                    v-if="type === 'employees'"
+                    class="flex flex-wrap items-center gap-2"
+                >
                     <Select
                         v-model="filters.company"
                         :options="companyOptions"
@@ -365,7 +396,9 @@ function onPage(event: { page: number; rows: number }) {
                     />
                     <label class="flex cursor-pointer items-center gap-2">
                         <ToggleSwitch v-model="filters.showDeleted" />
-                        <span class="whitespace-nowrap text-sm">Show Deleted</span>
+                        <span class="text-sm whitespace-nowrap"
+                            >Show Deleted</span
+                        >
                     </label>
                     <Button
                         v-if="hasActiveFilters"
@@ -399,7 +432,7 @@ function onPage(event: { page: number; rows: number }) {
                 :rows="perPage"
                 :rows-per-page-options="[10, 15, 25, 50]"
                 :total-records="users.total"
-                :first="((users.current_page - 1) * perPage)"
+                :first="(users.current_page - 1) * perPage"
                 @page="onPage"
                 @row-click="onEmployeeRowClick"
                 striped-rows
@@ -413,14 +446,27 @@ function onPage(event: { page: number; rows: number }) {
                     </div>
                 </template>
                 <Column expander style="width: 3rem" class="!pr-0 md:hidden" />
-                <Column header="" :style="{ width: '3.5rem', minWidth: '3.5rem', maxWidth: '3.5rem' }" class="!pl-4 !pr-0">
+                <Column
+                    header=""
+                    :style="{
+                        width: '3.5rem',
+                        minWidth: '3.5rem',
+                        maxWidth: '3.5rem',
+                    }"
+                    class="!pr-0 !pl-4"
+                >
                     <template #body="{ data }">
                         <div v-if="getProfilePictureUrl(data)" @click.stop>
                             <Image
                                 :src="getProfilePictureUrl(data)"
                                 :alt="getFullName(data)"
                                 image-class="!h-8 !w-8 rounded-full object-cover cursor-pointer"
-                                :pt="{ root: { class: 'rounded-full overflow-hidden' }, previewMask: { class: 'rounded-full' } }"
+                                :pt="{
+                                    root: {
+                                        class: 'rounded-full overflow-hidden',
+                                    },
+                                    previewMask: { class: 'rounded-full' },
+                                }"
                                 preview
                             />
                         </div>
@@ -432,20 +478,38 @@ function onPage(event: { page: number; rows: number }) {
                         />
                     </template>
                 </Column>
-                <Column field="name" header="Name" style="width: 25%" class="!pl-3">
+                <Column
+                    field="name"
+                    header="Name"
+                    style="width: 25%"
+                    class="!pl-3"
+                >
                     <template #body="{ data }">
                         <div class="flex items-center gap-2">
                             <span
                                 class="block truncate font-medium"
-                                :class="{ 'text-muted-foreground line-through': isEmployeeDeleted(data) }"
+                                :class="{
+                                    'text-muted-foreground line-through':
+                                        isEmployeeDeleted(data),
+                                }"
                             >
                                 {{ getFullName(data) }}
                             </span>
-                            <Tag v-if="isEmployeeDeleted(data)" value="Deleted" severity="danger" class="!text-xs" />
+                            <Tag
+                                v-if="isEmployeeDeleted(data)"
+                                value="Deleted"
+                                severity="danger"
+                                class="!text-xs"
+                            />
                         </div>
                     </template>
                 </Column>
-                <Column field="companies" header="Companies" style="width: 25%" class="hidden md:table-cell">
+                <Column
+                    field="companies"
+                    header="Companies"
+                    style="width: 25%"
+                    class="hidden md:table-cell"
+                >
                     <template #body="{ data }">
                         <span
                             class="block truncate"
@@ -455,9 +519,16 @@ function onPage(event: { page: number; rows: number }) {
                         </span>
                     </template>
                 </Column>
-                <Column field="email" header="Email" style="width: 25%" class="hidden md:table-cell">
+                <Column
+                    field="email"
+                    header="Email"
+                    style="width: 25%"
+                    class="hidden md:table-cell"
+                >
                     <template #body="{ data }">
-                        <span class="block truncate">{{ getEmployeeEmail(data) }}</span>
+                        <span class="block truncate">{{
+                            getEmployeeEmail(data)
+                        }}</span>
                     </template>
                 </Column>
                 <Column field="status" header="Status" style="width: 6rem">
@@ -470,7 +541,10 @@ function onPage(event: { page: number; rows: number }) {
                 </Column>
                 <Column header="" style="width: 5.5rem" class="!pr-4">
                     <template #body="{ data }">
-                        <div v-if="isEmployeeDeleted(data)" class="flex justify-end gap-1">
+                        <div
+                            v-if="isEmployeeDeleted(data)"
+                            class="flex justify-end gap-1"
+                        >
                             <Button
                                 icon="pi pi-history"
                                 severity="success"
@@ -503,15 +577,30 @@ function onPage(event: { page: number; rows: number }) {
                 </Column>
                 <template #expansion="{ data }">
                     <div class="grid gap-3 p-3 text-sm md:hidden">
-                        <div class="flex justify-between gap-4 border-b border-border pb-2">
-                            <span class="shrink-0 text-muted-foreground">Companies</span>
-                            <span class="text-right">{{ getEmployeeCompanies(data).full }}</span>
+                        <div
+                            class="flex justify-between gap-4 border-b border-border pb-2"
+                        >
+                            <span class="shrink-0 text-muted-foreground"
+                                >Companies</span
+                            >
+                            <span class="text-right">{{
+                                getEmployeeCompanies(data).full
+                            }}</span>
                         </div>
-                        <div class="flex justify-between gap-4 border-b border-border pb-2">
-                            <span class="shrink-0 text-muted-foreground">Email</span>
-                            <span class="truncate text-right">{{ getEmployeeEmail(data) }}</span>
+                        <div
+                            class="flex justify-between gap-4 border-b border-border pb-2"
+                        >
+                            <span class="shrink-0 text-muted-foreground"
+                                >Email</span
+                            >
+                            <span class="truncate text-right">{{
+                                getEmployeeEmail(data)
+                            }}</span>
                         </div>
-                        <div v-if="isEmployeeDeleted(data)" class="flex gap-2 pt-2">
+                        <div
+                            v-if="isEmployeeDeleted(data)"
+                            class="flex gap-2 pt-2"
+                        >
                             <Button
                                 label="Restore"
                                 icon="pi pi-history"
@@ -554,7 +643,7 @@ function onPage(event: { page: number; rows: number }) {
                 :rows="perPage"
                 :rows-per-page-options="[10, 15, 25, 50]"
                 :total-records="users.total"
-                :first="((users.current_page - 1) * perPage)"
+                :first="(users.current_page - 1) * perPage"
                 @page="onPage"
                 @row-click="onCustomerRowClick"
                 striped-rows
@@ -568,14 +657,27 @@ function onPage(event: { page: number; rows: number }) {
                     </div>
                 </template>
                 <Column expander style="width: 3rem" class="!pr-0 md:hidden" />
-                <Column header="" :style="{ width: '3.5rem', minWidth: '3.5rem', maxWidth: '3.5rem' }" class="!pl-4 !pr-0">
+                <Column
+                    header=""
+                    :style="{
+                        width: '3.5rem',
+                        minWidth: '3.5rem',
+                        maxWidth: '3.5rem',
+                    }"
+                    class="!pr-0 !pl-4"
+                >
                     <template #body="{ data }">
                         <div v-if="getProfilePictureUrl(data)" @click.stop>
                             <Image
                                 :src="getProfilePictureUrl(data)"
                                 :alt="getFullName(data)"
                                 image-class="!h-8 !w-8 rounded-full object-cover cursor-pointer"
-                                :pt="{ root: { class: 'rounded-full overflow-hidden' }, previewMask: { class: 'rounded-full' } }"
+                                :pt="{
+                                    root: {
+                                        class: 'rounded-full overflow-hidden',
+                                    },
+                                    previewMask: { class: 'rounded-full' },
+                                }"
                                 preview
                             />
                         </div>
@@ -592,22 +694,38 @@ function onPage(event: { page: number; rows: number }) {
                         <span class="font-medium">{{ getFullName(data) }}</span>
                     </template>
                 </Column>
-                <Column field="email" header="Email" class="hidden md:table-cell">
+                <Column
+                    field="email"
+                    header="Email"
+                    class="hidden md:table-cell"
+                >
                     <template #body="{ data }">
                         {{ data.email ?? '-' }}
                     </template>
                 </Column>
-                <Column field="phone" header="Phone" class="hidden md:table-cell">
+                <Column
+                    field="phone"
+                    header="Phone"
+                    class="hidden md:table-cell"
+                >
                     <template #body="{ data }">
                         {{ data.phone ?? '-' }}
                     </template>
                 </Column>
-                <Column field="company_name" header="Company" class="hidden lg:table-cell">
+                <Column
+                    field="company_name"
+                    header="Company"
+                    class="hidden lg:table-cell"
+                >
                     <template #body="{ data }">
                         {{ data.company_name ?? '-' }}
                     </template>
                 </Column>
-                <Column field="customer_since" header="Customer Since" class="hidden xl:table-cell">
+                <Column
+                    field="customer_since"
+                    header="Customer Since"
+                    class="hidden xl:table-cell"
+                >
                     <template #body="{ data }">
                         {{ formatDate(data.customer_since) }}
                     </template>
@@ -641,20 +759,30 @@ function onPage(event: { page: number; rows: number }) {
                 </Column>
                 <template #expansion="{ data }">
                     <div class="grid gap-3 p-3 text-sm md:hidden">
-                        <div class="flex justify-between border-b border-border pb-2">
+                        <div
+                            class="flex justify-between border-b border-border pb-2"
+                        >
                             <span class="text-muted-foreground">Email</span>
                             <span>{{ data.email ?? '-' }}</span>
                         </div>
-                        <div class="flex justify-between border-b border-border pb-2">
+                        <div
+                            class="flex justify-between border-b border-border pb-2"
+                        >
                             <span class="text-muted-foreground">Phone</span>
                             <span>{{ data.phone ?? '-' }}</span>
                         </div>
-                        <div class="flex justify-between border-b border-border pb-2">
+                        <div
+                            class="flex justify-between border-b border-border pb-2"
+                        >
                             <span class="text-muted-foreground">Company</span>
                             <span>{{ data.company_name ?? '-' }}</span>
                         </div>
-                        <div class="flex justify-between border-b border-border pb-2">
-                            <span class="text-muted-foreground">Customer Since</span>
+                        <div
+                            class="flex justify-between border-b border-border pb-2"
+                        >
+                            <span class="text-muted-foreground"
+                                >Customer Since</span
+                            >
                             <span>{{ formatDate(data.customer_since) }}</span>
                         </div>
                         <div class="flex gap-2 pt-2">

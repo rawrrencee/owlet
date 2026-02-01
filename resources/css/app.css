@@ -20,8 +20,7 @@
     --font-sans:
         'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont,
         'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    --font-mono:
-        'JetBrains Mono', 'SF Mono', 'Fira Code', Consolas, monospace;
+    --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', Consolas, monospace;
 
     /* Border Radius - Tight, Industrial */
     --radius: 0.375rem;
@@ -141,9 +140,15 @@
 
     /* Industrial shadows */
     --shadow-xs: 0 1px 2px 0 rgba(28, 25, 23, 0.03);
-    --shadow-sm: 0 1px 3px 0 rgba(28, 25, 23, 0.06), 0 1px 2px -1px rgba(28, 25, 23, 0.06);
-    --shadow-md: 0 4px 6px -1px rgba(28, 25, 23, 0.07), 0 2px 4px -2px rgba(28, 25, 23, 0.07);
-    --shadow-lg: 0 10px 15px -3px rgba(28, 25, 23, 0.08), 0 4px 6px -4px rgba(28, 25, 23, 0.08);
+    --shadow-sm:
+        0 1px 3px 0 rgba(28, 25, 23, 0.06),
+        0 1px 2px -1px rgba(28, 25, 23, 0.06);
+    --shadow-md:
+        0 4px 6px -1px rgba(28, 25, 23, 0.07),
+        0 2px 4px -2px rgba(28, 25, 23, 0.07);
+    --shadow-lg:
+        0 10px 15px -3px rgba(28, 25, 23, 0.08),
+        0 4px 6px -4px rgba(28, 25, 23, 0.08);
     --shadow-inset: inset 0 1px 2px 0 rgba(28, 25, 23, 0.04);
 }
 
@@ -196,9 +201,12 @@
 
     /* Dark mode shadows */
     --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
-    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.25), 0 1px 2px -1px rgba(0, 0, 0, 0.25);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.35), 0 4px 6px -4px rgba(0, 0, 0, 0.35);
+    --shadow-sm:
+        0 1px 3px 0 rgba(0, 0, 0, 0.25), 0 1px 2px -1px rgba(0, 0, 0, 0.25);
+    --shadow-md:
+        0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+    --shadow-lg:
+        0 10px 15px -3px rgba(0, 0, 0, 0.35), 0 4px 6px -4px rgba(0, 0, 0, 0.35);
     --shadow-inset: inset 0 1px 2px 0 rgba(0, 0, 0, 0.15);
 }
 
@@ -305,27 +313,33 @@
     }
 
     /* Fix table row background overflow on rounded corners */
-    .p-datatable[class*="rounded-"] {
+    .p-datatable[class*='rounded-'] {
         overflow: hidden !important;
     }
 
     /* Apply border-radius to header cells */
-    .p-datatable[class*="rounded-"] .p-datatable-thead > tr:first-child > th:first-child {
+    .p-datatable[class*='rounded-']
+        .p-datatable-thead
+        > tr:first-child
+        > th:first-child {
         border-top-left-radius: inherit;
     }
-    .p-datatable[class*="rounded-"] .p-datatable-thead > tr:first-child > th:last-child {
+    .p-datatable[class*='rounded-']
+        .p-datatable-thead
+        > tr:first-child
+        > th:last-child {
         border-top-right-radius: inherit;
     }
 
     /* The wrapper needs overflow hidden too */
-    .p-datatable[class*="rounded-"] .p-datatable-table-container {
+    .p-datatable[class*='rounded-'] .p-datatable-table-container {
         overflow: hidden;
         border-radius: inherit;
     }
 
     /* Table header styling */
     .p-datatable .p-datatable-thead > tr > th {
-        @apply text-xs font-semibold uppercase tracking-wider;
+        @apply text-xs font-semibold tracking-wider uppercase;
         letter-spacing: 0.05em;
     }
 
@@ -345,7 +359,7 @@
 
     /* Tag/Badge refinements */
     .p-tag {
-        @apply font-semibold uppercase tracking-wide;
+        @apply font-semibold tracking-wide uppercase;
         font-size: 0.6875rem;
         letter-spacing: 0.025em;
     }
@@ -363,7 +377,9 @@
     /* Form input focus enhancement */
     .p-inputtext:focus,
     .p-select:focus {
-        box-shadow: var(--shadow-inset), 0 0 0 2px var(--ring);
+        box-shadow:
+            var(--shadow-inset),
+            0 0 0 2px var(--ring);
     }
 
     /* Button press effect */
@@ -461,7 +477,8 @@
     }
 
     @keyframes pulseSubtle {
-        0%, 100% {
+        0%,
+        100% {
             opacity: 1;
         }
         50% {

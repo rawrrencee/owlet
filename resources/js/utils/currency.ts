@@ -11,7 +11,7 @@ import type { Currency } from '@/types';
 export function formatPrice(
     amount: string | number | null | undefined,
     currency?: Currency | null,
-    options: { showSymbol?: boolean } = {}
+    options: { showSymbol?: boolean } = {},
 ): string {
     const { showSymbol = true } = options;
 
@@ -19,7 +19,8 @@ export function formatPrice(
         return '-';
     }
 
-    const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+    const numericAmount =
+        typeof amount === 'string' ? parseFloat(amount) : amount;
 
     if (isNaN(numericAmount)) {
         return '-';
@@ -45,7 +46,10 @@ export function formatPrice(
  * @returns Formatted price string
  */
 export function formatProductPrice(
-    price: { unit_price?: string | null; currency?: Currency | null } | null | undefined
+    price:
+        | { unit_price?: string | null; currency?: Currency | null }
+        | null
+        | undefined,
 ): string {
     if (!price) {
         return '-';

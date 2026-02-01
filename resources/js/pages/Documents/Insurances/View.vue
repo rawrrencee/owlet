@@ -27,7 +27,6 @@ interface Props {
 
 const props = defineProps<Props>();
 
-
 const documentPreviewVisible = ref(false);
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -81,11 +80,18 @@ function viewDocument() {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <div class="flex items-center gap-4">
                     <BackButton fallback-url="/documents?type=insurances" />
                     <h1 class="heading-lg">Insurance Details</h1>
-                    <Tag :value="insurance.is_active ? 'Active' : 'Expired'" :severity="insurance.is_active ? 'success' : 'secondary'" />
+                    <Tag
+                        :value="insurance.is_active ? 'Active' : 'Expired'"
+                        :severity="
+                            insurance.is_active ? 'success' : 'secondary'
+                        "
+                    />
                 </div>
                 <div class="flex gap-2">
                     <Button
@@ -96,7 +102,12 @@ function viewDocument() {
                         size="small"
                         @click="viewDocument"
                     />
-                    <Button label="Edit" icon="pi pi-pencil" size="small" @click="navigateToEdit" />
+                    <Button
+                        label="Edit"
+                        icon="pi pi-pencil"
+                        size="small"
+                        @click="navigateToEdit"
+                    />
                 </div>
             </div>
 
@@ -106,17 +117,29 @@ function viewDocument() {
                         <div class="flex flex-col gap-6">
                             <!-- Employee -->
                             <div>
-                                <h3 class="mb-4 text-lg font-medium">Employee</h3>
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Employee
+                                </h3>
                                 <div class="flex items-center gap-2">
                                     <span
                                         class="font-medium"
-                                        :class="{ 'text-muted-foreground line-through': isEmployeeDeleted() }"
+                                        :class="{
+                                            'text-muted-foreground line-through':
+                                                isEmployeeDeleted(),
+                                        }"
                                     >
                                         {{ getEmployeeName() }}
                                     </span>
-                                    <Tag v-if="isEmployeeDeleted()" value="Deleted" severity="danger" />
+                                    <Tag
+                                        v-if="isEmployeeDeleted()"
+                                        value="Deleted"
+                                        severity="danger"
+                                    />
                                     <Button
-                                        v-if="insurance.employee && !isEmployeeDeleted()"
+                                        v-if="
+                                            insurance.employee &&
+                                            !isEmployeeDeleted()
+                                        "
                                         icon="pi pi-external-link"
                                         severity="secondary"
                                         text
@@ -132,35 +155,73 @@ function viewDocument() {
 
                             <!-- Insurance Details -->
                             <div>
-                                <h3 class="mb-4 text-lg font-medium">Insurance Information</h3>
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Insurance Information
+                                </h3>
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div class="flex flex-col gap-1">
-                                        <span class="text-sm text-muted-foreground">Title</span>
-                                        <span class="text-lg font-medium">{{ insurance.title }}</span>
+                                        <span
+                                            class="text-sm text-muted-foreground"
+                                            >Title</span
+                                        >
+                                        <span class="text-lg font-medium">{{
+                                            insurance.title
+                                        }}</span>
                                     </div>
                                     <div class="flex flex-col gap-1">
-                                        <span class="text-sm text-muted-foreground">Status</span>
+                                        <span
+                                            class="text-sm text-muted-foreground"
+                                            >Status</span
+                                        >
                                         <Tag
-                                            :value="insurance.is_active ? 'Active' : 'Expired'"
-                                            :severity="insurance.is_active ? 'success' : 'secondary'"
+                                            :value="
+                                                insurance.is_active
+                                                    ? 'Active'
+                                                    : 'Expired'
+                                            "
+                                            :severity="
+                                                insurance.is_active
+                                                    ? 'success'
+                                                    : 'secondary'
+                                            "
                                             class="w-fit"
                                         />
                                     </div>
                                     <div class="flex flex-col gap-1">
-                                        <span class="text-sm text-muted-foreground">Insurer</span>
-                                        <span>{{ insurance.insurer_name }}</span>
+                                        <span
+                                            class="text-sm text-muted-foreground"
+                                            >Insurer</span
+                                        >
+                                        <span>{{
+                                            insurance.insurer_name
+                                        }}</span>
                                     </div>
                                     <div class="flex flex-col gap-1">
-                                        <span class="text-sm text-muted-foreground">Policy Number</span>
-                                        <span class="font-mono">{{ insurance.policy_number }}</span>
+                                        <span
+                                            class="text-sm text-muted-foreground"
+                                            >Policy Number</span
+                                        >
+                                        <span class="font-mono">{{
+                                            insurance.policy_number
+                                        }}</span>
                                     </div>
                                     <div class="flex flex-col gap-1">
-                                        <span class="text-sm text-muted-foreground">Start Date</span>
-                                        <span>{{ formatDate(insurance.start_date) }}</span>
+                                        <span
+                                            class="text-sm text-muted-foreground"
+                                            >Start Date</span
+                                        >
+                                        <span>{{
+                                            formatDate(insurance.start_date)
+                                        }}</span>
                                     </div>
                                     <div class="flex flex-col gap-1">
-                                        <span class="text-sm text-muted-foreground">End Date</span>
-                                        <span>{{ formatDate(insurance.end_date) }}</span>
+                                        <span
+                                            class="text-sm text-muted-foreground"
+                                            >End Date</span
+                                        >
+                                        <span>{{
+                                            formatDate(insurance.end_date)
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -169,14 +230,38 @@ function viewDocument() {
                             <template v-if="insurance.has_document">
                                 <Divider />
                                 <div>
-                                    <h3 class="mb-4 text-lg font-medium">Document</h3>
+                                    <h3 class="mb-4 text-lg font-medium">
+                                        Document
+                                    </h3>
                                     <div class="flex items-center gap-3">
-                                        <i class="pi pi-file text-2xl text-primary"></i>
+                                        <i
+                                            class="pi pi-file text-2xl text-primary"
+                                        ></i>
                                         <div class="flex flex-col">
-                                            <span v-if="insurance.document_filename" class="font-medium">{{ insurance.document_filename }}</span>
-                                            <span v-else-if="insurance.external_document_url" class="text-sm text-muted-foreground">External Document</span>
+                                            <span
+                                                v-if="
+                                                    insurance.document_filename
+                                                "
+                                                class="font-medium"
+                                                >{{
+                                                    insurance.document_filename
+                                                }}</span
+                                            >
+                                            <span
+                                                v-else-if="
+                                                    insurance.external_document_url
+                                                "
+                                                class="text-sm text-muted-foreground"
+                                                >External Document</span
+                                            >
                                         </div>
-                                        <Button label="View" icon="pi pi-eye" severity="secondary" size="small" @click="viewDocument" />
+                                        <Button
+                                            label="View"
+                                            icon="pi pi-eye"
+                                            severity="secondary"
+                                            size="small"
+                                            @click="viewDocument"
+                                        />
                                     </div>
                                 </div>
                             </template>
@@ -185,8 +270,13 @@ function viewDocument() {
                             <template v-if="insurance.comments">
                                 <Divider />
                                 <div>
-                                    <h3 class="mb-4 text-lg font-medium">Comments</h3>
-                                    <div class="prose prose-sm max-w-none" v-html="insurance.comments"></div>
+                                    <h3 class="mb-4 text-lg font-medium">
+                                        Comments
+                                    </h3>
+                                    <div
+                                        class="prose prose-sm max-w-none"
+                                        v-html="insurance.comments"
+                                    ></div>
                                 </div>
                             </template>
 
@@ -196,10 +286,14 @@ function viewDocument() {
                             <AuditInfo
                                 :created-by="insurance.created_by"
                                 :updated-by="insurance.updated_by"
-                                :previous-updated-by="insurance.previous_updated_by"
+                                :previous-updated-by="
+                                    insurance.previous_updated_by
+                                "
                                 :created-at="insurance.created_at"
                                 :updated-at="insurance.updated_at"
-                                :previous-updated-at="insurance.previous_updated_at"
+                                :previous-updated-at="
+                                    insurance.previous_updated_at
+                                "
                             />
                         </div>
                     </template>
@@ -208,9 +302,19 @@ function viewDocument() {
         </div>
 
         <!-- Document Preview Dialog -->
-        <Dialog v-model:visible="documentPreviewVisible" header="Document Preview" :modal="true" class="w-full max-w-3xl">
+        <Dialog
+            v-model:visible="documentPreviewVisible"
+            header="Document Preview"
+            :modal="true"
+            class="w-full max-w-3xl"
+        >
             <div class="flex items-center justify-center">
-                <img v-if="insurance.document_url" :src="insurance.document_url" alt="Document preview" class="max-h-[70vh] max-w-full object-contain" />
+                <img
+                    v-if="insurance.document_url"
+                    :src="insurance.document_url"
+                    alt="Document preview"
+                    class="max-h-[70vh] max-w-full object-contain"
+                />
             </div>
         </Dialog>
     </AppLayout>

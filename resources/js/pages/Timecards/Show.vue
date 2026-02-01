@@ -14,7 +14,6 @@ interface Props {
 
 const props = defineProps<Props>();
 
-
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
     { title: 'My Timecards', href: '/timecards' },
@@ -41,7 +40,9 @@ function formatHours(hours: number): string {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <!-- Header -->
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <div class="flex items-center gap-3">
                     <BackButton fallback-url="/timecards" />
                     <div>
@@ -65,8 +66,12 @@ function formatHours(hours: number): string {
             <!-- Empty State -->
             <Card v-else>
                 <template #content>
-                    <div class="flex flex-col items-center justify-center gap-4 py-8">
-                        <i class="pi pi-clock text-4xl text-muted-foreground"></i>
+                    <div
+                        class="flex flex-col items-center justify-center gap-4 py-8"
+                    >
+                        <i
+                            class="pi pi-clock text-4xl text-muted-foreground"
+                        ></i>
                         <div class="text-center">
                             <h3 class="font-medium">No timecards</h3>
                             <p class="text-sm text-muted-foreground">

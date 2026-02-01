@@ -14,4 +14,7 @@ export const relationships = [
 ] as const;
 
 // Helper to convert arrays to PrimeVue select options
-export const relationshipOptions = relationships.map((r) => ({ label: r, value: r }));
+export const relationshipOptions = relationships.map((r) => ({
+    label: r,
+    value: r,
+}));

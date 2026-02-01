@@ -18,7 +18,6 @@ interface Props {
 
 const props = defineProps<Props>();
 
-
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
     { title: 'Timecards', href: '/management/timecards' },
@@ -71,11 +70,16 @@ function navigateToEdit() {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <!-- Header -->
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <div class="flex items-center gap-3">
                     <BackButton fallback-url="/management/timecards" />
                     <h1 class="heading-lg">Timecard #{{ timecard.id }}</h1>
-                    <Tag :value="timecard.status_label" :severity="getStatusSeverity()" />
+                    <Tag
+                        :value="timecard.status_label"
+                        :severity="getStatusSeverity()"
+                    />
                 </div>
                 <Button
                     label="Edit"
@@ -89,15 +93,21 @@ function navigateToEdit() {
                 <!-- Timecard Info -->
                 <Card>
                     <template #title>
-                        <span class="text-base font-semibold">Timecard Information</span>
+                        <span class="text-base font-semibold"
+                            >Timecard Information</span
+                        >
                     </template>
                     <template #content>
                         <div class="flex flex-col gap-4">
                             <!-- Employee -->
                             <div class="flex items-center gap-3">
                                 <Avatar
-                                    v-if="timecard.employee?.profile_picture_url"
-                                    :image="timecard.employee.profile_picture_url"
+                                    v-if="
+                                        timecard.employee?.profile_picture_url
+                                    "
+                                    :image="
+                                        timecard.employee.profile_picture_url
+                                    "
                                     shape="circle"
                                     size="large"
                                 />
@@ -109,9 +119,13 @@ function navigateToEdit() {
                                     class="bg-primary/10 text-primary"
                                 />
                                 <div>
-                                    <p class="font-semibold">{{ timecard.employee?.name }}</p>
+                                    <p class="font-semibold">
+                                        {{ timecard.employee?.name }}
+                                    </p>
                                     <p
-                                        v-if="timecard.employee?.employee_number"
+                                        v-if="
+                                            timecard.employee?.employee_number
+                                        "
                                         class="text-sm text-muted-foreground"
                                     >
                                         #{{ timecard.employee.employee_number }}
@@ -123,22 +137,38 @@ function navigateToEdit() {
 
                             <div class="grid gap-3">
                                 <div class="flex justify-between">
-                                    <span class="text-muted-foreground">Store</span>
+                                    <span class="text-muted-foreground"
+                                        >Store</span
+                                    >
                                     <span class="font-medium">
                                         {{ timecard.store?.name }}
-                                        <span class="text-muted-foreground">({{ timecard.store?.store_code }})</span>
+                                        <span class="text-muted-foreground"
+                                            >({{
+                                                timecard.store?.store_code
+                                            }})</span
+                                        >
                                     </span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-muted-foreground">Start Time</span>
-                                    <span>{{ formatDateTime(timecard.start_date) }}</span>
+                                    <span class="text-muted-foreground"
+                                        >Start Time</span
+                                    >
+                                    <span>{{
+                                        formatDateTime(timecard.start_date)
+                                    }}</span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-muted-foreground">End Time</span>
-                                    <span>{{ formatDateTime(timecard.end_date) }}</span>
+                                    <span class="text-muted-foreground"
+                                        >End Time</span
+                                    >
+                                    <span>{{
+                                        formatDateTime(timecard.end_date)
+                                    }}</span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-muted-foreground">Total Hours Worked</span>
+                                    <span class="text-muted-foreground"
+                                        >Total Hours Worked</span
+                                    >
                                     <span class="font-bold text-green-600">
                                         {{ formatHours(timecard.hours_worked) }}
                                     </span>
@@ -151,10 +181,14 @@ function navigateToEdit() {
                             <AuditInfo
                                 :created-by="timecard.created_by"
                                 :updated-by="timecard.updated_by"
-                                :previous-updated-by="timecard.previous_updated_by"
+                                :previous-updated-by="
+                                    timecard.previous_updated_by
+                                "
                                 :created-at="timecard.created_at"
                                 :updated-at="timecard.updated_at"
-                                :previous-updated-at="timecard.previous_updated_at"
+                                :previous-updated-at="
+                                    timecard.previous_updated_at
+                                "
                             />
                         </div>
                     </template>
@@ -163,7 +197,9 @@ function navigateToEdit() {
                 <!-- Time Entries -->
                 <Card>
                     <template #title>
-                        <span class="text-base font-semibold">Time Entries</span>
+                        <span class="text-base font-semibold"
+                            >Time Entries</span
+                        >
                     </template>
                     <template #content>
                         <TimecardDetailsTable

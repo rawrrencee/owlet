@@ -44,7 +44,10 @@ const confirm = useConfirm();
 // Get the current editing insurance from props (updated after upload/delete)
 const currentEditingInsurance = computed(() => {
     if (!editingId.value) return null;
-    return props.insurances.find(i => i.id === editingId.value) || editingInsurance.value;
+    return (
+        props.insurances.find((i) => i.id === editingId.value) ||
+        editingInsurance.value
+    );
 });
 
 // File input ref
@@ -86,7 +89,9 @@ function openEditDialog(insurance: EmployeeInsurance) {
     form.title = insurance.title;
     form.insurer_name = insurance.insurer_name;
     form.policy_number = insurance.policy_number;
-    form.start_date = insurance.start_date ? new Date(insurance.start_date) : null;
+    form.start_date = insurance.start_date
+        ? new Date(insurance.start_date)
+        : null;
     form.end_date = insurance.end_date ? new Date(insurance.end_date) : null;
     form.external_document_url = insurance.external_document_url || '';
     form.comments = insurance.comments || '';
@@ -112,9 +117,18 @@ function saveInsurance() {
         formData.append('title', form.title);
         formData.append('insurer_name', form.insurer_name);
         formData.append('policy_number', form.policy_number);
-        if (form.start_date) formData.append('start_date', formatDateForBackend(form.start_date)!);
-        if (form.end_date) formData.append('end_date', formatDateForBackend(form.end_date)!);
-        if (form.external_document_url) formData.append('external_document_url', form.external_document_url);
+        if (form.start_date)
+            formData.append(
+                'start_date',
+                formatDateForBackend(form.start_date)!,
+            );
+        if (form.end_date)
+            formData.append('end_date', formatDateForBackend(form.end_date)!);
+        if (form.external_document_url)
+            formData.append(
+                'external_document_url',
+                form.external_document_url,
+            );
         if (form.comments) formData.append('comments', form.comments);
         formData.append('document', selectedFile.value);
 
@@ -176,9 +190,12 @@ function confirmRemoveInsurance(insurance: EmployeeInsurance) {
             size: 'small',
         },
         accept: () => {
-            router.delete(`/users/${props.employeeId}/insurances/${insurance.id}`, {
-                preserveScroll: true,
-            });
+            router.delete(
+                `/users/${props.employeeId}/insurances/${insurance.id}`,
+                {
+                    preserveScroll: true,
+                },
+            );
         },
     });
 }
@@ -230,19 +247,23 @@ function uploadDocumentInDialog() {
     const formData = new FormData();
     formData.append('document', selectedFile.value);
 
-    router.post(`/users/${props.employeeId}/insurances/${editingInsurance.value.id}/document`, formData, {
-        preserveScroll: true,
-        forceFormData: true,
-        onSuccess: () => {
-            selectedFile.value = null;
-            if (fileInput.value) {
-                fileInput.value.value = '';
-            }
+    router.post(
+        `/users/${props.employeeId}/insurances/${editingInsurance.value.id}/document`,
+        formData,
+        {
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => {
+                selectedFile.value = null;
+                if (fileInput.value) {
+                    fileInput.value.value = '';
+                }
+            },
+            onFinish: () => {
+                uploadingDocument.value = false;
+            },
         },
-        onFinish: () => {
-            uploadingDocument.value = false;
-        },
-    });
+    );
 }
 
 function confirmDeleteDocumentInDialog() {
@@ -263,9 +284,12 @@ function confirmDeleteDocumentInDialog() {
             size: 'small',
         },
         accept: () => {
-            router.delete(`/users/${props.employeeId}/insurances/${editingInsurance.value!.id}/document`, {
-                preserveScroll: true,
-            });
+            router.delete(
+                `/users/${props.employeeId}/insurances/${editingInsurance.value!.id}/document`,
+                {
+                    preserveScroll: true,
+                },
+            );
         },
     });
 }
@@ -280,7 +304,12 @@ function viewDocumentInDialog() {
     <div class="flex flex-col gap-4">
         <div class="flex items-center justify-between">
             <h3 class="text-lg font-medium">Insurances</h3>
-            <Button label="Add Insurance" icon="pi pi-plus" size="small" @click="openAddDialog" />
+            <Button
+                label="Add Insurance"
+                icon="pi pi-plus"
+                size="small"
+                @click="openAddDialog"
+            />
         </div>
 
         <DataTable
@@ -293,7 +322,8 @@ function viewDocumentInDialog() {
         >
             <template #empty>
                 <div class="p-4 text-center text-muted-foreground">
-                    No insurances found. Click "Add Insurance" to add a new insurance.
+                    No insurances found. Click "Add Insurance" to add a new
+                    insurance.
                 </div>
             </template>
             <Column expander style="width: 3rem" class="!pr-0 sm:hidden" />
@@ -302,32 +332,51 @@ function viewDocumentInDialog() {
                     <span class="font-medium">{{ data.title }}</span>
                 </template>
             </Column>
-            <Column field="insurer_name" header="Insurer" class="hidden sm:table-cell">
+            <Column
+                field="insurer_name"
+                header="Insurer"
+                class="hidden sm:table-cell"
+            >
                 <template #body="{ data }">
                     {{ data.insurer_name }}
                 </template>
             </Column>
-            <Column field="policy_number" header="Policy #" class="hidden md:table-cell">
+            <Column
+                field="policy_number"
+                header="Policy #"
+                class="hidden md:table-cell"
+            >
                 <template #body="{ data }">
                     {{ data.policy_number }}
                 </template>
             </Column>
-            <Column field="start_date" header="Start Date" class="hidden lg:table-cell">
+            <Column
+                field="start_date"
+                header="Start Date"
+                class="hidden lg:table-cell"
+            >
                 <template #body="{ data }">
                     {{ formatDate(data.start_date) }}
                 </template>
             </Column>
-            <Column field="end_date" header="End Date" class="hidden xl:table-cell">
+            <Column
+                field="end_date"
+                header="End Date"
+                class="hidden xl:table-cell"
+            >
                 <template #body="{ data }">
                     {{ formatDate(data.end_date) }}
                 </template>
             </Column>
             <Column header="Status">
                 <template #body="{ data }">
-                    <Tag :value="data.is_active ? 'Active' : 'Expired'" :severity="data.is_active ? 'success' : 'secondary'" />
+                    <Tag
+                        :value="data.is_active ? 'Active' : 'Expired'"
+                        :severity="data.is_active ? 'success' : 'secondary'"
+                    />
                 </template>
             </Column>
-            <Column header="Doc" class="w-12 hidden sm:table-cell">
+            <Column header="Doc" class="hidden w-12 sm:table-cell">
                 <template #body="{ data }">
                     <Button
                         v-if="data.has_document"
@@ -341,7 +390,7 @@ function viewDocumentInDialog() {
                     />
                 </template>
             </Column>
-            <Column header="" class="w-32 !pr-4 hidden sm:table-cell">
+            <Column header="" class="hidden w-32 !pr-4 sm:table-cell">
                 <template #body="{ data }">
                     <div class="flex justify-end gap-1">
                         <Button
@@ -367,24 +416,50 @@ function viewDocumentInDialog() {
             </Column>
             <template #expansion="{ data }">
                 <div class="grid gap-3 p-3 text-sm sm:hidden">
-                    <div class="flex justify-between gap-4 border-b border-border pb-2">
-                        <span class="shrink-0 text-muted-foreground">Insurer</span>
+                    <div
+                        class="flex justify-between gap-4 border-b border-border pb-2"
+                    >
+                        <span class="shrink-0 text-muted-foreground"
+                            >Insurer</span
+                        >
                         <span class="text-right">{{ data.insurer_name }}</span>
                     </div>
-                    <div class="flex justify-between gap-4 border-b border-border pb-2">
-                        <span class="shrink-0 text-muted-foreground">Policy #</span>
-                        <span class="text-right font-mono">{{ data.policy_number }}</span>
+                    <div
+                        class="flex justify-between gap-4 border-b border-border pb-2"
+                    >
+                        <span class="shrink-0 text-muted-foreground"
+                            >Policy #</span
+                        >
+                        <span class="text-right font-mono">{{
+                            data.policy_number
+                        }}</span>
                     </div>
-                    <div class="flex justify-between gap-4 border-b border-border pb-2">
-                        <span class="shrink-0 text-muted-foreground">Start Date</span>
-                        <span class="text-right">{{ formatDate(data.start_date) }}</span>
+                    <div
+                        class="flex justify-between gap-4 border-b border-border pb-2"
+                    >
+                        <span class="shrink-0 text-muted-foreground"
+                            >Start Date</span
+                        >
+                        <span class="text-right">{{
+                            formatDate(data.start_date)
+                        }}</span>
                     </div>
-                    <div class="flex justify-between gap-4 border-b border-border pb-2">
-                        <span class="shrink-0 text-muted-foreground">End Date</span>
-                        <span class="text-right">{{ formatDate(data.end_date) }}</span>
+                    <div
+                        class="flex justify-between gap-4 border-b border-border pb-2"
+                    >
+                        <span class="shrink-0 text-muted-foreground"
+                            >End Date</span
+                        >
+                        <span class="text-right">{{
+                            formatDate(data.end_date)
+                        }}</span>
                     </div>
-                    <div class="flex justify-between gap-4 border-b border-border pb-2">
-                        <span class="shrink-0 text-muted-foreground">Document</span>
+                    <div
+                        class="flex justify-between gap-4 border-b border-border pb-2"
+                    >
+                        <span class="shrink-0 text-muted-foreground"
+                            >Document</span
+                        >
                         <span class="text-right">
                             <Button
                                 v-if="data.has_document"
@@ -429,7 +504,9 @@ function viewDocumentInDialog() {
         >
             <form @submit.prevent="saveInsurance" class="flex flex-col gap-4">
                 <div class="flex flex-col gap-2">
-                    <label for="insurance_title" class="font-medium">Title *</label>
+                    <label for="insurance_title" class="font-medium"
+                        >Title *</label
+                    >
                     <InputText
                         id="insurance_title"
                         v-model="form.title"
@@ -445,7 +522,9 @@ function viewDocumentInDialog() {
 
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div class="flex flex-col gap-2">
-                        <label for="insurance_insurer_name" class="font-medium">Insurer Name *</label>
+                        <label for="insurance_insurer_name" class="font-medium"
+                            >Insurer Name *</label
+                        >
                         <InputText
                             id="insurance_insurer_name"
                             v-model="form.insurer_name"
@@ -454,13 +533,18 @@ function viewDocumentInDialog() {
                             size="small"
                             fluid
                         />
-                        <small v-if="formErrors.insurer_name" class="text-red-500">
+                        <small
+                            v-if="formErrors.insurer_name"
+                            class="text-red-500"
+                        >
                             {{ formErrors.insurer_name }}
                         </small>
                     </div>
 
                     <div class="flex flex-col gap-2">
-                        <label for="insurance_policy_number" class="font-medium">Policy Number *</label>
+                        <label for="insurance_policy_number" class="font-medium"
+                            >Policy Number *</label
+                        >
                         <InputText
                             id="insurance_policy_number"
                             v-model="form.policy_number"
@@ -469,7 +553,10 @@ function viewDocumentInDialog() {
                             size="small"
                             fluid
                         />
-                        <small v-if="formErrors.policy_number" class="text-red-500">
+                        <small
+                            v-if="formErrors.policy_number"
+                            class="text-red-500"
+                        >
                             {{ formErrors.policy_number }}
                         </small>
                     </div>
@@ -477,7 +564,9 @@ function viewDocumentInDialog() {
 
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div class="flex flex-col gap-2">
-                        <label for="insurance_start_date" class="font-medium">Start Date *</label>
+                        <label for="insurance_start_date" class="font-medium"
+                            >Start Date *</label
+                        >
                         <DatePicker
                             id="insurance_start_date"
                             v-model="form.start_date"
@@ -487,13 +576,18 @@ function viewDocumentInDialog() {
                             size="small"
                             fluid
                         />
-                        <small v-if="formErrors.start_date" class="text-red-500">
+                        <small
+                            v-if="formErrors.start_date"
+                            class="text-red-500"
+                        >
                             {{ formErrors.start_date }}
                         </small>
                     </div>
 
                     <div class="flex flex-col gap-2">
-                        <label for="insurance_end_date" class="font-medium">End Date</label>
+                        <label for="insurance_end_date" class="font-medium"
+                            >End Date</label
+                        >
                         <DatePicker
                             id="insurance_end_date"
                             v-model="form.end_date"
@@ -511,7 +605,9 @@ function viewDocumentInDialog() {
                 </div>
 
                 <div class="flex flex-col gap-2">
-                    <label for="insurance_external_url" class="font-medium">External Document URL</label>
+                    <label for="insurance_external_url" class="font-medium"
+                        >External Document URL</label
+                    >
                     <InputText
                         id="insurance_external_url"
                         v-model="form.external_document_url"
@@ -520,7 +616,10 @@ function viewDocumentInDialog() {
                         size="small"
                         fluid
                     />
-                    <small v-if="formErrors.external_document_url" class="text-red-500">
+                    <small
+                        v-if="formErrors.external_document_url"
+                        class="text-red-500"
+                    >
                         {{ formErrors.external_document_url }}
                     </small>
                 </div>
@@ -528,12 +627,22 @@ function viewDocumentInDialog() {
                 <!-- Document Upload -->
                 <div class="flex flex-col gap-2">
                     <label class="font-medium">Document Upload</label>
-                    <div class="rounded-lg border border-border p-3 dark:border-border">
+                    <div
+                        class="rounded-lg border border-border p-3 dark:border-border"
+                    >
                         <!-- Show existing document if present (only when editing) -->
-                        <div v-if="editingId && currentEditingInsurance?.document_url" class="flex items-center justify-between">
+                        <div
+                            v-if="
+                                editingId &&
+                                currentEditingInsurance?.document_url
+                            "
+                            class="flex items-center justify-between"
+                        >
                             <div class="flex items-center gap-2">
                                 <i class="pi pi-file text-primary"></i>
-                                <span class="text-sm">{{ currentEditingInsurance.document_filename }}</span>
+                                <span class="text-sm">{{
+                                    currentEditingInsurance.document_filename
+                                }}</span>
                             </div>
                             <div class="flex items-center gap-1">
                                 <Button
@@ -569,10 +678,14 @@ function viewDocumentInDialog() {
                                 />
                                 <label
                                     for="insurance-file-upload"
-                                    class="cursor-pointer rounded border border-border bg-surface-50 px-3 py-1.5 text-sm hover:bg-surface-100 dark:bg-surface-800 dark:hover:bg-surface-700"
+                                    class="bg-surface-50 hover:bg-surface-100 dark:bg-surface-800 dark:hover:bg-surface-700 cursor-pointer rounded border border-border px-3 py-1.5 text-sm"
                                 >
                                     <i class="pi pi-upload mr-2"></i>
-                                    {{ selectedFile ? selectedFile.name : 'Choose file' }}
+                                    {{
+                                        selectedFile
+                                            ? selectedFile.name
+                                            : 'Choose file'
+                                    }}
                                 </label>
                                 <!-- For existing insurances, show separate upload button -->
                                 <Button
@@ -596,9 +709,11 @@ function viewDocumentInDialog() {
                                 />
                             </div>
                             <small class="text-xs text-muted-foreground">
-                                Max 5MB. Supported: PDF, JPG, PNG, GIF, DOC, DOCX
+                                Max 5MB. Supported: PDF, JPG, PNG, GIF, DOC,
+                                DOCX
                                 <template v-if="!editingId && selectedFile">
-                                    <br />File will be uploaded when you save the insurance.
+                                    <br />File will be uploaded when you save
+                                    the insurance.
                                 </template>
                             </small>
                         </div>
@@ -606,7 +721,9 @@ function viewDocumentInDialog() {
                 </div>
 
                 <div class="flex flex-col gap-2">
-                    <label for="insurance_comments" class="font-medium">Comments</label>
+                    <label for="insurance_comments" class="font-medium"
+                        >Comments</label
+                    >
                     <Editor
                         id="insurance_comments"
                         v-model="form.comments"
@@ -614,16 +731,36 @@ function viewDocumentInDialog() {
                     >
                         <template #toolbar>
                             <span class="ql-formats">
-                                <button class="ql-bold" v-tooltip.bottom="'Bold'"></button>
-                                <button class="ql-italic" v-tooltip.bottom="'Italic'"></button>
-                                <button class="ql-underline" v-tooltip.bottom="'Underline'"></button>
+                                <button
+                                    class="ql-bold"
+                                    v-tooltip.bottom="'Bold'"
+                                ></button>
+                                <button
+                                    class="ql-italic"
+                                    v-tooltip.bottom="'Italic'"
+                                ></button>
+                                <button
+                                    class="ql-underline"
+                                    v-tooltip.bottom="'Underline'"
+                                ></button>
                             </span>
                             <span class="ql-formats">
-                                <button class="ql-list" value="ordered" v-tooltip.bottom="'Numbered List'"></button>
-                                <button class="ql-list" value="bullet" v-tooltip.bottom="'Bullet List'"></button>
+                                <button
+                                    class="ql-list"
+                                    value="ordered"
+                                    v-tooltip.bottom="'Numbered List'"
+                                ></button>
+                                <button
+                                    class="ql-list"
+                                    value="bullet"
+                                    v-tooltip.bottom="'Bullet List'"
+                                ></button>
                             </span>
                             <span class="ql-formats">
-                                <button class="ql-clean" v-tooltip.bottom="'Clear Formatting'"></button>
+                                <button
+                                    class="ql-clean"
+                                    v-tooltip.bottom="'Clear Formatting'"
+                                ></button>
                             </span>
                         </template>
                     </Editor>
@@ -641,7 +778,12 @@ function viewDocumentInDialog() {
                         @click="dialogVisible = false"
                         :disabled="saving"
                     />
-                    <Button type="submit" :label="editingId ? 'Save Changes' : 'Add Insurance'" size="small" :loading="saving" />
+                    <Button
+                        type="submit"
+                        :label="editingId ? 'Save Changes' : 'Add Insurance'"
+                        size="small"
+                        :loading="saving"
+                    />
                 </div>
             </form>
         </Dialog>

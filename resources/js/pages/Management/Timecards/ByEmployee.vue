@@ -16,7 +16,6 @@ interface Props {
 
 const props = defineProps<Props>();
 
-
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
     { title: 'Timecards', href: '/management/timecards' },
@@ -25,12 +24,18 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 function handleDateClick(date: string) {
     // Navigate to the date view with this employee highlighted
-    router.visit(`/management/timecards/date/${date}?highlight_employee=${props.employee.id}`);
+    router.visit(
+        `/management/timecards/date/${date}?highlight_employee=${props.employee.id}`,
+    );
 }
 
 function handleMonthChange(month: Date) {
     const monthString = month.toISOString().split('T')[0];
-    router.get(`/management/timecards/employee/${props.employee.id}`, { month: monthString }, { preserveState: true });
+    router.get(
+        `/management/timecards/employee/${props.employee.id}`,
+        { month: monthString },
+        { preserveState: true },
+    );
 }
 
 function getInitials(name: string): string {
@@ -42,7 +47,9 @@ function getInitials(name: string): string {
 }
 
 function navigateToCreate() {
-    router.visit(`/management/timecards/create?employee_id=${props.employee.id}`);
+    router.visit(
+        `/management/timecards/create?employee_id=${props.employee.id}`,
+    );
 }
 </script>
 
@@ -52,7 +59,9 @@ function navigateToCreate() {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <!-- Header -->
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <div class="flex items-center gap-3">
                     <BackButton fallback-url="/management/timecards" />
                     <Avatar

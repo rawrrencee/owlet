@@ -17,7 +17,9 @@ interface Filters {
     show_deleted?: boolean;
 }
 
-export function useProductPreview(filtersRef: Ref<Filters> | ComputedRef<Filters>) {
+export function useProductPreview(
+    filtersRef: Ref<Filters> | ComputedRef<Filters>,
+) {
     const previewVisible = ref(false);
     const currentProduct = ref<Product | null>(null);
     const loading = ref(false);
@@ -40,31 +42,49 @@ export function useProductPreview(filtersRef: Ref<Filters> | ComputedRef<Filters
 
     // For selection mode, compute adjacent IDs from the client-side selection array
     const selectionAdjacentIds = computed(() => {
-        if (currentMode.value !== 'selection' || !currentProduct.value) return null;
-        const currentIndex = selectionIds.value.indexOf(currentProduct.value.id);
+        if (currentMode.value !== 'selection' || !currentProduct.value)
+            return null;
+        const currentIndex = selectionIds.value.indexOf(
+            currentProduct.value.id,
+        );
         if (currentIndex === -1) return null;
         return {
-            prev_id: currentIndex > 0 ? selectionIds.value[currentIndex - 1] : null,
-            next_id: currentIndex < selectionIds.value.length - 1 ? selectionIds.value[currentIndex + 1] : null,
+            prev_id:
+                currentIndex > 0 ? selectionIds.value[currentIndex - 1] : null,
+            next_id:
+                currentIndex < selectionIds.value.length - 1
+                    ? selectionIds.value[currentIndex + 1]
+                    : null,
             position: currentIndex + 1,
             total: selectionIds.value.length,
         };
     });
 
     const effectiveAdjacentIds = computed(() =>
-        currentMode.value === 'selection' ? selectionAdjacentIds.value : adjacentIds.value
+        currentMode.value === 'selection'
+            ? selectionAdjacentIds.value
+            : adjacentIds.value,
     );
 
-    const canGoPrev = computed(() =>
-        (currentMode.value === 'list' || currentMode.value === 'selection') &&
-        effectiveAdjacentIds.value?.prev_id !== null
+    const canGoPrev = computed(
+        () =>
+            (currentMode.value === 'list' ||
+                currentMode.value === 'selection') &&
+            effectiveAdjacentIds.value?.prev_id !== null,
     );
-    const canGoNext = computed(() =>
-        (currentMode.value === 'list' || currentMode.value === 'selection') &&
-        effectiveAdjacentIds.value?.next_id !== null
+    const canGoNext = computed(
+        () =>
+            (currentMode.value === 'list' ||
+                currentMode.value === 'selection') &&
+            effectiveAdjacentIds.value?.next_id !== null,
     );
     const positionText = computed(() => {
-        if ((currentMode.value !== 'list' && currentMode.value !== 'selection') || !effectiveAdjacentIds.value) return '';
+        if (
+            (currentMode.value !== 'list' &&
+                currentMode.value !== 'selection') ||
+            !effectiveAdjacentIds.value
+        )
+            return '';
         return `${effectiveAdjacentIds.value.position} of ${effectiveAdjacentIds.value.total}`;
     });
 
@@ -90,11 +110,16 @@ export function useProductPreview(filtersRef: Ref<Filters> | ComputedRef<Filters
         }
     }
 
-    async function fetchAdjacentIds(productId: number): Promise<ProductAdjacentIds | null> {
+    async function fetchAdjacentIds(
+        productId: number,
+    ): Promise<ProductAdjacentIds | null> {
         try {
-            const response = await axios.get(`/products/${productId}/adjacent`, {
-                params: buildFilterParams(),
-            });
+            const response = await axios.get(
+                `/products/${productId}/adjacent`,
+                {
+                    params: buildFilterParams(),
+                },
+            );
             return response.data;
         } catch (error) {
             console.error('Failed to fetch adjacent IDs:', error);
@@ -120,7 +145,12 @@ export function useProductPreview(filtersRef: Ref<Filters> | ComputedRef<Filters
         navigationStack.value.push({
             productId: product.id,
             mode: 'list',
-            adjacentIds: adjacent ?? { prev_id: null, next_id: null, position: null, total: 0 },
+            adjacentIds: adjacent ?? {
+                prev_id: null,
+                next_id: null,
+                position: null,
+                total: 0,
+            },
         });
 
         loading.value = false;
@@ -138,12 +168,17 @@ export function useProductPreview(filtersRef: Ref<Filters> | ComputedRef<Filters
         await navigateToProduct(effectiveAdjacentIds.value.next_id, mode);
     }
 
-    async function navigateToProduct(productId: number, mode: 'list' | 'search' | 'selection'): Promise<void> {
+    async function navigateToProduct(
+        productId: number,
+        mode: 'list' | 'search' | 'selection',
+    ): Promise<void> {
         loading.value = true;
 
         const [product, adjacent] = await Promise.all([
             fetchProduct(productId),
-            mode === 'list' ? fetchAdjacentIds(productId) : Promise.resolve(null),
+            mode === 'list'
+                ? fetchAdjacentIds(productId)
+                : Promise.resolve(null),
         ]);
 
         if (product) {
@@ -154,7 +189,12 @@ export function useProductPreview(filtersRef: Ref<Filters> | ComputedRef<Filters
                 navigationStack.value[navigationStack.value.length - 1] = {
                     productId,
                     mode: 'list',
-                    adjacentIds: adjacent ?? { prev_id: null, next_id: null, position: null, total: 0 },
+                    adjacentIds: adjacent ?? {
+                        prev_id: null,
+                        next_id: null,
+                        position: null,
+                        total: 0,
+                    },
                 };
             } else if (mode === 'selection') {
                 // Replace current entry for selection navigation (adjacent computed client-side)
@@ -174,7 +214,10 @@ export function useProductPreview(filtersRef: Ref<Filters> | ComputedRef<Filters
         loading.value = false;
     }
 
-    async function openPreviewFromSelection(productId: number, selectedProductIds: number[]): Promise<void> {
+    async function openPreviewFromSelection(
+        productId: number,
+        selectedProductIds: number[],
+    ): Promise<void> {
         loading.value = true;
         previewVisible.value = true;
         currentProduct.value = null;
@@ -221,7 +264,9 @@ export function useProductPreview(filtersRef: Ref<Filters> | ComputedRef<Filters
         }, 300);
     }
 
-    async function handleSearchSelect(result: ProductSearchResult): Promise<void> {
+    async function handleSearchSelect(
+        result: ProductSearchResult,
+    ): Promise<void> {
         searchResults.value = [];
         await navigateToProduct(result.id, 'search');
     }

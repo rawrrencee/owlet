@@ -27,7 +27,6 @@ interface Props {
 
 const props = defineProps<Props>();
 
-
 const documentPreviewVisible = ref(false);
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -44,7 +43,10 @@ function formatDate(dateString: string | null): string {
 function formatCurrency(value: string | number | null): string {
     if (value === null || value === undefined) return '-';
     const num = typeof value === 'string' ? parseFloat(value) : value;
-    return new Intl.NumberFormat('en-SG', { style: 'currency', currency: 'SGD' }).format(num);
+    return new Intl.NumberFormat('en-SG', {
+        style: 'currency',
+        currency: 'SGD',
+    }).format(num);
 }
 
 function getLeaveDisplay(entitled: number, taken: number): string {
@@ -92,15 +94,32 @@ function viewDocument() {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <div class="flex items-center gap-4">
                     <BackButton fallback-url="/documents" />
                     <h1 class="heading-lg">Contract Details</h1>
-                    <Tag :value="contract.is_active ? 'Active' : 'Expired'" :severity="contract.is_active ? 'success' : 'secondary'" />
+                    <Tag
+                        :value="contract.is_active ? 'Active' : 'Expired'"
+                        :severity="contract.is_active ? 'success' : 'secondary'"
+                    />
                 </div>
                 <div class="flex gap-2">
-                    <Button v-if="contract.has_document" label="View Document" icon="pi pi-file" severity="secondary" size="small" @click="viewDocument" />
-                    <Button label="Edit" icon="pi pi-pencil" size="small" @click="navigateToEdit" />
+                    <Button
+                        v-if="contract.has_document"
+                        label="View Document"
+                        icon="pi pi-file"
+                        severity="secondary"
+                        size="small"
+                        @click="viewDocument"
+                    />
+                    <Button
+                        label="Edit"
+                        icon="pi pi-pencil"
+                        size="small"
+                        @click="navigateToEdit"
+                    />
                 </div>
             </div>
 
@@ -110,17 +129,29 @@ function viewDocument() {
                         <div class="flex flex-col gap-6">
                             <!-- Employee -->
                             <div>
-                                <h3 class="mb-4 text-lg font-medium">Employee</h3>
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Employee
+                                </h3>
                                 <div class="flex items-center gap-2">
                                     <span
                                         class="font-medium"
-                                        :class="{ 'text-muted-foreground line-through': isEmployeeDeleted() }"
+                                        :class="{
+                                            'text-muted-foreground line-through':
+                                                isEmployeeDeleted(),
+                                        }"
                                     >
                                         {{ getEmployeeName() }}
                                     </span>
-                                    <Tag v-if="isEmployeeDeleted()" value="Deleted" severity="danger" />
+                                    <Tag
+                                        v-if="isEmployeeDeleted()"
+                                        value="Deleted"
+                                        severity="danger"
+                                    />
                                     <Button
-                                        v-if="contract.employee && !isEmployeeDeleted()"
+                                        v-if="
+                                            contract.employee &&
+                                            !isEmployeeDeleted()
+                                        "
                                         icon="pi pi-external-link"
                                         severity="secondary"
                                         text
@@ -136,23 +167,56 @@ function viewDocument() {
 
                             <!-- Contract Details -->
                             <div>
-                                <h3 class="mb-4 text-lg font-medium">Contract Information</h3>
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Contract Information
+                                </h3>
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div class="flex flex-col gap-1">
-                                        <span class="text-sm text-muted-foreground">Company</span>
-                                        <span>{{ contract.company?.company_name ?? '-' }}</span>
+                                        <span
+                                            class="text-sm text-muted-foreground"
+                                            >Company</span
+                                        >
+                                        <span>{{
+                                            contract.company?.company_name ??
+                                            '-'
+                                        }}</span>
                                     </div>
                                     <div class="flex flex-col gap-1">
-                                        <span class="text-sm text-muted-foreground">Status</span>
-                                        <Tag :value="contract.is_active ? 'Active' : 'Expired'" :severity="contract.is_active ? 'success' : 'secondary'" class="w-fit" />
+                                        <span
+                                            class="text-sm text-muted-foreground"
+                                            >Status</span
+                                        >
+                                        <Tag
+                                            :value="
+                                                contract.is_active
+                                                    ? 'Active'
+                                                    : 'Expired'
+                                            "
+                                            :severity="
+                                                contract.is_active
+                                                    ? 'success'
+                                                    : 'secondary'
+                                            "
+                                            class="w-fit"
+                                        />
                                     </div>
                                     <div class="flex flex-col gap-1">
-                                        <span class="text-sm text-muted-foreground">Start Date</span>
-                                        <span>{{ formatDate(contract.start_date) }}</span>
+                                        <span
+                                            class="text-sm text-muted-foreground"
+                                            >Start Date</span
+                                        >
+                                        <span>{{
+                                            formatDate(contract.start_date)
+                                        }}</span>
                                     </div>
                                     <div class="flex flex-col gap-1">
-                                        <span class="text-sm text-muted-foreground">End Date</span>
-                                        <span>{{ formatDate(contract.end_date) }}</span>
+                                        <span
+                                            class="text-sm text-muted-foreground"
+                                            >End Date</span
+                                        >
+                                        <span>{{
+                                            formatDate(contract.end_date)
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -161,10 +225,16 @@ function viewDocument() {
 
                             <!-- Salary -->
                             <div>
-                                <h3 class="mb-4 text-lg font-medium">Compensation</h3>
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Compensation
+                                </h3>
                                 <div class="flex flex-col gap-1">
-                                    <span class="text-sm text-muted-foreground">Salary</span>
-                                    <span class="text-xl font-semibold">{{ formatCurrency(contract.salary_amount) }}</span>
+                                    <span class="text-sm text-muted-foreground"
+                                        >Salary</span
+                                    >
+                                    <span class="text-xl font-semibold">{{
+                                        formatCurrency(contract.salary_amount)
+                                    }}</span>
                                 </div>
                             </div>
 
@@ -172,15 +242,33 @@ function viewDocument() {
 
                             <!-- Leave Entitlements -->
                             <div>
-                                <h3 class="mb-4 text-lg font-medium">Leave Entitlements</h3>
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Leave Entitlements
+                                </h3>
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div class="flex flex-col gap-1">
-                                        <span class="text-sm text-muted-foreground">Annual Leave</span>
-                                        <span>{{ getLeaveDisplay(contract.annual_leave_entitled, contract.annual_leave_taken) }}</span>
+                                        <span
+                                            class="text-sm text-muted-foreground"
+                                            >Annual Leave</span
+                                        >
+                                        <span>{{
+                                            getLeaveDisplay(
+                                                contract.annual_leave_entitled,
+                                                contract.annual_leave_taken,
+                                            )
+                                        }}</span>
                                     </div>
                                     <div class="flex flex-col gap-1">
-                                        <span class="text-sm text-muted-foreground">Sick Leave</span>
-                                        <span>{{ getLeaveDisplay(contract.sick_leave_entitled, contract.sick_leave_taken) }}</span>
+                                        <span
+                                            class="text-sm text-muted-foreground"
+                                            >Sick Leave</span
+                                        >
+                                        <span>{{
+                                            getLeaveDisplay(
+                                                contract.sick_leave_entitled,
+                                                contract.sick_leave_taken,
+                                            )
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -189,14 +277,38 @@ function viewDocument() {
                             <template v-if="contract.has_document">
                                 <Divider />
                                 <div>
-                                    <h3 class="mb-4 text-lg font-medium">Document</h3>
+                                    <h3 class="mb-4 text-lg font-medium">
+                                        Document
+                                    </h3>
                                     <div class="flex items-center gap-3">
-                                        <i class="pi pi-file text-2xl text-primary"></i>
+                                        <i
+                                            class="pi pi-file text-2xl text-primary"
+                                        ></i>
                                         <div class="flex flex-col">
-                                            <span v-if="contract.document_filename" class="font-medium">{{ contract.document_filename }}</span>
-                                            <span v-else-if="contract.external_document_url" class="text-sm text-muted-foreground">External Document</span>
+                                            <span
+                                                v-if="
+                                                    contract.document_filename
+                                                "
+                                                class="font-medium"
+                                                >{{
+                                                    contract.document_filename
+                                                }}</span
+                                            >
+                                            <span
+                                                v-else-if="
+                                                    contract.external_document_url
+                                                "
+                                                class="text-sm text-muted-foreground"
+                                                >External Document</span
+                                            >
                                         </div>
-                                        <Button label="View" icon="pi pi-eye" severity="secondary" size="small" @click="viewDocument" />
+                                        <Button
+                                            label="View"
+                                            icon="pi pi-eye"
+                                            severity="secondary"
+                                            size="small"
+                                            @click="viewDocument"
+                                        />
                                     </div>
                                 </div>
                             </template>
@@ -205,8 +317,13 @@ function viewDocument() {
                             <template v-if="contract.comments">
                                 <Divider />
                                 <div>
-                                    <h3 class="mb-4 text-lg font-medium">Comments</h3>
-                                    <div class="prose prose-sm max-w-none" v-html="contract.comments"></div>
+                                    <h3 class="mb-4 text-lg font-medium">
+                                        Comments
+                                    </h3>
+                                    <div
+                                        class="prose prose-sm max-w-none"
+                                        v-html="contract.comments"
+                                    ></div>
                                 </div>
                             </template>
 
@@ -216,10 +333,14 @@ function viewDocument() {
                             <AuditInfo
                                 :created-by="contract.created_by"
                                 :updated-by="contract.updated_by"
-                                :previous-updated-by="contract.previous_updated_by"
+                                :previous-updated-by="
+                                    contract.previous_updated_by
+                                "
                                 :created-at="contract.created_at"
                                 :updated-at="contract.updated_at"
-                                :previous-updated-at="contract.previous_updated_at"
+                                :previous-updated-at="
+                                    contract.previous_updated_at
+                                "
                             />
                         </div>
                     </template>
@@ -228,9 +349,19 @@ function viewDocument() {
         </div>
 
         <!-- Document Preview Dialog -->
-        <Dialog v-model:visible="documentPreviewVisible" header="Document Preview" :modal="true" class="w-full max-w-3xl">
+        <Dialog
+            v-model:visible="documentPreviewVisible"
+            header="Document Preview"
+            :modal="true"
+            class="w-full max-w-3xl"
+        >
             <div class="flex items-center justify-center">
-                <img v-if="contract.document_url" :src="contract.document_url" alt="Document preview" class="max-h-[70vh] max-w-full object-contain" />
+                <img
+                    v-if="contract.document_url"
+                    :src="contract.document_url"
+                    alt="Document preview"
+                    class="max-h-[70vh] max-w-full object-contain"
+                />
             </div>
         </Dialog>
     </AppLayout>

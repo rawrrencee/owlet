@@ -10,7 +10,11 @@ import Tag from 'primevue/tag';
 import ToggleSwitch from 'primevue/toggleswitch';
 import { useConfirm } from 'primevue/useconfirm';
 import { computed, onMounted, reactive, ref } from 'vue';
-import { type EmployeeStore, type Store, type StorePermissionGroup } from '@/types';
+import {
+    type EmployeeStore,
+    type Store,
+    type StorePermissionGroup,
+} from '@/types';
 
 interface Props {
     employeeId: number;
@@ -49,8 +53,10 @@ const storeOptions = computed(() =>
 
 // Filter out stores that are already assigned when adding new
 const availableStoreOptions = computed(() => {
-    const assignedStoreIds = employeeStores.value.map(es => es.store_id);
-    return storeOptions.value.filter(s => !assignedStoreIds.includes(s.value));
+    const assignedStoreIds = employeeStores.value.map((es) => es.store_id);
+    return storeOptions.value.filter(
+        (s) => !assignedStoreIds.includes(s.value),
+    );
 });
 
 async function fetchEmployeeStores() {
@@ -58,13 +64,14 @@ async function fetchEmployeeStores() {
     try {
         const response = await fetch(`/users/${props.employeeId}/stores`, {
             headers: {
-                'Accept': 'application/json',
+                Accept: 'application/json',
             },
         });
         const data = await response.json();
         employeeStores.value = data.data;
         availablePermissions.value = data.available_permissions;
-        availableAccessPermissions.value = data.available_access_permissions || {};
+        availableAccessPermissions.value =
+            data.available_access_permissions || {};
     } catch (error) {
         console.error('Failed to fetch employee stores:', error);
     } finally {
@@ -133,7 +140,9 @@ function saveAssignment() {
 }
 
 function confirmDeactivateAssignment(es: EmployeeStore) {
-    const storeName = props.stores.find(s => s.id === es.store_id)?.store_name ?? 'this store';
+    const storeName =
+        props.stores.find((s) => s.id === es.store_id)?.store_name ??
+        'this store';
     confirm.require({
         message: `Are you sure you want to deactivate the assignment at "${storeName}"?`,
         header: 'Deactivate Assignment',
@@ -162,7 +171,9 @@ function confirmDeactivateAssignment(es: EmployeeStore) {
 }
 
 function confirmRemoveAssignment(es: EmployeeStore) {
-    const storeName = props.stores.find(s => s.id === es.store_id)?.store_name ?? 'this store';
+    const storeName =
+        props.stores.find((s) => s.id === es.store_id)?.store_name ??
+        'this store';
     confirm.require({
         message: `Are you sure you want to remove the assignment at "${storeName}"? This action cannot be undone.`,
         header: 'Remove Assignment',
@@ -196,15 +207,20 @@ function togglePermission(permissionKey: string) {
 }
 
 function toggleGroupPermissions(group: string) {
-    const groupPermissions = availablePermissions.value[group]?.map(p => p.key) ?? [];
-    const allSelected = groupPermissions.every(p => form.permissions.includes(p));
+    const groupPermissions =
+        availablePermissions.value[group]?.map((p) => p.key) ?? [];
+    const allSelected = groupPermissions.every((p) =>
+        form.permissions.includes(p),
+    );
 
     if (allSelected) {
         // Remove all permissions in this group
-        form.permissions = form.permissions.filter(p => !groupPermissions.includes(p));
+        form.permissions = form.permissions.filter(
+            (p) => !groupPermissions.includes(p),
+        );
     } else {
         // Add all permissions in this group
-        groupPermissions.forEach(p => {
+        groupPermissions.forEach((p) => {
             if (!form.permissions.includes(p)) {
                 form.permissions.push(p);
             }
@@ -213,22 +229,29 @@ function toggleGroupPermissions(group: string) {
 }
 
 function isGroupFullySelected(group: string): boolean {
-    const groupPermissions = availablePermissions.value[group]?.map(p => p.key) ?? [];
-    return groupPermissions.length > 0 && groupPermissions.every(p => form.permissions.includes(p));
+    const groupPermissions =
+        availablePermissions.value[group]?.map((p) => p.key) ?? [];
+    return (
+        groupPermissions.length > 0 &&
+        groupPermissions.every((p) => form.permissions.includes(p))
+    );
 }
 
 function isGroupPartiallySelected(group: string): boolean {
-    const groupPermissions = availablePermissions.value[group]?.map(p => p.key) ?? [];
-    const selectedCount = groupPermissions.filter(p => form.permissions.includes(p)).length;
+    const groupPermissions =
+        availablePermissions.value[group]?.map((p) => p.key) ?? [];
+    const selectedCount = groupPermissions.filter((p) =>
+        form.permissions.includes(p),
+    ).length;
     return selectedCount > 0 && selectedCount < groupPermissions.length;
 }
 
 function getStoreName(storeId: number): string {
-    return props.stores.find(s => s.id === storeId)?.store_name ?? '-';
+    return props.stores.find((s) => s.id === storeId)?.store_name ?? '-';
 }
 
 function getStoreCode(storeId: number): string {
-    return props.stores.find(s => s.id === storeId)?.store_code ?? '';
+    return props.stores.find((s) => s.id === storeId)?.store_code ?? '';
 }
 
 // Access permission functions
@@ -242,13 +265,18 @@ function toggleAccessPermission(permissionKey: string) {
 }
 
 function toggleAccessGroupPermissions(group: string) {
-    const groupPermissions = availableAccessPermissions.value[group]?.map(p => p.key) ?? [];
-    const allSelected = groupPermissions.every(p => form.access_permissions.includes(p));
+    const groupPermissions =
+        availableAccessPermissions.value[group]?.map((p) => p.key) ?? [];
+    const allSelected = groupPermissions.every((p) =>
+        form.access_permissions.includes(p),
+    );
 
     if (allSelected) {
-        form.access_permissions = form.access_permissions.filter(p => !groupPermissions.includes(p));
+        form.access_permissions = form.access_permissions.filter(
+            (p) => !groupPermissions.includes(p),
+        );
     } else {
-        groupPermissions.forEach(p => {
+        groupPermissions.forEach((p) => {
             if (!form.access_permissions.includes(p)) {
                 form.access_permissions.push(p);
             }
@@ -257,13 +285,20 @@ function toggleAccessGroupPermissions(group: string) {
 }
 
 function isAccessGroupFullySelected(group: string): boolean {
-    const groupPermissions = availableAccessPermissions.value[group]?.map(p => p.key) ?? [];
-    return groupPermissions.length > 0 && groupPermissions.every(p => form.access_permissions.includes(p));
+    const groupPermissions =
+        availableAccessPermissions.value[group]?.map((p) => p.key) ?? [];
+    return (
+        groupPermissions.length > 0 &&
+        groupPermissions.every((p) => form.access_permissions.includes(p))
+    );
 }
 
 function isAccessGroupPartiallySelected(group: string): boolean {
-    const groupPermissions = availableAccessPermissions.value[group]?.map(p => p.key) ?? [];
-    const selectedCount = groupPermissions.filter(p => form.access_permissions.includes(p)).length;
+    const groupPermissions =
+        availableAccessPermissions.value[group]?.map((p) => p.key) ?? [];
+    const selectedCount = groupPermissions.filter((p) =>
+        form.access_permissions.includes(p),
+    ).length;
     return selectedCount > 0 && selectedCount < groupPermissions.length;
 }
 </script>
@@ -292,37 +327,65 @@ function isAccessGroupPartiallySelected(group: string): boolean {
         >
             <template #empty>
                 <div class="p-4 text-center text-muted-foreground">
-                    No store assignments found. Click "Add Assignment" to assign this employee to a store.
+                    No store assignments found. Click "Add Assignment" to assign
+                    this employee to a store.
                 </div>
             </template>
             <Column expander style="width: 3rem" class="!pr-0 md:hidden" />
             <Column field="store_id" header="Store">
                 <template #body="{ data }">
                     <div class="flex items-center gap-2">
-                        <span class="font-medium">{{ getStoreName(data.store_id) }}</span>
-                        <Tag :value="getStoreCode(data.store_id)" severity="secondary" class="!text-xs hidden sm:inline-flex" />
-                        <Tag v-if="data.is_creator" value="Creator" severity="info" class="!text-xs" />
+                        <span class="font-medium">{{
+                            getStoreName(data.store_id)
+                        }}</span>
+                        <Tag
+                            :value="getStoreCode(data.store_id)"
+                            severity="secondary"
+                            class="hidden !text-xs sm:inline-flex"
+                        />
+                        <Tag
+                            v-if="data.is_creator"
+                            value="Creator"
+                            severity="info"
+                            class="!text-xs"
+                        />
                     </div>
                 </template>
             </Column>
-            <Column field="permissions" header="Permissions" class="hidden md:table-cell">
+            <Column
+                field="permissions"
+                header="Permissions"
+                class="hidden md:table-cell"
+            >
                 <template #body="{ data }">
                     <div class="flex flex-wrap gap-1">
                         <Tag
-                            v-for="perm in (data.permissions_with_labels || []).slice(0, 3)"
+                            v-for="perm in (
+                                data.permissions_with_labels || []
+                            ).slice(0, 3)"
                             :key="perm.key"
                             :value="perm.label"
                             severity="secondary"
                             class="!text-xs"
                         />
                         <Tag
-                            v-if="(data.permissions_with_labels || []).length > 3"
+                            v-if="
+                                (data.permissions_with_labels || []).length > 3
+                            "
                             :value="`+${(data.permissions_with_labels || []).length - 3}`"
                             severity="info"
                             class="!text-xs"
-                            v-tooltip.top="(data.permissions_with_labels || []).slice(3).map((p: any) => p.label).join(', ')"
+                            v-tooltip.top="
+                                (data.permissions_with_labels || [])
+                                    .slice(3)
+                                    .map((p: any) => p.label)
+                                    .join(', ')
+                            "
                         />
-                        <span v-if="!(data.permissions_with_labels || []).length" class="text-muted-foreground text-sm">
+                        <span
+                            v-if="!(data.permissions_with_labels || []).length"
+                            class="text-sm text-muted-foreground"
+                        >
                             No permissions
                         </span>
                     </div>
@@ -330,10 +393,13 @@ function isAccessGroupPartiallySelected(group: string): boolean {
             </Column>
             <Column header="Status">
                 <template #body="{ data }">
-                    <Tag :value="data.active ? 'Active' : 'Inactive'" :severity="data.active ? 'success' : 'secondary'" />
+                    <Tag
+                        :value="data.active ? 'Active' : 'Inactive'"
+                        :severity="data.active ? 'success' : 'secondary'"
+                    />
                 </template>
             </Column>
-            <Column header="" class="w-32 !pr-4 hidden sm:table-cell">
+            <Column header="" class="hidden w-32 !pr-4 sm:table-cell">
                 <template #body="{ data }">
                     <div class="flex justify-end gap-1">
                         <Button
@@ -370,21 +436,37 @@ function isAccessGroupPartiallySelected(group: string): boolean {
             </Column>
             <template #expansion="{ data }">
                 <div class="grid gap-3 p-3 text-sm sm:hidden">
-                    <div class="flex justify-between gap-4 border-b border-border pb-2">
-                        <span class="shrink-0 text-muted-foreground">Store Code</span>
-                        <span class="text-right">{{ getStoreCode(data.store_id) }}</span>
+                    <div
+                        class="flex justify-between gap-4 border-b border-border pb-2"
+                    >
+                        <span class="shrink-0 text-muted-foreground"
+                            >Store Code</span
+                        >
+                        <span class="text-right">{{
+                            getStoreCode(data.store_id)
+                        }}</span>
                     </div>
-                    <div class="flex flex-col gap-2 border-b border-border pb-2">
-                        <span class="shrink-0 text-muted-foreground">Permissions</span>
+                    <div
+                        class="flex flex-col gap-2 border-b border-border pb-2"
+                    >
+                        <span class="shrink-0 text-muted-foreground"
+                            >Permissions</span
+                        >
                         <div class="flex flex-wrap gap-1">
                             <Tag
-                                v-for="perm in (data.permissions_with_labels || [])"
+                                v-for="perm in data.permissions_with_labels ||
+                                []"
                                 :key="perm.key"
                                 :value="perm.label"
                                 severity="secondary"
                                 class="!text-xs"
                             />
-                            <span v-if="!(data.permissions_with_labels || []).length" class="text-muted-foreground text-sm">
+                            <span
+                                v-if="
+                                    !(data.permissions_with_labels || []).length
+                                "
+                                class="text-sm text-muted-foreground"
+                            >
                                 No permissions
                             </span>
                         </div>
@@ -423,7 +505,9 @@ function isAccessGroupPartiallySelected(group: string): boolean {
 
         <Dialog
             v-model:visible="dialogVisible"
-            :header="editingId ? 'Edit Store Assignment' : 'Add Store Assignment'"
+            :header="
+                editingId ? 'Edit Store Assignment' : 'Add Store Assignment'
+            "
             :modal="true"
             :closable="!saving"
             class="w-full max-w-lg"
@@ -444,9 +528,18 @@ function isAccessGroupPartiallySelected(group: string): boolean {
                         size="small"
                         fluid
                     />
-                    <div v-else class="flex items-center gap-2 rounded border border-border bg-surface-50 px-3 py-2 dark:bg-surface-800">
-                        <span class="font-medium">{{ getStoreName(form.store_id!) }}</span>
-                        <Tag :value="getStoreCode(form.store_id!)" severity="secondary" class="!text-xs" />
+                    <div
+                        v-else
+                        class="bg-surface-50 dark:bg-surface-800 flex items-center gap-2 rounded border border-border px-3 py-2"
+                    >
+                        <span class="font-medium">{{
+                            getStoreName(form.store_id!)
+                        }}</span>
+                        <Tag
+                            :value="getStoreCode(form.store_id!)"
+                            severity="secondary"
+                            class="!text-xs"
+                        />
                     </div>
                     <small v-if="formErrors.store_id" class="text-red-500">
                         {{ formErrors.store_id }}
@@ -455,28 +548,48 @@ function isAccessGroupPartiallySelected(group: string): boolean {
 
                 <div class="flex items-center gap-3">
                     <ToggleSwitch v-model="form.active" />
-                    <span :class="form.active ? 'text-green-600' : 'text-red-600'">
+                    <span
+                        :class="form.active ? 'text-green-600' : 'text-red-600'"
+                    >
                         {{ form.active ? 'Active' : 'Inactive' }}
                     </span>
                 </div>
 
                 <!-- Store Access Permissions -->
-                <div v-if="Object.keys(availableAccessPermissions).length > 0" class="flex flex-col gap-3">
+                <div
+                    v-if="Object.keys(availableAccessPermissions).length > 0"
+                    class="flex flex-col gap-3"
+                >
                     <label class="font-medium">Store Access</label>
-                    <p class="text-sm text-muted-foreground -mt-2">Controls what the employee can do with the store settings and management.</p>
+                    <p class="-mt-2 text-sm text-muted-foreground">
+                        Controls what the employee can do with the store
+                        settings and management.
+                    </p>
                     <div
-                        v-for="(permissions, group) in availableAccessPermissions"
+                        v-for="(
+                            permissions, group
+                        ) in availableAccessPermissions"
                         :key="`access-${group}`"
                         class="rounded border border-border p-3"
                     >
                         <div class="mb-2 flex items-center gap-2">
                             <Checkbox
-                                :model-value="isAccessGroupFullySelected(group as string)"
-                                :indeterminate="isAccessGroupPartiallySelected(group as string)"
+                                :model-value="
+                                    isAccessGroupFullySelected(group as string)
+                                "
+                                :indeterminate="
+                                    isAccessGroupPartiallySelected(
+                                        group as string,
+                                    )
+                                "
                                 binary
-                                @change="toggleAccessGroupPermissions(group as string)"
+                                @change="
+                                    toggleAccessGroupPermissions(
+                                        group as string,
+                                    )
+                                "
                             />
-                            <span class="font-medium text-sm">{{ group }}</span>
+                            <span class="text-sm font-medium">{{ group }}</span>
                         </div>
                         <div class="ml-6 grid gap-2 sm:grid-cols-2">
                             <div
@@ -485,7 +598,11 @@ function isAccessGroupPartiallySelected(group: string): boolean {
                                 class="flex items-center gap-2"
                             >
                                 <Checkbox
-                                    :model-value="form.access_permissions.includes(perm.key)"
+                                    :model-value="
+                                        form.access_permissions.includes(
+                                            perm.key,
+                                        )
+                                    "
                                     binary
                                     @change="toggleAccessPermission(perm.key)"
                                 />
@@ -493,7 +610,10 @@ function isAccessGroupPartiallySelected(group: string): boolean {
                             </div>
                         </div>
                     </div>
-                    <small v-if="formErrors.access_permissions" class="text-red-500">
+                    <small
+                        v-if="formErrors.access_permissions"
+                        class="text-red-500"
+                    >
                         {{ formErrors.access_permissions }}
                     </small>
                 </div>
@@ -501,7 +621,10 @@ function isAccessGroupPartiallySelected(group: string): boolean {
                 <!-- Store Operations Permissions -->
                 <div class="flex flex-col gap-3">
                     <label class="font-medium">Store Operations</label>
-                    <p class="text-sm text-muted-foreground -mt-2">Controls what the employee can do within the store (sales, inventory, etc.).</p>
+                    <p class="-mt-2 text-sm text-muted-foreground">
+                        Controls what the employee can do within the store
+                        (sales, inventory, etc.).
+                    </p>
                     <div
                         v-for="(permissions, group) in availablePermissions"
                         :key="group"
@@ -509,12 +632,18 @@ function isAccessGroupPartiallySelected(group: string): boolean {
                     >
                         <div class="mb-2 flex items-center gap-2">
                             <Checkbox
-                                :model-value="isGroupFullySelected(group as string)"
-                                :indeterminate="isGroupPartiallySelected(group as string)"
+                                :model-value="
+                                    isGroupFullySelected(group as string)
+                                "
+                                :indeterminate="
+                                    isGroupPartiallySelected(group as string)
+                                "
                                 binary
-                                @change="toggleGroupPermissions(group as string)"
+                                @change="
+                                    toggleGroupPermissions(group as string)
+                                "
                             />
-                            <span class="font-medium text-sm">{{ group }}</span>
+                            <span class="text-sm font-medium">{{ group }}</span>
                         </div>
                         <div class="ml-6 grid gap-2 sm:grid-cols-2">
                             <div
@@ -523,7 +652,9 @@ function isAccessGroupPartiallySelected(group: string): boolean {
                                 class="flex items-center gap-2"
                             >
                                 <Checkbox
-                                    :model-value="form.permissions.includes(perm.key)"
+                                    :model-value="
+                                        form.permissions.includes(perm.key)
+                                    "
                                     binary
                                     @change="togglePermission(perm.key)"
                                 />
@@ -545,7 +676,12 @@ function isAccessGroupPartiallySelected(group: string): boolean {
                         @click="dialogVisible = false"
                         :disabled="saving"
                     />
-                    <Button type="submit" :label="editingId ? 'Save Changes' : 'Add Assignment'" size="small" :loading="saving" />
+                    <Button
+                        type="submit"
+                        :label="editingId ? 'Save Changes' : 'Add Assignment'"
+                        size="small"
+                        :loading="saving"
+                    />
                 </div>
             </form>
         </Dialog>

@@ -67,24 +67,35 @@ function formatDuration(detail: { hours: number; is_open?: boolean }): string {
                 <div class="flex items-start justify-between">
                     <div class="flex flex-col gap-1">
                         <!-- Employee Name (if shown) -->
-                        <div v-if="showEmployee && timecard.employee" class="flex items-center gap-2">
+                        <div
+                            v-if="showEmployee && timecard.employee"
+                            class="flex items-center gap-2"
+                        >
                             <img
                                 v-if="timecard.employee.profile_picture_url"
                                 :src="timecard.employee.profile_picture_url"
                                 :alt="timecard.employee.name"
                                 class="h-6 w-6 rounded-full object-cover"
                             />
-                            <span class="font-medium">{{ timecard.employee.name }}</span>
+                            <span class="font-medium">{{
+                                timecard.employee.name
+                            }}</span>
                         </div>
 
                         <!-- Store Name -->
-                        <div class="flex items-center gap-2 text-muted-foreground">
+                        <div
+                            class="flex items-center gap-2 text-muted-foreground"
+                        >
                             <MapPin class="h-4 w-4" />
-                            <span>{{ timecard.store?.name || 'Unknown Store' }}</span>
+                            <span>{{
+                                timecard.store?.name || 'Unknown Store'
+                            }}</span>
                         </div>
 
                         <!-- Time Range -->
-                        <div class="flex items-center gap-2 text-sm text-muted-foreground">
+                        <div
+                            class="flex items-center gap-2 text-sm text-muted-foreground"
+                        >
                             <Clock class="h-4 w-4" />
                             <span>
                                 {{ formatTime(timecard.start_date) }}
@@ -108,20 +119,31 @@ function formatDuration(detail: { hours: number; is_open?: boolean }): string {
                                     </div>
                                 </template>
                             </Tag>
-                            <Tag :value="timecard.status_label" :severity="statusSeverity" />
+                            <Tag
+                                :value="timecard.status_label"
+                                :severity="statusSeverity"
+                            />
                         </div>
-                        <span class="text-lg font-bold text-green-600 dark:text-green-400">
+                        <span
+                            class="text-lg font-bold text-green-600 dark:text-green-400"
+                        >
                             {{ formatHours(timecard.hours_worked) }}
                         </span>
                     </div>
                 </div>
 
                 <!-- Expandable Details -->
-                <template v-if="timecard.details && timecard.details.length > 0">
+                <template
+                    v-if="timecard.details && timecard.details.length > 0"
+                >
                     <Divider />
                     <Button
                         :label="isExpanded ? 'Hide Details' : 'Show Details'"
-                        :icon="isExpanded ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                        :icon="
+                            isExpanded
+                                ? 'pi pi-chevron-up'
+                                : 'pi pi-chevron-down'
+                        "
                         text
                         size="small"
                         @click="isExpanded = !isExpanded"
@@ -137,7 +159,9 @@ function formatDuration(detail: { hours: number; is_open?: boolean }): string {
                             <div class="flex items-center gap-2">
                                 <Tag
                                     :value="detail.type_label"
-                                    :severity="detail.is_work ? 'success' : 'warn'"
+                                    :severity="
+                                        detail.is_work ? 'success' : 'warn'
+                                    "
                                     class="text-xs"
                                 />
                                 <span>
@@ -155,7 +179,10 @@ function formatDuration(detail: { hours: number; is_open?: boolean }): string {
 
                 <!-- Link to View -->
                 <div v-if="showLink && linkUrl" class="mt-2">
-                    <Link :href="linkUrl" class="text-sm text-primary hover:underline">
+                    <Link
+                        :href="linkUrl"
+                        class="text-sm text-primary hover:underline"
+                    >
                         View full details
                     </Link>
                 </div>

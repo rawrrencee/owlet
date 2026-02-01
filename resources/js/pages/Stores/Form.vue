@@ -20,9 +20,19 @@ import ImageUpload from '@/components/ImageUpload.vue';
 import StoreCurrenciesSection from '@/components/stores/StoreCurrenciesSection.vue';
 import StoreEmployeesSection from '@/components/stores/StoreEmployeesSection.vue';
 import { usePermissions } from '@/composables/usePermissions';
-import { clearSkipPageInHistory, skipCurrentPageInHistory, useSmartBack } from '@/composables/useSmartBack';
+import {
+    clearSkipPageInHistory,
+    skipCurrentPageInHistory,
+    useSmartBack,
+} from '@/composables/useSmartBack';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type Company, type Country, type Currency, type Store } from '@/types';
+import {
+    type BreadcrumbItem,
+    type Company,
+    type Country,
+    type Currency,
+    type Store,
+} from '@/types';
 
 interface EmployeeOption {
     id: number;
@@ -42,15 +52,25 @@ interface Props {
 const props = defineProps<Props>();
 
 const isEditing = computed(() => !!props.store);
-const pageTitle = computed(() => (isEditing.value ? 'Edit Store' : 'Create Store'));
+const pageTitle = computed(() =>
+    isEditing.value ? 'Edit Store' : 'Create Store',
+);
 
 // Permission checks
 const { isAdmin, canAccessStore } = usePermissions();
-const canManageEmployees = computed(() =>
-    isAdmin.value || (props.store ? canAccessStore(props.store.id, 'store.manage_employees') : false)
+const canManageEmployees = computed(
+    () =>
+        isAdmin.value ||
+        (props.store
+            ? canAccessStore(props.store.id, 'store.manage_employees')
+            : false),
 );
-const canManageCurrencies = computed(() =>
-    isAdmin.value || (props.store ? canAccessStore(props.store.id, 'store.manage_currencies') : false)
+const canManageCurrencies = computed(
+    () =>
+        isAdmin.value ||
+        (props.store
+            ? canAccessStore(props.store.id, 'store.manage_currencies')
+            : false),
 );
 
 // Navigation
@@ -58,7 +78,6 @@ const { goBack } = useSmartBack('/stores');
 function cancel() {
     goBack();
 }
-
 
 // Active tab for edit mode
 const activeTab = ref('basic');
@@ -71,7 +90,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const companyOptions = computed(() => [
     { label: 'No Company', value: null },
-    ...props.companies.map(c => ({ label: c.company_name, value: c.id })),
+    ...props.companies.map((c) => ({ label: c.company_name, value: c.id })),
 ]);
 
 const countryOptions = computed(() =>
@@ -115,7 +134,6 @@ function submit() {
         });
     }
 }
-
 </script>
 
 <template>
@@ -132,7 +150,10 @@ function submit() {
                 <!-- Create Mode: Simple form without tabs -->
                 <Card v-if="!isEditing">
                     <template #content>
-                        <form @submit.prevent="submit" class="flex flex-col gap-6">
+                        <form
+                            @submit.prevent="submit"
+                            class="flex flex-col gap-6"
+                        >
                             <!-- Logo for create mode -->
                             <ImageSelect
                                 v-model="form.logo"
@@ -147,45 +168,72 @@ function submit() {
 
                             <!-- Basic Information -->
                             <div>
-                                <h3 class="mb-4 text-lg font-medium">Basic Information</h3>
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Basic Information
+                                </h3>
                                 <div class="flex flex-col gap-4">
                                     <div class="grid gap-4 sm:grid-cols-2">
                                         <div class="flex flex-col gap-2">
-                                            <label for="store_name" class="font-medium">Store Name *</label>
+                                            <label
+                                                for="store_name"
+                                                class="font-medium"
+                                                >Store Name *</label
+                                            >
                                             <InputText
                                                 id="store_name"
                                                 v-model="form.store_name"
-                                                :invalid="!!form.errors.store_name"
+                                                :invalid="
+                                                    !!form.errors.store_name
+                                                "
                                                 placeholder="Main Store"
                                                 size="small"
                                                 fluid
                                             />
-                                            <small v-if="form.errors.store_name" class="text-red-500">
+                                            <small
+                                                v-if="form.errors.store_name"
+                                                class="text-red-500"
+                                            >
                                                 {{ form.errors.store_name }}
                                             </small>
                                         </div>
 
                                         <div class="flex flex-col gap-2">
-                                            <label for="store_code" class="font-medium">Store Code *</label>
+                                            <label
+                                                for="store_code"
+                                                class="font-medium"
+                                                >Store Code *</label
+                                            >
                                             <InputText
                                                 id="store_code"
                                                 v-model="form.store_code"
-                                                :invalid="!!form.errors.store_code"
+                                                :invalid="
+                                                    !!form.errors.store_code
+                                                "
                                                 placeholder="MAIN"
                                                 maxlength="4"
                                                 size="small"
                                                 fluid
                                                 class="uppercase"
                                             />
-                                            <small class="text-muted-foreground">Max 4 characters, must be unique</small>
-                                            <small v-if="form.errors.store_code" class="text-red-500">
+                                            <small class="text-muted-foreground"
+                                                >Max 4 characters, must be
+                                                unique</small
+                                            >
+                                            <small
+                                                v-if="form.errors.store_code"
+                                                class="text-red-500"
+                                            >
                                                 {{ form.errors.store_code }}
                                             </small>
                                         </div>
                                     </div>
 
                                     <div class="flex flex-col gap-2">
-                                        <label for="company_id" class="font-medium">Company</label>
+                                        <label
+                                            for="company_id"
+                                            class="font-medium"
+                                            >Company</label
+                                        >
                                         <Select
                                             id="company_id"
                                             v-model="form.company_id"
@@ -197,14 +245,21 @@ function submit() {
                                             size="small"
                                             fluid
                                         />
-                                        <small v-if="form.errors.company_id" class="text-red-500">
+                                        <small
+                                            v-if="form.errors.company_id"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.company_id }}
                                         </small>
                                     </div>
 
                                     <div class="grid gap-4 sm:grid-cols-2">
                                         <div class="flex flex-col gap-2">
-                                            <label for="email" class="font-medium">Email</label>
+                                            <label
+                                                for="email"
+                                                class="font-medium"
+                                                >Email</label
+                                            >
                                             <InputText
                                                 id="email"
                                                 v-model="form.email"
@@ -214,13 +269,20 @@ function submit() {
                                                 size="small"
                                                 fluid
                                             />
-                                            <small v-if="form.errors.email" class="text-red-500">
+                                            <small
+                                                v-if="form.errors.email"
+                                                class="text-red-500"
+                                            >
                                                 {{ form.errors.email }}
                                             </small>
                                         </div>
 
                                         <div class="flex flex-col gap-2">
-                                            <label for="website" class="font-medium">Website</label>
+                                            <label
+                                                for="website"
+                                                class="font-medium"
+                                                >Website</label
+                                            >
                                             <InputText
                                                 id="website"
                                                 v-model="form.website"
@@ -229,7 +291,10 @@ function submit() {
                                                 size="small"
                                                 fluid
                                             />
-                                            <small v-if="form.errors.website" class="text-red-500">
+                                            <small
+                                                v-if="form.errors.website"
+                                                class="text-red-500"
+                                            >
                                                 {{ form.errors.website }}
                                             </small>
                                         </div>
@@ -237,31 +302,49 @@ function submit() {
 
                                     <div class="grid gap-4 sm:grid-cols-2">
                                         <div class="flex flex-col gap-2">
-                                            <label for="phone_number" class="font-medium">Phone Number</label>
+                                            <label
+                                                for="phone_number"
+                                                class="font-medium"
+                                                >Phone Number</label
+                                            >
                                             <InputText
                                                 id="phone_number"
                                                 v-model="form.phone_number"
-                                                :invalid="!!form.errors.phone_number"
+                                                :invalid="
+                                                    !!form.errors.phone_number
+                                                "
                                                 placeholder="+65 6123 4567"
                                                 size="small"
                                                 fluid
                                             />
-                                            <small v-if="form.errors.phone_number" class="text-red-500">
+                                            <small
+                                                v-if="form.errors.phone_number"
+                                                class="text-red-500"
+                                            >
                                                 {{ form.errors.phone_number }}
                                             </small>
                                         </div>
 
                                         <div class="flex flex-col gap-2">
-                                            <label for="mobile_number" class="font-medium">Mobile Number</label>
+                                            <label
+                                                for="mobile_number"
+                                                class="font-medium"
+                                                >Mobile Number</label
+                                            >
                                             <InputText
                                                 id="mobile_number"
                                                 v-model="form.mobile_number"
-                                                :invalid="!!form.errors.mobile_number"
+                                                :invalid="
+                                                    !!form.errors.mobile_number
+                                                "
                                                 placeholder="+65 9123 4567"
                                                 size="small"
                                                 fluid
                                             />
-                                            <small v-if="form.errors.mobile_number" class="text-red-500">
+                                            <small
+                                                v-if="form.errors.mobile_number"
+                                                class="text-red-500"
+                                            >
                                                 {{ form.errors.mobile_number }}
                                             </small>
                                         </div>
@@ -273,10 +356,16 @@ function submit() {
 
                             <!-- Address -->
                             <div>
-                                <h3 class="mb-4 text-lg font-medium">Address</h3>
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Address
+                                </h3>
                                 <div class="flex flex-col gap-4">
                                     <div class="flex flex-col gap-2">
-                                        <label for="address_1" class="font-medium">Address Line 1</label>
+                                        <label
+                                            for="address_1"
+                                            class="font-medium"
+                                            >Address Line 1</label
+                                        >
                                         <InputText
                                             id="address_1"
                                             v-model="form.address_1"
@@ -285,13 +374,20 @@ function submit() {
                                             size="small"
                                             fluid
                                         />
-                                        <small v-if="form.errors.address_1" class="text-red-500">
+                                        <small
+                                            v-if="form.errors.address_1"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.address_1 }}
                                         </small>
                                     </div>
 
                                     <div class="flex flex-col gap-2">
-                                        <label for="address_2" class="font-medium">Address Line 2</label>
+                                        <label
+                                            for="address_2"
+                                            class="font-medium"
+                                            >Address Line 2</label
+                                        >
                                         <InputText
                                             id="address_2"
                                             v-model="form.address_2"
@@ -300,13 +396,20 @@ function submit() {
                                             size="small"
                                             fluid
                                         />
-                                        <small v-if="form.errors.address_2" class="text-red-500">
+                                        <small
+                                            v-if="form.errors.address_2"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.address_2 }}
                                         </small>
                                     </div>
 
                                     <div class="flex flex-col gap-2">
-                                        <label for="country_id" class="font-medium">Country</label>
+                                        <label
+                                            for="country_id"
+                                            class="font-medium"
+                                            >Country</label
+                                        >
                                         <Select
                                             id="country_id"
                                             v-model="form.country_id"
@@ -320,7 +423,10 @@ function submit() {
                                             size="small"
                                             fluid
                                         />
-                                        <small v-if="form.errors.country_id" class="text-red-500">
+                                        <small
+                                            v-if="form.errors.country_id"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.country_id }}
                                         </small>
                                     </div>
@@ -331,14 +437,22 @@ function submit() {
 
                             <!-- Tax Settings -->
                             <div>
-                                <h3 class="mb-4 text-lg font-medium">Tax Settings</h3>
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Tax Settings
+                                </h3>
                                 <div class="flex flex-col gap-4">
                                     <div class="flex flex-col gap-2">
-                                        <label for="tax_percentage" class="font-medium">Tax Percentage (%)</label>
+                                        <label
+                                            for="tax_percentage"
+                                            class="font-medium"
+                                            >Tax Percentage (%)</label
+                                        >
                                         <InputNumber
                                             id="tax_percentage"
                                             v-model="form.tax_percentage"
-                                            :invalid="!!form.errors.tax_percentage"
+                                            :invalid="
+                                                !!form.errors.tax_percentage
+                                            "
                                             :min="0"
                                             :max="100"
                                             :minFractionDigits="2"
@@ -347,17 +461,28 @@ function submit() {
                                             size="small"
                                             class="w-full sm:w-48"
                                         />
-                                        <small v-if="form.errors.tax_percentage" class="text-red-500">
+                                        <small
+                                            v-if="form.errors.tax_percentage"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.tax_percentage }}
                                         </small>
                                     </div>
 
                                     <div class="flex items-center gap-3">
-                                        <ToggleSwitch v-model="form.include_tax" />
+                                        <ToggleSwitch
+                                            v-model="form.include_tax"
+                                        />
                                         <div class="flex flex-col">
                                             <span>Tax Inclusive Pricing</span>
-                                            <small class="text-muted-foreground">
-                                                {{ form.include_tax ? 'Prices already include tax' : 'Tax will be added to prices' }}
+                                            <small
+                                                class="text-muted-foreground"
+                                            >
+                                                {{
+                                                    form.include_tax
+                                                        ? 'Prices already include tax'
+                                                        : 'Tax will be added to prices'
+                                                }}
                                             </small>
                                         </div>
                                     </div>
@@ -371,13 +496,23 @@ function submit() {
                                 <h3 class="mb-4 text-lg font-medium">Status</h3>
                                 <div class="flex items-center gap-3">
                                     <ToggleSwitch v-model="form.active" />
-                                    <span :class="form.active ? 'text-green-600' : 'text-red-600'">
-                                        {{ form.active ? 'Active' : 'Inactive' }}
+                                    <span
+                                        :class="
+                                            form.active
+                                                ? 'text-green-600'
+                                                : 'text-red-600'
+                                        "
+                                    >
+                                        {{
+                                            form.active ? 'Active' : 'Inactive'
+                                        }}
                                     </span>
                                 </div>
                             </div>
 
-                            <div class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                            <div
+                                class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"
+                            >
                                 <Button
                                     type="button"
                                     label="Cancel"
@@ -408,7 +543,10 @@ function submit() {
                             </TabList>
                             <TabPanels>
                                 <TabPanel value="basic">
-                                    <form @submit.prevent="submit" class="flex flex-col gap-6 pt-4">
+                                    <form
+                                        @submit.prevent="submit"
+                                        class="flex flex-col gap-6 pt-4"
+                                    >
                                         <!-- Logo for edit mode -->
                                         <ImageUpload
                                             v-if="store"
@@ -421,7 +559,7 @@ function submit() {
                                             alt="Store logo"
                                             :circular="false"
                                             :preview-size="96"
-                                            @uploaded="(url) => logoUrl = url"
+                                            @uploaded="(url) => (logoUrl = url)"
                                             @deleted="logoUrl = null"
                                         />
 
@@ -429,122 +567,278 @@ function submit() {
 
                                         <!-- Basic Information -->
                                         <div>
-                                            <h3 class="mb-4 text-lg font-medium">Basic Information</h3>
+                                            <h3
+                                                class="mb-4 text-lg font-medium"
+                                            >
+                                                Basic Information
+                                            </h3>
                                             <div class="flex flex-col gap-4">
-                                                <div class="grid gap-4 sm:grid-cols-2">
-                                                    <div class="flex flex-col gap-2">
-                                                        <label for="edit_store_name" class="font-medium">Store Name *</label>
+                                                <div
+                                                    class="grid gap-4 sm:grid-cols-2"
+                                                >
+                                                    <div
+                                                        class="flex flex-col gap-2"
+                                                    >
+                                                        <label
+                                                            for="edit_store_name"
+                                                            class="font-medium"
+                                                            >Store Name *</label
+                                                        >
                                                         <InputText
                                                             id="edit_store_name"
-                                                            v-model="form.store_name"
-                                                            :invalid="!!form.errors.store_name"
+                                                            v-model="
+                                                                form.store_name
+                                                            "
+                                                            :invalid="
+                                                                !!form.errors
+                                                                    .store_name
+                                                            "
                                                             placeholder="Main Store"
                                                             size="small"
                                                             fluid
                                                         />
-                                                        <small v-if="form.errors.store_name" class="text-red-500">
-                                                            {{ form.errors.store_name }}
+                                                        <small
+                                                            v-if="
+                                                                form.errors
+                                                                    .store_name
+                                                            "
+                                                            class="text-red-500"
+                                                        >
+                                                            {{
+                                                                form.errors
+                                                                    .store_name
+                                                            }}
                                                         </small>
                                                     </div>
 
-                                                    <div class="flex flex-col gap-2">
-                                                        <label for="edit_store_code" class="font-medium">Store Code *</label>
+                                                    <div
+                                                        class="flex flex-col gap-2"
+                                                    >
+                                                        <label
+                                                            for="edit_store_code"
+                                                            class="font-medium"
+                                                            >Store Code *</label
+                                                        >
                                                         <InputText
                                                             id="edit_store_code"
-                                                            v-model="form.store_code"
-                                                            :invalid="!!form.errors.store_code"
+                                                            v-model="
+                                                                form.store_code
+                                                            "
+                                                            :invalid="
+                                                                !!form.errors
+                                                                    .store_code
+                                                            "
                                                             placeholder="MAIN"
                                                             maxlength="4"
                                                             size="small"
                                                             fluid
                                                             class="uppercase"
                                                         />
-                                                        <small class="text-muted-foreground">Max 4 characters, must be unique</small>
-                                                        <small v-if="form.errors.store_code" class="text-red-500">
-                                                            {{ form.errors.store_code }}
+                                                        <small
+                                                            class="text-muted-foreground"
+                                                            >Max 4 characters,
+                                                            must be
+                                                            unique</small
+                                                        >
+                                                        <small
+                                                            v-if="
+                                                                form.errors
+                                                                    .store_code
+                                                            "
+                                                            class="text-red-500"
+                                                        >
+                                                            {{
+                                                                form.errors
+                                                                    .store_code
+                                                            }}
                                                         </small>
                                                     </div>
                                                 </div>
 
-                                                <div class="flex flex-col gap-2">
-                                                    <label for="edit_company_id" class="font-medium">Company</label>
+                                                <div
+                                                    class="flex flex-col gap-2"
+                                                >
+                                                    <label
+                                                        for="edit_company_id"
+                                                        class="font-medium"
+                                                        >Company</label
+                                                    >
                                                     <Select
                                                         id="edit_company_id"
-                                                        v-model="form.company_id"
-                                                        :options="companyOptions"
+                                                        v-model="
+                                                            form.company_id
+                                                        "
+                                                        :options="
+                                                            companyOptions
+                                                        "
                                                         option-label="label"
                                                         option-value="value"
                                                         placeholder="Select a company (optional)"
-                                                        :invalid="!!form.errors.company_id"
+                                                        :invalid="
+                                                            !!form.errors
+                                                                .company_id
+                                                        "
                                                         size="small"
                                                         fluid
                                                     />
-                                                    <small v-if="form.errors.company_id" class="text-red-500">
-                                                        {{ form.errors.company_id }}
+                                                    <small
+                                                        v-if="
+                                                            form.errors
+                                                                .company_id
+                                                        "
+                                                        class="text-red-500"
+                                                    >
+                                                        {{
+                                                            form.errors
+                                                                .company_id
+                                                        }}
                                                     </small>
                                                 </div>
 
-                                                <div class="grid gap-4 sm:grid-cols-2">
-                                                    <div class="flex flex-col gap-2">
-                                                        <label for="edit_email" class="font-medium">Email</label>
+                                                <div
+                                                    class="grid gap-4 sm:grid-cols-2"
+                                                >
+                                                    <div
+                                                        class="flex flex-col gap-2"
+                                                    >
+                                                        <label
+                                                            for="edit_email"
+                                                            class="font-medium"
+                                                            >Email</label
+                                                        >
                                                         <InputText
                                                             id="edit_email"
                                                             v-model="form.email"
                                                             type="email"
-                                                            :invalid="!!form.errors.email"
+                                                            :invalid="
+                                                                !!form.errors
+                                                                    .email
+                                                            "
                                                             placeholder="store@company.com"
                                                             size="small"
                                                             fluid
                                                         />
-                                                        <small v-if="form.errors.email" class="text-red-500">
-                                                            {{ form.errors.email }}
+                                                        <small
+                                                            v-if="
+                                                                form.errors
+                                                                    .email
+                                                            "
+                                                            class="text-red-500"
+                                                        >
+                                                            {{
+                                                                form.errors
+                                                                    .email
+                                                            }}
                                                         </small>
                                                     </div>
 
-                                                    <div class="flex flex-col gap-2">
-                                                        <label for="edit_website" class="font-medium">Website</label>
+                                                    <div
+                                                        class="flex flex-col gap-2"
+                                                    >
+                                                        <label
+                                                            for="edit_website"
+                                                            class="font-medium"
+                                                            >Website</label
+                                                        >
                                                         <InputText
                                                             id="edit_website"
-                                                            v-model="form.website"
-                                                            :invalid="!!form.errors.website"
+                                                            v-model="
+                                                                form.website
+                                                            "
+                                                            :invalid="
+                                                                !!form.errors
+                                                                    .website
+                                                            "
                                                             placeholder="https://store.com"
                                                             size="small"
                                                             fluid
                                                         />
-                                                        <small v-if="form.errors.website" class="text-red-500">
-                                                            {{ form.errors.website }}
+                                                        <small
+                                                            v-if="
+                                                                form.errors
+                                                                    .website
+                                                            "
+                                                            class="text-red-500"
+                                                        >
+                                                            {{
+                                                                form.errors
+                                                                    .website
+                                                            }}
                                                         </small>
                                                     </div>
                                                 </div>
 
-                                                <div class="grid gap-4 sm:grid-cols-2">
-                                                    <div class="flex flex-col gap-2">
-                                                        <label for="edit_phone_number" class="font-medium">Phone Number</label>
+                                                <div
+                                                    class="grid gap-4 sm:grid-cols-2"
+                                                >
+                                                    <div
+                                                        class="flex flex-col gap-2"
+                                                    >
+                                                        <label
+                                                            for="edit_phone_number"
+                                                            class="font-medium"
+                                                            >Phone Number</label
+                                                        >
                                                         <InputText
                                                             id="edit_phone_number"
-                                                            v-model="form.phone_number"
-                                                            :invalid="!!form.errors.phone_number"
+                                                            v-model="
+                                                                form.phone_number
+                                                            "
+                                                            :invalid="
+                                                                !!form.errors
+                                                                    .phone_number
+                                                            "
                                                             placeholder="+65 6123 4567"
                                                             size="small"
                                                             fluid
                                                         />
-                                                        <small v-if="form.errors.phone_number" class="text-red-500">
-                                                            {{ form.errors.phone_number }}
+                                                        <small
+                                                            v-if="
+                                                                form.errors
+                                                                    .phone_number
+                                                            "
+                                                            class="text-red-500"
+                                                        >
+                                                            {{
+                                                                form.errors
+                                                                    .phone_number
+                                                            }}
                                                         </small>
                                                     </div>
 
-                                                    <div class="flex flex-col gap-2">
-                                                        <label for="edit_mobile_number" class="font-medium">Mobile Number</label>
+                                                    <div
+                                                        class="flex flex-col gap-2"
+                                                    >
+                                                        <label
+                                                            for="edit_mobile_number"
+                                                            class="font-medium"
+                                                            >Mobile
+                                                            Number</label
+                                                        >
                                                         <InputText
                                                             id="edit_mobile_number"
-                                                            v-model="form.mobile_number"
-                                                            :invalid="!!form.errors.mobile_number"
+                                                            v-model="
+                                                                form.mobile_number
+                                                            "
+                                                            :invalid="
+                                                                !!form.errors
+                                                                    .mobile_number
+                                                            "
                                                             placeholder="+65 9123 4567"
                                                             size="small"
                                                             fluid
                                                         />
-                                                        <small v-if="form.errors.mobile_number" class="text-red-500">
-                                                            {{ form.errors.mobile_number }}
+                                                        <small
+                                                            v-if="
+                                                                form.errors
+                                                                    .mobile_number
+                                                            "
+                                                            class="text-red-500"
+                                                        >
+                                                            {{
+                                                                form.errors
+                                                                    .mobile_number
+                                                            }}
                                                         </small>
                                                     </div>
                                                 </div>
@@ -555,55 +849,117 @@ function submit() {
 
                                         <!-- Address -->
                                         <div>
-                                            <h3 class="mb-4 text-lg font-medium">Address</h3>
+                                            <h3
+                                                class="mb-4 text-lg font-medium"
+                                            >
+                                                Address
+                                            </h3>
                                             <div class="flex flex-col gap-4">
-                                                <div class="flex flex-col gap-2">
-                                                    <label for="edit_address_1" class="font-medium">Address Line 1</label>
+                                                <div
+                                                    class="flex flex-col gap-2"
+                                                >
+                                                    <label
+                                                        for="edit_address_1"
+                                                        class="font-medium"
+                                                        >Address Line 1</label
+                                                    >
                                                     <InputText
                                                         id="edit_address_1"
                                                         v-model="form.address_1"
-                                                        :invalid="!!form.errors.address_1"
+                                                        :invalid="
+                                                            !!form.errors
+                                                                .address_1
+                                                        "
                                                         placeholder="123 Business Street"
                                                         size="small"
                                                         fluid
                                                     />
-                                                    <small v-if="form.errors.address_1" class="text-red-500">
-                                                        {{ form.errors.address_1 }}
+                                                    <small
+                                                        v-if="
+                                                            form.errors
+                                                                .address_1
+                                                        "
+                                                        class="text-red-500"
+                                                    >
+                                                        {{
+                                                            form.errors
+                                                                .address_1
+                                                        }}
                                                     </small>
                                                 </div>
 
-                                                <div class="flex flex-col gap-2">
-                                                    <label for="edit_address_2" class="font-medium">Address Line 2</label>
+                                                <div
+                                                    class="flex flex-col gap-2"
+                                                >
+                                                    <label
+                                                        for="edit_address_2"
+                                                        class="font-medium"
+                                                        >Address Line 2</label
+                                                    >
                                                     <InputText
                                                         id="edit_address_2"
                                                         v-model="form.address_2"
-                                                        :invalid="!!form.errors.address_2"
+                                                        :invalid="
+                                                            !!form.errors
+                                                                .address_2
+                                                        "
                                                         placeholder="#01-234 Shopping Mall"
                                                         size="small"
                                                         fluid
                                                     />
-                                                    <small v-if="form.errors.address_2" class="text-red-500">
-                                                        {{ form.errors.address_2 }}
+                                                    <small
+                                                        v-if="
+                                                            form.errors
+                                                                .address_2
+                                                        "
+                                                        class="text-red-500"
+                                                    >
+                                                        {{
+                                                            form.errors
+                                                                .address_2
+                                                        }}
                                                     </small>
                                                 </div>
 
-                                                <div class="flex flex-col gap-2">
-                                                    <label for="edit_country_id" class="font-medium">Country</label>
+                                                <div
+                                                    class="flex flex-col gap-2"
+                                                >
+                                                    <label
+                                                        for="edit_country_id"
+                                                        class="font-medium"
+                                                        >Country</label
+                                                    >
                                                     <Select
                                                         id="edit_country_id"
-                                                        v-model="form.country_id"
-                                                        :options="countryOptions"
+                                                        v-model="
+                                                            form.country_id
+                                                        "
+                                                        :options="
+                                                            countryOptions
+                                                        "
                                                         option-label="label"
                                                         option-value="value"
-                                                        :invalid="!!form.errors.country_id"
+                                                        :invalid="
+                                                            !!form.errors
+                                                                .country_id
+                                                        "
                                                         placeholder="Select country"
                                                         filter
                                                         show-clear
                                                         size="small"
                                                         fluid
                                                     />
-                                                    <small v-if="form.errors.country_id" class="text-red-500">
-                                                        {{ form.errors.country_id }}
+                                                    <small
+                                                        v-if="
+                                                            form.errors
+                                                                .country_id
+                                                        "
+                                                        class="text-red-500"
+                                                    >
+                                                        {{
+                                                            form.errors
+                                                                .country_id
+                                                        }}
                                                     </small>
                                                 </div>
                                             </div>
@@ -613,14 +969,30 @@ function submit() {
 
                                         <!-- Tax Settings -->
                                         <div>
-                                            <h3 class="mb-4 text-lg font-medium">Tax Settings</h3>
+                                            <h3
+                                                class="mb-4 text-lg font-medium"
+                                            >
+                                                Tax Settings
+                                            </h3>
                                             <div class="flex flex-col gap-4">
-                                                <div class="flex flex-col gap-2">
-                                                    <label for="edit_tax_percentage" class="font-medium">Tax Percentage (%)</label>
+                                                <div
+                                                    class="flex flex-col gap-2"
+                                                >
+                                                    <label
+                                                        for="edit_tax_percentage"
+                                                        class="font-medium"
+                                                        >Tax Percentage
+                                                        (%)</label
+                                                    >
                                                     <InputNumber
                                                         id="edit_tax_percentage"
-                                                        v-model="form.tax_percentage"
-                                                        :invalid="!!form.errors.tax_percentage"
+                                                        v-model="
+                                                            form.tax_percentage
+                                                        "
+                                                        :invalid="
+                                                            !!form.errors
+                                                                .tax_percentage
+                                                        "
                                                         :min="0"
                                                         :max="100"
                                                         :minFractionDigits="2"
@@ -629,17 +1001,41 @@ function submit() {
                                                         size="small"
                                                         class="w-full sm:w-48"
                                                     />
-                                                    <small v-if="form.errors.tax_percentage" class="text-red-500">
-                                                        {{ form.errors.tax_percentage }}
+                                                    <small
+                                                        v-if="
+                                                            form.errors
+                                                                .tax_percentage
+                                                        "
+                                                        class="text-red-500"
+                                                    >
+                                                        {{
+                                                            form.errors
+                                                                .tax_percentage
+                                                        }}
                                                     </small>
                                                 </div>
 
-                                                <div class="flex items-center gap-3">
-                                                    <ToggleSwitch v-model="form.include_tax" />
+                                                <div
+                                                    class="flex items-center gap-3"
+                                                >
+                                                    <ToggleSwitch
+                                                        v-model="
+                                                            form.include_tax
+                                                        "
+                                                    />
                                                     <div class="flex flex-col">
-                                                        <span>Tax Inclusive Pricing</span>
-                                                        <small class="text-muted-foreground">
-                                                            {{ form.include_tax ? 'Prices already include tax' : 'Tax will be added to prices' }}
+                                                        <span
+                                                            >Tax Inclusive
+                                                            Pricing</span
+                                                        >
+                                                        <small
+                                                            class="text-muted-foreground"
+                                                        >
+                                                            {{
+                                                                form.include_tax
+                                                                    ? 'Prices already include tax'
+                                                                    : 'Tax will be added to prices'
+                                                            }}
                                                         </small>
                                                     </div>
                                                 </div>
@@ -650,16 +1046,36 @@ function submit() {
 
                                         <!-- Status -->
                                         <div>
-                                            <h3 class="mb-4 text-lg font-medium">Status</h3>
-                                            <div class="flex items-center gap-3">
-                                                <ToggleSwitch v-model="form.active" />
-                                                <span :class="form.active ? 'text-green-600' : 'text-red-600'">
-                                                    {{ form.active ? 'Active' : 'Inactive' }}
+                                            <h3
+                                                class="mb-4 text-lg font-medium"
+                                            >
+                                                Status
+                                            </h3>
+                                            <div
+                                                class="flex items-center gap-3"
+                                            >
+                                                <ToggleSwitch
+                                                    v-model="form.active"
+                                                />
+                                                <span
+                                                    :class="
+                                                        form.active
+                                                            ? 'text-green-600'
+                                                            : 'text-red-600'
+                                                    "
+                                                >
+                                                    {{
+                                                        form.active
+                                                            ? 'Active'
+                                                            : 'Inactive'
+                                                    }}
                                                 </span>
                                             </div>
                                         </div>
 
-                                        <div class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                                        <div
+                                            class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"
+                                        >
                                             <Button
                                                 type="button"
                                                 label="Cancel"
@@ -679,11 +1095,24 @@ function submit() {
                                 </TabPanel>
                                 <TabPanel value="employees">
                                     <div class="pt-4">
-                                        <div v-if="!canManageEmployees" class="flex flex-col items-center justify-center gap-4 py-12 text-center">
-                                            <i class="pi pi-lock text-4xl text-muted-foreground"></i>
+                                        <div
+                                            v-if="!canManageEmployees"
+                                            class="flex flex-col items-center justify-center gap-4 py-12 text-center"
+                                        >
+                                            <i
+                                                class="pi pi-lock text-4xl text-muted-foreground"
+                                            ></i>
                                             <div>
-                                                <h3 class="text-lg font-medium">Access Restricted</h3>
-                                                <p class="text-sm text-muted-foreground">You don't have permission to manage employees for this store.</p>
+                                                <h3 class="text-lg font-medium">
+                                                    Access Restricted
+                                                </h3>
+                                                <p
+                                                    class="text-sm text-muted-foreground"
+                                                >
+                                                    You don't have permission to
+                                                    manage employees for this
+                                                    store.
+                                                </p>
                                             </div>
                                         </div>
                                         <StoreEmployeesSection
@@ -695,11 +1124,24 @@ function submit() {
                                 </TabPanel>
                                 <TabPanel value="currencies">
                                     <div class="pt-4">
-                                        <div v-if="!canManageCurrencies" class="flex flex-col items-center justify-center gap-4 py-12 text-center">
-                                            <i class="pi pi-lock text-4xl text-muted-foreground"></i>
+                                        <div
+                                            v-if="!canManageCurrencies"
+                                            class="flex flex-col items-center justify-center gap-4 py-12 text-center"
+                                        >
+                                            <i
+                                                class="pi pi-lock text-4xl text-muted-foreground"
+                                            ></i>
                                             <div>
-                                                <h3 class="text-lg font-medium">Access Restricted</h3>
-                                                <p class="text-sm text-muted-foreground">You don't have permission to manage currencies for this store.</p>
+                                                <h3 class="text-lg font-medium">
+                                                    Access Restricted
+                                                </h3>
+                                                <p
+                                                    class="text-sm text-muted-foreground"
+                                                >
+                                                    You don't have permission to
+                                                    manage currencies for this
+                                                    store.
+                                                </p>
                                             </div>
                                         </div>
                                         <StoreCurrenciesSection

@@ -14,7 +14,11 @@ import Tag from 'primevue/tag';
 import { useToast } from 'primevue/usetoast';
 import { computed, ref } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type EmployeeWithManagers, type ManagerInfo } from '@/types';
+import {
+    type BreadcrumbItem,
+    type EmployeeWithManagers,
+    type ManagerInfo,
+} from '@/types';
 
 interface Props {
     employees: EmployeeWithManagers[];
@@ -54,7 +58,10 @@ const saving = ref(false);
 // Bulk dialog state
 const bulkManager = ref<number | null>(null);
 const bulkSaving = ref(false);
-const bulkResult = ref<{ success: number[]; failed: Array<{ id: number; name: string; reason: string }> } | null>(null);
+const bulkResult = ref<{
+    success: number[];
+    failed: Array<{ id: number; name: string; reason: string }>;
+} | null>(null);
 
 // Computed filtered employees
 const filteredEmployees = computed(() => {
@@ -74,7 +81,9 @@ const filteredEmployees = computed(() => {
     if (selectedCompany.value) {
         result = result.filter((emp) => {
             // Match by company name since that's what we have
-            const companyOption = props.companies.find((c) => c.value === selectedCompany.value);
+            const companyOption = props.companies.find(
+                (c) => c.value === selectedCompany.value,
+            );
             return emp.company === companyOption?.label;
         });
     }
@@ -120,9 +129,12 @@ async function openEditDialog(employee: EmployeeWithManagers) {
     editDialogVisible.value = true;
 
     try {
-        const response = await fetch(`/organisation-chart/employees/${employee.id}/managers`, {
-            headers: { Accept: 'application/json' },
-        });
+        const response = await fetch(
+            `/organisation-chart/employees/${employee.id}/managers`,
+            {
+                headers: { Accept: 'application/json' },
+            },
+        );
         const data = await response.json();
         employeeManagers.value = data.managers;
         availableManagers.value = data.available_managers;
@@ -145,19 +157,28 @@ async function addManager() {
     saving.value = true;
 
     try {
-        const response = await fetch(`/organisation-chart/employees/${editingEmployee.value.id}/managers`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        const response = await fetch(
+            `/organisation-chart/employees/${editingEmployee.value.id}/managers`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN':
+                        document
+                            .querySelector('meta[name="csrf-token"]')
+                            ?.getAttribute('content') || '',
+                },
+                body: JSON.stringify({ manager_id: selectedManager.value }),
             },
-            body: JSON.stringify({ manager_id: selectedManager.value }),
-        });
+        );
 
         if (!response.ok) {
             const errorData = await response.json();
-            const errorMessage = errorData.errors?.manager_id?.[0] || errorData.message || 'Failed to add manager.';
+            const errorMessage =
+                errorData.errors?.manager_id?.[0] ||
+                errorData.message ||
+                'Failed to add manager.';
             toast.add({
                 severity: 'error',
                 summary: 'Error',
@@ -200,17 +221,24 @@ async function removeManager(manager: ManagerInfo) {
     saving.value = true;
 
     try {
-        const response = await fetch(`/organisation-chart/employees/${editingEmployee.value.id}/managers/${manager.id}`, {
-            method: 'DELETE',
-            headers: {
-                Accept: 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        const response = await fetch(
+            `/organisation-chart/employees/${editingEmployee.value.id}/managers/${manager.id}`,
+            {
+                method: 'DELETE',
+                headers: {
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN':
+                        document
+                            .querySelector('meta[name="csrf-token"]')
+                            ?.getAttribute('content') || '',
+                },
             },
-        });
+        );
 
         if (!response.ok) {
             const errorData = await response.json();
-            const errorMessage = errorData.message || 'Failed to remove manager.';
+            const errorMessage =
+                errorData.message || 'Failed to remove manager.';
             toast.add({
                 severity: 'error',
                 summary: 'Error',
@@ -249,9 +277,12 @@ async function refreshManagerData() {
     if (!editingEmployee.value) return;
 
     try {
-        const response = await fetch(`/organisation-chart/employees/${editingEmployee.value.id}/managers`, {
-            headers: { Accept: 'application/json' },
-        });
+        const response = await fetch(
+            `/organisation-chart/employees/${editingEmployee.value.id}/managers`,
+            {
+                headers: { Accept: 'application/json' },
+            },
+        );
         const data = await response.json();
         employeeManagers.value = data.managers;
         availableManagers.value = data.available_managers;
@@ -286,7 +317,10 @@ async function bulkAssign() {
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                'X-CSRF-TOKEN':
+                    document
+                        .querySelector('meta[name="csrf-token"]')
+                        ?.getAttribute('content') || '',
             },
             body: JSON.stringify({
                 employee_ids: selectedEmployees.value.map((e) => e.id),
@@ -347,18 +381,35 @@ function goBack() {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <!-- Header -->
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <div class="flex items-center gap-3">
-                    <Button icon="pi pi-arrow-left" severity="secondary" text rounded size="small" @click="goBack" v-tooltip.top="'Back to Chart'" />
+                    <Button
+                        icon="pi pi-arrow-left"
+                        severity="secondary"
+                        text
+                        rounded
+                        size="small"
+                        @click="goBack"
+                        v-tooltip.top="'Back to Chart'"
+                    />
                     <h1 class="heading-lg">Edit Organisation Chart</h1>
                 </div>
             </div>
 
             <!-- Filter Section -->
-            <div class="filter-section flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div
+                class="filter-section flex flex-col gap-3 sm:flex-row sm:items-center"
+            >
                 <IconField class="flex-1">
                     <InputIcon class="pi pi-search" />
-                    <InputText v-model="searchQuery" placeholder="Search by name, designation, company..." size="small" fluid />
+                    <InputText
+                        v-model="searchQuery"
+                        placeholder="Search by name, designation, company..."
+                        size="small"
+                        fluid
+                    />
                 </IconField>
                 <Select
                     v-model="selectedCompany"
@@ -370,7 +421,15 @@ function goBack() {
                     show-clear
                     class="w-full sm:w-48"
                 />
-                <Button v-if="searchQuery || selectedCompany" icon="pi pi-times" label="Clear" severity="secondary" size="small" text @click="clearFilters" />
+                <Button
+                    v-if="searchQuery || selectedCompany"
+                    icon="pi pi-times"
+                    label="Clear"
+                    severity="secondary"
+                    size="small"
+                    text
+                    @click="clearFilters"
+                />
             </div>
 
             <!-- Bulk Action Bar -->
@@ -378,10 +437,24 @@ function goBack() {
                 v-if="selectedEmployees.length > 0"
                 class="flex items-center justify-between rounded-lg border border-primary/50 bg-primary/5 p-3 dark:bg-primary/10"
             >
-                <span class="text-sm font-medium">{{ selectedEmployees.length }} employee(s) selected</span>
+                <span class="text-sm font-medium"
+                    >{{ selectedEmployees.length }} employee(s) selected</span
+                >
                 <div class="flex items-center gap-2">
-                    <Button label="Assign Manager" icon="pi pi-users" size="small" @click="openBulkDialog" />
-                    <Button label="Clear" icon="pi pi-times" severity="secondary" size="small" text @click="selectedEmployees = []" />
+                    <Button
+                        label="Assign Manager"
+                        icon="pi pi-users"
+                        size="small"
+                        @click="openBulkDialog"
+                    />
+                    <Button
+                        label="Clear"
+                        icon="pi pi-times"
+                        severity="secondary"
+                        size="small"
+                        text
+                        @click="selectedEmployees = []"
+                    />
                 </div>
             </div>
 
@@ -395,17 +468,27 @@ function goBack() {
                 size="small"
                 scrollable
                 scroll-height="flex"
-                class="flex-1 overflow-hidden rounded-lg border border-border "
+                class="flex-1 overflow-hidden rounded-lg border border-border"
                 @row-click="(e) => openEditDialog(e.data)"
             >
                 <template #empty>
                     <div class="p-8 text-center text-muted-foreground">
                         <i class="pi pi-sitemap mb-3 text-4xl"></i>
-                        <p>{{ searchQuery || selectedCompany ? 'No employees match your filters.' : 'No employees found.' }}</p>
+                        <p>
+                            {{
+                                searchQuery || selectedCompany
+                                    ? 'No employees match your filters.'
+                                    : 'No employees found.'
+                            }}
+                        </p>
                     </div>
                 </template>
 
-                <Column selection-mode="multiple" header-style="width: 3rem" :exportable="false" />
+                <Column
+                    selection-mode="multiple"
+                    header-style="width: 3rem"
+                    :exportable="false"
+                />
                 <Column expander style="width: 3rem" class="!pr-0 md:hidden" />
 
                 <Column field="name" header="Employee">
@@ -416,7 +499,12 @@ function goBack() {
                                     :src="data.profile_picture_url"
                                     :alt="data.name"
                                     image-class="!h-8 !w-8 rounded-full object-cover cursor-pointer"
-                                    :pt="{ root: { class: 'rounded-full overflow-hidden shrink-0' }, previewMask: { class: 'rounded-full' } }"
+                                    :pt="{
+                                        root: {
+                                            class: 'rounded-full overflow-hidden shrink-0',
+                                        },
+                                        previewMask: { class: 'rounded-full' },
+                                    }"
                                     preview
                                 />
                             </div>
@@ -427,8 +515,14 @@ function goBack() {
                                 class="!h-8 !w-8 shrink-0 bg-primary/10 text-primary"
                             />
                             <div class="flex flex-col gap-0.5">
-                                <span class="cursor-pointer font-medium hover:text-primary">{{ data.name }}</span>
-                                <span v-if="data.employee_number" class="text-xs text-muted-foreground">
+                                <span
+                                    class="cursor-pointer font-medium hover:text-primary"
+                                    >{{ data.name }}</span
+                                >
+                                <span
+                                    v-if="data.employee_number"
+                                    class="text-xs text-muted-foreground"
+                                >
                                     {{ data.employee_number }}
                                 </span>
                             </div>
@@ -436,29 +530,46 @@ function goBack() {
                     </template>
                 </Column>
 
-                <Column field="company" header="Company" class="hidden md:table-cell">
+                <Column
+                    field="company"
+                    header="Company"
+                    class="hidden md:table-cell"
+                >
                     <template #body="{ data }">
                         <span v-if="data.company">{{ data.company }}</span>
                         <span v-else class="text-muted-foreground">-</span>
                     </template>
                 </Column>
 
-                <Column field="designation" header="Designation" class="hidden lg:table-cell">
+                <Column
+                    field="designation"
+                    header="Designation"
+                    class="hidden lg:table-cell"
+                >
                     <template #body="{ data }">
-                        <span v-if="data.designation">{{ data.designation }}</span>
+                        <span v-if="data.designation">{{
+                            data.designation
+                        }}</span>
                         <span v-else class="text-muted-foreground">-</span>
                     </template>
                 </Column>
 
                 <Column field="tier" header="Tier" style="width: 5rem">
                     <template #body="{ data }">
-                        <Tag :value="`Tier ${data.tier}`" :severity="getTierColor(data.tier)" class="!text-xs" />
+                        <Tag
+                            :value="`Tier ${data.tier}`"
+                            :severity="getTierColor(data.tier)"
+                            class="!text-xs"
+                        />
                     </template>
                 </Column>
 
                 <Column field="managers" header="Manager(s)">
                     <template #body="{ data }">
-                        <div v-if="data.managers?.length" class="flex flex-wrap gap-1">
+                        <div
+                            v-if="data.managers?.length"
+                            class="flex flex-wrap gap-1"
+                        >
                             <Tag
                                 v-for="manager in data.managers.slice(0, 2)"
                                 :key="manager.id"
@@ -471,14 +582,26 @@ function goBack() {
                                 :value="`+${data.managers.length - 2}`"
                                 severity="info"
                                 class="!text-xs"
-                                v-tooltip.top="data.managers.slice(2).map((m: ManagerInfo) => m.name).join(', ')"
+                                v-tooltip.top="
+                                    data.managers
+                                        .slice(2)
+                                        .map((m: ManagerInfo) => m.name)
+                                        .join(', ')
+                                "
                             />
                         </div>
-                        <span v-else class="text-sm text-muted-foreground">No manager</span>
+                        <span v-else class="text-sm text-muted-foreground"
+                            >No manager</span
+                        >
                     </template>
                 </Column>
 
-                <Column header="" style="width: 4rem" :exportable="false" class="hidden md:table-cell">
+                <Column
+                    header=""
+                    style="width: 4rem"
+                    :exportable="false"
+                    class="hidden md:table-cell"
+                >
                     <template #body="{ data }">
                         <Button
                             icon="pi pi-pencil"
@@ -493,13 +616,25 @@ function goBack() {
                 </Column>
                 <template #expansion="{ data }">
                     <div class="grid gap-3 p-3 text-sm md:hidden">
-                        <div class="flex justify-between gap-4 border-b border-border pb-2">
-                            <span class="shrink-0 text-muted-foreground">Company</span>
-                            <span class="text-right">{{ data.company ?? '-' }}</span>
+                        <div
+                            class="flex justify-between gap-4 border-b border-border pb-2"
+                        >
+                            <span class="shrink-0 text-muted-foreground"
+                                >Company</span
+                            >
+                            <span class="text-right">{{
+                                data.company ?? '-'
+                            }}</span>
                         </div>
-                        <div class="flex justify-between gap-4 border-b border-border pb-2 lg:hidden">
-                            <span class="shrink-0 text-muted-foreground">Designation</span>
-                            <span class="text-right">{{ data.designation ?? '-' }}</span>
+                        <div
+                            class="flex justify-between gap-4 border-b border-border pb-2 lg:hidden"
+                        >
+                            <span class="shrink-0 text-muted-foreground"
+                                >Designation</span
+                            >
+                            <span class="text-right">{{
+                                data.designation ?? '-'
+                            }}</span>
                         </div>
                         <div class="flex justify-end gap-1 pt-1">
                             <Button
@@ -526,13 +661,20 @@ function goBack() {
         >
             <div class="flex flex-col gap-4">
                 <!-- Employee Info (Read Only) -->
-                <div class="flex items-center gap-3 rounded-lg border border-border bg-muted p-3 dark:bg-surface-800">
+                <div
+                    class="dark:bg-surface-800 flex items-center gap-3 rounded-lg border border-border bg-muted p-3"
+                >
                     <Image
                         v-if="editingEmployee?.profile_picture_url"
                         :src="editingEmployee.profile_picture_url"
                         :alt="editingEmployee.name"
                         image-class="!h-12 !w-12 rounded-full object-cover cursor-pointer"
-                        :pt="{ root: { class: 'rounded-full overflow-hidden shrink-0' }, previewMask: { class: 'rounded-full' } }"
+                        :pt="{
+                            root: {
+                                class: 'rounded-full overflow-hidden shrink-0',
+                            },
+                            previewMask: { class: 'rounded-full' },
+                        }"
                         preview
                     />
                     <Avatar
@@ -543,11 +685,19 @@ function goBack() {
                         class="shrink-0 bg-primary/10 text-primary"
                     />
                     <div class="flex flex-col gap-0.5">
-                        <span class="font-semibold">{{ editingEmployee?.name }}</span>
-                        <span v-if="editingEmployee?.designation" class="text-sm text-muted-foreground">
+                        <span class="font-semibold">{{
+                            editingEmployee?.name
+                        }}</span>
+                        <span
+                            v-if="editingEmployee?.designation"
+                            class="text-sm text-muted-foreground"
+                        >
                             {{ editingEmployee.designation }}
                         </span>
-                        <span v-if="editingEmployee?.company" class="text-xs text-muted-foreground">
+                        <span
+                            v-if="editingEmployee?.company"
+                            class="text-xs text-muted-foreground"
+                        >
                             {{ editingEmployee.company }}
                         </span>
                     </div>
@@ -562,14 +712,20 @@ function goBack() {
                 <!-- Current Managers -->
                 <div class="flex flex-col gap-2">
                     <label class="font-medium">Current Managers</label>
-                    <div v-if="loadingManagers" class="flex items-center justify-center py-4">
+                    <div
+                        v-if="loadingManagers"
+                        class="flex items-center justify-center py-4"
+                    >
                         <i class="pi pi-spin pi-spinner text-xl"></i>
                     </div>
-                    <div v-else-if="employeeManagers.length > 0" class="flex flex-col gap-2">
+                    <div
+                        v-else-if="employeeManagers.length > 0"
+                        class="flex flex-col gap-2"
+                    >
                         <div
                             v-for="manager in employeeManagers"
                             :key="manager.id"
-                            class="flex items-center justify-between rounded-lg border border-border bg-muted px-3 py-2 dark:bg-surface-800"
+                            class="dark:bg-surface-800 flex items-center justify-between rounded-lg border border-border bg-muted px-3 py-2"
                         >
                             <div class="flex items-center gap-2">
                                 <Image
@@ -577,7 +733,12 @@ function goBack() {
                                     :src="manager.profile_picture_url"
                                     :alt="manager.name"
                                     image-class="!h-8 !w-8 rounded-full object-cover cursor-pointer"
-                                    :pt="{ root: { class: 'rounded-full overflow-hidden shrink-0' }, previewMask: { class: 'rounded-full' } }"
+                                    :pt="{
+                                        root: {
+                                            class: 'rounded-full overflow-hidden shrink-0',
+                                        },
+                                        previewMask: { class: 'rounded-full' },
+                                    }"
                                     preview
                                 />
                                 <Avatar
@@ -587,8 +748,13 @@ function goBack() {
                                     class="!h-8 !w-8 shrink-0 bg-primary/10 text-primary"
                                 />
                                 <div class="flex flex-col gap-0.5">
-                                    <span class="font-medium">{{ manager.name }}</span>
-                                    <span v-if="manager.employee_number" class="text-xs text-muted-foreground">
+                                    <span class="font-medium">{{
+                                        manager.name
+                                    }}</span>
+                                    <span
+                                        v-if="manager.employee_number"
+                                        class="text-xs text-muted-foreground"
+                                    >
                                         {{ manager.employee_number }}
                                     </span>
                                 </div>
@@ -605,7 +771,10 @@ function goBack() {
                             />
                         </div>
                     </div>
-                    <div v-else class="rounded-lg border border-dashed border-border py-4 text-center text-sm text-muted-foreground">
+                    <div
+                        v-else
+                        class="rounded-lg border border-dashed border-border py-4 text-center text-sm text-muted-foreground"
+                    >
                         No managers assigned
                     </div>
                 </div>
@@ -623,7 +792,10 @@ function goBack() {
                             filter
                             size="small"
                             class="flex-1"
-                            :disabled="loadingManagers || availableManagers.length === 0"
+                            :disabled="
+                                loadingManagers ||
+                                availableManagers.length === 0
+                            "
                         />
                         <Button
                             icon="pi pi-plus"
@@ -634,14 +806,26 @@ function goBack() {
                             :loading="saving"
                         />
                     </div>
-                    <small v-if="!loadingManagers && availableManagers.length === 0" class="text-muted-foreground">
-                        No available managers (all potential managers would create a circular reference)
+                    <small
+                        v-if="
+                            !loadingManagers && availableManagers.length === 0
+                        "
+                        class="text-muted-foreground"
+                    >
+                        No available managers (all potential managers would
+                        create a circular reference)
                     </small>
                 </div>
             </div>
 
             <template #footer>
-                <Button label="Close" severity="secondary" size="small" @click="editDialogVisible = false" :disabled="saving" />
+                <Button
+                    label="Close"
+                    severity="secondary"
+                    size="small"
+                    @click="editDialogVisible = false"
+                    :disabled="saving"
+                />
             </template>
         </Dialog>
 
@@ -655,11 +839,15 @@ function goBack() {
         >
             <div class="flex flex-col gap-4">
                 <p class="text-sm text-muted-foreground">
-                    Assign a manager to <strong>{{ selectedEmployees.length }}</strong> selected employee(s).
+                    Assign a manager to
+                    <strong>{{ selectedEmployees.length }}</strong> selected
+                    employee(s).
                 </p>
 
                 <!-- Selected Employees Preview -->
-                <div class="max-h-32 overflow-y-auto rounded-lg border border-border bg-muted p-2 dark:bg-surface-800">
+                <div
+                    class="dark:bg-surface-800 max-h-32 overflow-y-auto rounded-lg border border-border bg-muted p-2"
+                >
                     <div class="flex flex-wrap gap-1">
                         <Tag
                             v-for="emp in selectedEmployees.slice(0, 10)"
@@ -679,7 +867,9 @@ function goBack() {
 
                 <!-- Manager Selection -->
                 <div class="flex flex-col gap-2">
-                    <label for="bulk_manager" class="font-medium">Select Manager *</label>
+                    <label for="bulk_manager" class="font-medium"
+                        >Select Manager *</label
+                    >
                     <Select
                         id="bulk_manager"
                         v-model="bulkManager"
@@ -696,20 +886,42 @@ function goBack() {
 
                 <!-- Results Summary (if any) -->
                 <div v-if="bulkResult" class="flex flex-col gap-2">
-                    <div v-if="bulkResult.success.length > 0" class="rounded-lg border border-green-500/50 bg-green-50 p-3 dark:bg-green-900/20">
-                        <div class="flex items-center gap-2 text-green-700 dark:text-green-400">
+                    <div
+                        v-if="bulkResult.success.length > 0"
+                        class="rounded-lg border border-green-500/50 bg-green-50 p-3 dark:bg-green-900/20"
+                    >
+                        <div
+                            class="flex items-center gap-2 text-green-700 dark:text-green-400"
+                        >
                             <i class="pi pi-check-circle"></i>
-                            <span class="font-medium">{{ bulkResult.success.length }} assignment(s) successful</span>
+                            <span class="font-medium"
+                                >{{ bulkResult.success.length }} assignment(s)
+                                successful</span
+                            >
                         </div>
                     </div>
-                    <div v-if="bulkResult.failed.length > 0" class="rounded-lg border border-red-500/50 bg-red-50 p-3 dark:bg-red-900/20">
-                        <div class="mb-2 flex items-center gap-2 text-red-700 dark:text-red-400">
+                    <div
+                        v-if="bulkResult.failed.length > 0"
+                        class="rounded-lg border border-red-500/50 bg-red-50 p-3 dark:bg-red-900/20"
+                    >
+                        <div
+                            class="mb-2 flex items-center gap-2 text-red-700 dark:text-red-400"
+                        >
                             <i class="pi pi-exclamation-circle"></i>
-                            <span class="font-medium">{{ bulkResult.failed.length }} assignment(s) failed</span>
+                            <span class="font-medium"
+                                >{{ bulkResult.failed.length }} assignment(s)
+                                failed</span
+                            >
                         </div>
-                        <ul class="ml-6 list-disc text-sm text-red-600 dark:text-red-400">
-                            <li v-for="failure in bulkResult.failed" :key="failure.id">
-                                <strong>{{ failure.name }}:</strong> {{ failure.reason }}
+                        <ul
+                            class="ml-6 list-disc text-sm text-red-600 dark:text-red-400"
+                        >
+                            <li
+                                v-for="failure in bulkResult.failed"
+                                :key="failure.id"
+                            >
+                                <strong>{{ failure.name }}:</strong>
+                                {{ failure.reason }}
                             </li>
                         </ul>
                     </div>

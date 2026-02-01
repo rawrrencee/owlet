@@ -42,7 +42,11 @@ function navigateToModel(modelType: string) {
 }
 
 function testConnection() {
-    router.post('/admin/data-migration/test-connection', {}, { preserveState: true });
+    router.post(
+        '/admin/data-migration/test-connection',
+        {},
+        { preserveState: true },
+    );
 }
 
 function getProgress(item: ModelStatus): number {
@@ -56,7 +60,9 @@ function isComplete(item: ModelStatus): boolean {
     return processed >= item.legacy_count;
 }
 
-function getStatusSeverity(item: ModelStatus): 'success' | 'info' | 'warn' | 'danger' {
+function getStatusSeverity(
+    item: ModelStatus,
+): 'success' | 'info' | 'warn' | 'danger' {
     if (item.legacy_count === 0) return 'info';
     if (isComplete(item)) return 'success';
     if (item.failed_count > 0) return 'warn';
@@ -78,7 +84,9 @@ function getStatusLabel(item: ModelStatus): string {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <h1 class="heading-lg">Data Migration</h1>
                 <div class="flex flex-wrap items-center gap-2">
                     <Button
@@ -97,17 +105,27 @@ function getStatusLabel(item: ModelStatus): string {
                     <i
                         :class="[
                             'pi text-2xl',
-                            connectionTest.success ? 'pi-check-circle text-green-500' : 'pi-times-circle text-red-500'
+                            connectionTest.success
+                                ? 'pi-check-circle text-green-500'
+                                : 'pi-times-circle text-red-500',
                         ]"
                     />
                     <div>
-                        <h3 class="font-semibold">Legacy Database Connection</h3>
-                        <p class="text-sm text-muted-foreground">{{ connectionTest.message }}</p>
+                        <h3 class="font-semibold">
+                            Legacy Database Connection
+                        </h3>
+                        <p class="text-sm text-muted-foreground">
+                            {{ connectionTest.message }}
+                        </p>
                     </div>
                 </div>
-                <div v-if="connectionTest.success && connectionTest.tables" class="mt-3">
+                <div
+                    v-if="connectionTest.success && connectionTest.tables"
+                    class="mt-3"
+                >
                     <p class="text-sm text-muted-foreground">
-                        Found {{ connectionTest.tables.length }} tables in legacy database.
+                        Found {{ connectionTest.tables.length }} tables in
+                        legacy database.
                     </p>
                 </div>
             </div>
@@ -129,9 +147,14 @@ function getStatusLabel(item: ModelStatus): string {
                 <Column field="display_name" header="Model">
                     <template #body="{ data }">
                         <div class="flex items-center gap-2">
-                            <span class="font-medium">{{ data.display_name }}</span>
+                            <span class="font-medium">{{
+                                data.display_name
+                            }}</span>
                             <i
-                                v-if="!data.dependencies_met && data.dependencies.length > 0"
+                                v-if="
+                                    !data.dependencies_met &&
+                                    data.dependencies.length > 0
+                                "
                                 class="pi pi-lock text-orange-500"
                                 v-tooltip.top="'Has unmet dependencies'"
                             />
@@ -151,8 +174,16 @@ function getStatusLabel(item: ModelStatus): string {
                                 :showValue="false"
                                 style="height: 8px"
                             />
-                            <div class="flex justify-between text-xs text-muted-foreground">
-                                <span>{{ data.migrated_count.toLocaleString() }} / {{ data.legacy_count.toLocaleString() }}</span>
+                            <div
+                                class="flex justify-between text-xs text-muted-foreground"
+                            >
+                                <span
+                                    >{{ data.migrated_count.toLocaleString() }}
+                                    /
+                                    {{
+                                        data.legacy_count.toLocaleString()
+                                    }}</span
+                                >
                                 <span>{{ getProgress(data) }}%</span>
                             </div>
                         </div>
@@ -160,7 +191,13 @@ function getStatusLabel(item: ModelStatus): string {
                 </Column>
                 <Column header="Failed" class="hidden w-20 md:table-cell">
                     <template #body="{ data }">
-                        <span :class="data.failed_count > 0 ? 'text-red-500 font-semibold' : ''">
+                        <span
+                            :class="
+                                data.failed_count > 0
+                                    ? 'font-semibold text-red-500'
+                                    : ''
+                            "
+                        >
                             {{ data.failed_count.toLocaleString() }}
                         </span>
                     </template>
@@ -186,13 +223,30 @@ function getStatusLabel(item: ModelStatus): string {
             </DataTable>
 
             <!-- Help Text -->
-            <div class="rounded-lg border border-border bg-muted/50 p-4 text-sm">
+            <div
+                class="rounded-lg border border-border bg-muted/50 p-4 text-sm"
+            >
                 <h4 class="mb-2 font-semibold">Migration Instructions</h4>
-                <ul class="list-inside list-disc space-y-1 text-muted-foreground">
-                    <li>Ensure the legacy database connection is configured correctly.</li>
-                    <li>Migrate models in dependency order (models with no dependencies first).</li>
-                    <li>Click on any row to view details and run migration for that model.</li>
-                    <li>Models with a <i class="pi pi-lock text-orange-500" /> icon have unmet dependencies.</li>
+                <ul
+                    class="list-inside list-disc space-y-1 text-muted-foreground"
+                >
+                    <li>
+                        Ensure the legacy database connection is configured
+                        correctly.
+                    </li>
+                    <li>
+                        Migrate models in dependency order (models with no
+                        dependencies first).
+                    </li>
+                    <li>
+                        Click on any row to view details and run migration for
+                        that model.
+                    </li>
+                    <li>
+                        Models with a
+                        <i class="pi pi-lock text-orange-500" /> icon have unmet
+                        dependencies.
+                    </li>
                 </ul>
             </div>
         </div>

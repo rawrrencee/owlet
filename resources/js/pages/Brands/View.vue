@@ -41,7 +41,9 @@ function navigateToEdit() {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <div class="flex items-center gap-4">
                     <BackButton fallback-url="/brands" />
                     <h1 class="heading-lg">{{ brand.brand_name }}</h1>
@@ -63,13 +65,20 @@ function navigateToEdit() {
                     <template #content>
                         <div class="flex flex-col gap-6">
                             <!-- Brand Header -->
-                            <div class="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
+                            <div
+                                class="flex flex-col items-center gap-4 sm:flex-row sm:items-start"
+                            >
                                 <Image
                                     v-if="brand.logo_url"
                                     :src="brand.logo_url"
                                     :alt="brand.brand_name"
                                     image-class="!h-24 !w-24 rounded-lg object-cover cursor-pointer"
-                                    :pt="{ root: { class: 'rounded-lg overflow-hidden' }, previewMask: { class: 'rounded-lg' } }"
+                                    :pt="{
+                                        root: {
+                                            class: 'rounded-lg overflow-hidden',
+                                        },
+                                        previewMask: { class: 'rounded-lg' },
+                                    }"
                                     preview
                                 />
                                 <Avatar
@@ -77,10 +86,23 @@ function navigateToEdit() {
                                     :label="getInitials()"
                                     class="!h-24 !w-24 bg-primary/10 text-3xl text-primary"
                                 />
-                                <div class="flex flex-col gap-1 text-center sm:text-left">
-                                    <h2 class="text-xl font-semibold">{{ brand.brand_name }}</h2>
-                                    <Tag :value="brand.brand_code" severity="secondary" class="self-center sm:self-start" />
-                                    <p v-if="brand.country_name" class="text-muted-foreground">{{ brand.country_name }}</p>
+                                <div
+                                    class="flex flex-col gap-1 text-center sm:text-left"
+                                >
+                                    <h2 class="text-xl font-semibold">
+                                        {{ brand.brand_name }}
+                                    </h2>
+                                    <Tag
+                                        :value="brand.brand_code"
+                                        severity="secondary"
+                                        class="self-center sm:self-start"
+                                    />
+                                    <p
+                                        v-if="brand.country_name"
+                                        class="text-muted-foreground"
+                                    >
+                                        {{ brand.country_name }}
+                                    </p>
                                 </div>
                             </div>
 
@@ -88,14 +110,22 @@ function navigateToEdit() {
 
                             <!-- Contact Information -->
                             <div>
-                                <h3 class="mb-4 text-lg font-medium">Contact Information</h3>
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Contact Information
+                                </h3>
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div class="flex flex-col gap-1">
-                                        <span class="text-sm text-muted-foreground">Email</span>
+                                        <span
+                                            class="text-sm text-muted-foreground"
+                                            >Email</span
+                                        >
                                         <span>{{ brand.email ?? '-' }}</span>
                                     </div>
                                     <div class="flex flex-col gap-1">
-                                        <span class="text-sm text-muted-foreground">Website</span>
+                                        <span
+                                            class="text-sm text-muted-foreground"
+                                            >Website</span
+                                        >
                                         <a
                                             v-if="brand.website"
                                             :href="brand.website"
@@ -107,12 +137,22 @@ function navigateToEdit() {
                                         <span v-else>-</span>
                                     </div>
                                     <div class="flex flex-col gap-1">
-                                        <span class="text-sm text-muted-foreground">Phone Number</span>
-                                        <span>{{ brand.phone_number ?? '-' }}</span>
+                                        <span
+                                            class="text-sm text-muted-foreground"
+                                            >Phone Number</span
+                                        >
+                                        <span>{{
+                                            brand.phone_number ?? '-'
+                                        }}</span>
                                     </div>
                                     <div class="flex flex-col gap-1">
-                                        <span class="text-sm text-muted-foreground">Mobile Number</span>
-                                        <span>{{ brand.mobile_number ?? '-' }}</span>
+                                        <span
+                                            class="text-sm text-muted-foreground"
+                                            >Mobile Number</span
+                                        >
+                                        <span>{{
+                                            brand.mobile_number ?? '-'
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -121,12 +161,27 @@ function navigateToEdit() {
 
                             <!-- Address -->
                             <div>
-                                <h3 class="mb-4 text-lg font-medium">Address</h3>
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Address
+                                </h3>
                                 <div class="flex flex-col gap-1">
-                                    <span v-if="brand.address_1">{{ brand.address_1 }}</span>
-                                    <span v-if="brand.address_2">{{ brand.address_2 }}</span>
-                                    <span v-if="brand.country_name">{{ brand.country_name }}</span>
-                                    <span v-if="!brand.address_1 && !brand.address_2 && !brand.country_name" class="text-muted-foreground">
+                                    <span v-if="brand.address_1">{{
+                                        brand.address_1
+                                    }}</span>
+                                    <span v-if="brand.address_2">{{
+                                        brand.address_2
+                                    }}</span>
+                                    <span v-if="brand.country_name">{{
+                                        brand.country_name
+                                    }}</span>
+                                    <span
+                                        v-if="
+                                            !brand.address_1 &&
+                                            !brand.address_2 &&
+                                            !brand.country_name
+                                        "
+                                        class="text-muted-foreground"
+                                    >
                                         No address provided
                                     </span>
                                 </div>
@@ -136,8 +191,13 @@ function navigateToEdit() {
                             <template v-if="brand.description">
                                 <Divider />
                                 <div>
-                                    <h3 class="mb-4 text-lg font-medium">Description</h3>
-                                    <div class="prose prose-sm max-w-none dark:prose-invert" v-html="brand.description"></div>
+                                    <h3 class="mb-4 text-lg font-medium">
+                                        Description
+                                    </h3>
+                                    <div
+                                        class="prose prose-sm dark:prose-invert max-w-none"
+                                        v-html="brand.description"
+                                    ></div>
                                 </div>
                             </template>
 

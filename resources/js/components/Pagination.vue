@@ -70,7 +70,10 @@ defineProps<Props>();
                 size="icon"
                 as-child
             >
-                <Link :href="meta.links[meta.links.length - 1].url!" preserve-scroll>
+                <Link
+                    :href="meta.links[meta.links.length - 1].url!"
+                    preserve-scroll
+                >
                     <ChevronRight class="h-4 w-4" />
                 </Link>
             </Button>

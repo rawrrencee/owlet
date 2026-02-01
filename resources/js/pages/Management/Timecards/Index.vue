@@ -50,12 +50,18 @@ function handleMonthChange(month: Date) {
     const monthNum = String(month.getMonth() + 1).padStart(2, '0');
     const day = String(month.getDate()).padStart(2, '0');
     const monthString = `${year}-${monthNum}-${day}`;
-    router.get('/management/timecards', { month: monthString }, { preserveState: false });
+    router.get(
+        '/management/timecards',
+        { month: monthString },
+        { preserveState: false },
+    );
 }
 
 function handleEmployeeSearch() {
     if (selectedEmployee.value) {
-        router.visit(`/management/timecards/employee/${selectedEmployee.value}`);
+        router.visit(
+            `/management/timecards/employee/${selectedEmployee.value}`,
+        );
     }
 }
 
@@ -69,7 +75,9 @@ function navigateToCreate() {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <h1 class="heading-lg">Manage Timecards</h1>
                 <Button
                     label="Create Timecard"
@@ -106,9 +114,12 @@ function navigateToCreate() {
                             <template #content>
                                 <div class="flex flex-col gap-4">
                                     <p class="text-muted-foreground">
-                                        Search for an employee to view their timecards.
+                                        Search for an employee to view their
+                                        timecards.
                                     </p>
-                                    <div class="flex flex-col gap-3 sm:flex-row">
+                                    <div
+                                        class="flex flex-col gap-3 sm:flex-row"
+                                    >
                                         <Select
                                             v-model="selectedEmployee"
                                             :options="employeeOptions"

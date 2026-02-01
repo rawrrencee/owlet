@@ -14,7 +14,10 @@ import ToggleSwitch from 'primevue/toggleswitch';
 import { useConfirm } from 'primevue/useconfirm';
 import { computed, ref } from 'vue';
 import BackButton from '@/components/BackButton.vue';
-import { clearSkipPageInHistory, skipCurrentPageInHistory } from '@/composables/useSmartBack';
+import {
+    clearSkipPageInHistory,
+    skipCurrentPageInHistory,
+} from '@/composables/useSmartBack';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type Category, type Subcategory } from '@/types';
 
@@ -25,7 +28,9 @@ interface Props {
 const props = defineProps<Props>();
 
 const isEditing = computed(() => !!props.category);
-const pageTitle = computed(() => (isEditing.value ? 'Edit Category' : 'Create Category'));
+const pageTitle = computed(() =>
+    isEditing.value ? 'Edit Category' : 'Create Category',
+);
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -101,19 +106,25 @@ function openEditSubcategoryDialog(subcategory: Subcategory) {
 
 function submitSubcategory() {
     if (editingSubcategory.value) {
-        subcategoryForm.put(`/categories/${props.category!.id}/subcategories/${editingSubcategory.value.id}`, {
-            onSuccess: () => {
-                showSubcategoryDialog.value = false;
+        subcategoryForm.put(
+            `/categories/${props.category!.id}/subcategories/${editingSubcategory.value.id}`,
+            {
+                onSuccess: () => {
+                    showSubcategoryDialog.value = false;
+                },
+                preserveScroll: true,
             },
-            preserveScroll: true,
-        });
+        );
     } else {
-        subcategoryForm.post(`/categories/${props.category!.id}/subcategories`, {
-            onSuccess: () => {
-                showSubcategoryDialog.value = false;
+        subcategoryForm.post(
+            `/categories/${props.category!.id}/subcategories`,
+            {
+                onSuccess: () => {
+                    showSubcategoryDialog.value = false;
+                },
+                preserveScroll: true,
             },
-            preserveScroll: true,
-        });
+        );
     }
 }
 
@@ -133,9 +144,12 @@ function confirmDeleteSubcategory(subcategory: Subcategory) {
             size: 'small',
         },
         accept: () => {
-            router.delete(`/categories/${props.category!.id}/subcategories/${subcategory.id}`, {
-                preserveScroll: true,
-            });
+            router.delete(
+                `/categories/${props.category!.id}/subcategories/${subcategory.id}`,
+                {
+                    preserveScroll: true,
+                },
+            );
         },
     });
 }
@@ -156,9 +170,13 @@ function confirmRestoreSubcategory(subcategory: Subcategory) {
             size: 'small',
         },
         accept: () => {
-            router.post(`/categories/${props.category!.id}/subcategories/${subcategory.id}/restore`, {}, {
-                preserveScroll: true,
-            });
+            router.post(
+                `/categories/${props.category!.id}/subcategories/${subcategory.id}/restore`,
+                {},
+                {
+                    preserveScroll: true,
+                },
+            );
         },
     });
 }
@@ -177,40 +195,66 @@ function confirmRestoreSubcategory(subcategory: Subcategory) {
             <div class="mx-auto w-full max-w-4xl">
                 <Card>
                     <template #content>
-                        <form @submit.prevent="submit" class="flex flex-col gap-6">
+                        <form
+                            @submit.prevent="submit"
+                            class="flex flex-col gap-6"
+                        >
                             <!-- Basic Information -->
                             <div>
-                                <h3 class="mb-4 text-lg font-medium">Basic Information</h3>
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Basic Information
+                                </h3>
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div class="flex flex-col gap-2">
-                                        <label for="category_name" class="font-medium">Category Name *</label>
+                                        <label
+                                            for="category_name"
+                                            class="font-medium"
+                                            >Category Name *</label
+                                        >
                                         <InputText
                                             id="category_name"
                                             v-model="form.category_name"
-                                            :invalid="!!form.errors.category_name"
+                                            :invalid="
+                                                !!form.errors.category_name
+                                            "
                                             placeholder="Electronics"
                                             size="small"
                                             fluid
                                         />
-                                        <small v-if="form.errors.category_name" class="text-red-500">
+                                        <small
+                                            v-if="form.errors.category_name"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.category_name }}
                                         </small>
                                     </div>
 
                                     <div class="flex flex-col gap-2">
-                                        <label for="category_code" class="font-medium">Category Code *</label>
+                                        <label
+                                            for="category_code"
+                                            class="font-medium"
+                                            >Category Code *</label
+                                        >
                                         <InputText
                                             id="category_code"
                                             v-model="form.category_code"
-                                            :invalid="!!form.errors.category_code"
+                                            :invalid="
+                                                !!form.errors.category_code
+                                            "
                                             placeholder="ELEC"
                                             maxlength="4"
                                             size="small"
                                             fluid
                                             class="uppercase"
                                         />
-                                        <small class="text-muted-foreground">Max 4 characters, must be unique</small>
-                                        <small v-if="form.errors.category_code" class="text-red-500">
+                                        <small class="text-muted-foreground"
+                                            >Max 4 characters, must be
+                                            unique</small
+                                        >
+                                        <small
+                                            v-if="form.errors.category_code"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.category_code }}
                                         </small>
                                     </div>
@@ -221,7 +265,9 @@ function confirmRestoreSubcategory(subcategory: Subcategory) {
 
                             <!-- Description -->
                             <div>
-                                <h3 class="mb-4 text-lg font-medium">Description</h3>
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Description
+                                </h3>
                                 <div class="flex flex-col gap-2">
                                     <Textarea
                                         id="description"
@@ -231,7 +277,10 @@ function confirmRestoreSubcategory(subcategory: Subcategory) {
                                         rows="3"
                                         fluid
                                     />
-                                    <small v-if="form.errors.description" class="text-red-500">
+                                    <small
+                                        v-if="form.errors.description"
+                                        class="text-red-500"
+                                    >
                                         {{ form.errors.description }}
                                     </small>
                                 </div>
@@ -244,13 +293,25 @@ function confirmRestoreSubcategory(subcategory: Subcategory) {
                                 <h3 class="mb-4 text-lg font-medium">Status</h3>
                                 <div class="flex items-center gap-3">
                                     <ToggleSwitch v-model="form.is_active" />
-                                    <span :class="form.is_active ? 'text-green-600' : 'text-red-600'">
-                                        {{ form.is_active ? 'Active' : 'Inactive' }}
+                                    <span
+                                        :class="
+                                            form.is_active
+                                                ? 'text-green-600'
+                                                : 'text-red-600'
+                                        "
+                                    >
+                                        {{
+                                            form.is_active
+                                                ? 'Active'
+                                                : 'Inactive'
+                                        }}
                                     </span>
                                 </div>
                             </div>
 
-                            <div class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                            <div
+                                class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"
+                            >
                                 <Button
                                     type="button"
                                     label="Cancel"
@@ -261,7 +322,11 @@ function confirmRestoreSubcategory(subcategory: Subcategory) {
                                 />
                                 <Button
                                     type="submit"
-                                    :label="isEditing ? 'Save Changes' : 'Create Category'"
+                                    :label="
+                                        isEditing
+                                            ? 'Save Changes'
+                                            : 'Create Category'
+                                    "
                                     size="small"
                                     :loading="form.processing"
                                 />
@@ -275,7 +340,9 @@ function confirmRestoreSubcategory(subcategory: Subcategory) {
                     <template #content>
                         <div class="flex flex-col gap-4">
                             <div class="flex items-center justify-between">
-                                <h3 class="text-lg font-medium">Subcategories</h3>
+                                <h3 class="text-lg font-medium">
+                                    Subcategories
+                                </h3>
                                 <Button
                                     label="Add Subcategory"
                                     icon="pi pi-plus"
@@ -293,61 +360,125 @@ function confirmRestoreSubcategory(subcategory: Subcategory) {
                                 class="overflow-hidden rounded-lg border border-border"
                             >
                                 <template #empty>
-                                    <div class="p-4 text-center text-muted-foreground">
+                                    <div
+                                        class="p-4 text-center text-muted-foreground"
+                                    >
                                         No subcategories found.
                                     </div>
                                 </template>
                                 <Column expander class="w-10 !pr-0 md:hidden" />
-                                <Column field="subcategory_name" header="Name" class="!pl-3 md:w-48">
+                                <Column
+                                    field="subcategory_name"
+                                    header="Name"
+                                    class="!pl-3 md:w-48"
+                                >
                                     <template #body="{ data }">
                                         <div class="flex items-center gap-2">
-                                            <span :class="{ 'text-muted-foreground line-through': isSubcategoryDeleted(data) }">
+                                            <span
+                                                :class="{
+                                                    'text-muted-foreground line-through':
+                                                        isSubcategoryDeleted(
+                                                            data,
+                                                        ),
+                                                }"
+                                            >
                                                 {{ data.subcategory_name }}
                                             </span>
-                                            <Tag v-if="data.is_default" value="Default" severity="info" class="!text-xs" />
-                                            <Tag v-if="isSubcategoryDeleted(data)" value="Deleted" severity="danger" class="!text-xs" />
+                                            <Tag
+                                                v-if="data.is_default"
+                                                value="Default"
+                                                severity="info"
+                                                class="!text-xs"
+                                            />
+                                            <Tag
+                                                v-if="
+                                                    isSubcategoryDeleted(data)
+                                                "
+                                                value="Deleted"
+                                                severity="danger"
+                                                class="!text-xs"
+                                            />
                                         </div>
                                     </template>
                                 </Column>
-                                <Column field="subcategory_code" header="Code" class="w-20 !pl-0">
-                                    <template #body="{ data }">
-                                        <Tag :value="data.subcategory_code" severity="secondary" />
-                                    </template>
-                                </Column>
-                                <Column field="description" header="Description" class="hidden md:table-cell">
-                                    <template #body="{ data }">
-                                        <span class="text-muted-foreground">{{ data.description ?? '-' }}</span>
-                                    </template>
-                                </Column>
-                                <Column field="is_active" header="Status" class="hidden w-24 md:table-cell">
+                                <Column
+                                    field="subcategory_code"
+                                    header="Code"
+                                    class="w-20 !pl-0"
+                                >
                                     <template #body="{ data }">
                                         <Tag
-                                            :value="data.is_active ? 'Active' : 'Inactive'"
-                                            :severity="data.is_active ? 'success' : 'danger'"
+                                            :value="data.subcategory_code"
+                                            severity="secondary"
+                                        />
+                                    </template>
+                                </Column>
+                                <Column
+                                    field="description"
+                                    header="Description"
+                                    class="hidden md:table-cell"
+                                >
+                                    <template #body="{ data }">
+                                        <span class="text-muted-foreground">{{
+                                            data.description ?? '-'
+                                        }}</span>
+                                    </template>
+                                </Column>
+                                <Column
+                                    field="is_active"
+                                    header="Status"
+                                    class="hidden w-24 md:table-cell"
+                                >
+                                    <template #body="{ data }">
+                                        <Tag
+                                            :value="
+                                                data.is_active
+                                                    ? 'Active'
+                                                    : 'Inactive'
+                                            "
+                                            :severity="
+                                                data.is_active
+                                                    ? 'success'
+                                                    : 'danger'
+                                            "
                                         />
                                     </template>
                                 </Column>
                                 <Column header="" class="w-24 !pr-4">
                                     <template #body="{ data }">
-                                        <div v-if="isSubcategoryDeleted(data)" class="flex justify-end gap-1">
+                                        <div
+                                            v-if="isSubcategoryDeleted(data)"
+                                            class="flex justify-end gap-1"
+                                        >
                                             <Button
                                                 icon="pi pi-history"
                                                 severity="success"
                                                 text
                                                 rounded
                                                 size="small"
-                                                @click="confirmRestoreSubcategory(data)"
+                                                @click="
+                                                    confirmRestoreSubcategory(
+                                                        data,
+                                                    )
+                                                "
                                                 v-tooltip.top="'Restore'"
                                             />
                                         </div>
-                                        <div v-else class="flex justify-end gap-1">
+                                        <div
+                                            v-else
+                                            class="flex justify-end gap-1"
+                                        >
                                             <Button
                                                 icon="pi pi-pencil"
                                                 severity="secondary"
                                                 text
                                                 rounded
                                                 size="small"
-                                                @click="openEditSubcategoryDialog(data)"
+                                                @click="
+                                                    openEditSubcategoryDialog(
+                                                        data,
+                                                    )
+                                                "
                                             />
                                             <Button
                                                 v-if="!data.is_default"
@@ -356,25 +487,53 @@ function confirmRestoreSubcategory(subcategory: Subcategory) {
                                                 text
                                                 rounded
                                                 size="small"
-                                                @click="confirmDeleteSubcategory(data)"
+                                                @click="
+                                                    confirmDeleteSubcategory(
+                                                        data,
+                                                    )
+                                                "
                                             />
                                         </div>
                                     </template>
                                 </Column>
                                 <template #expansion="{ data }">
-                                    <div class="grid gap-2 p-3 text-sm md:hidden">
-                                        <div class="flex justify-between border-b border-border pb-2">
-                                            <span class="text-muted-foreground">Status</span>
+                                    <div
+                                        class="grid gap-2 p-3 text-sm md:hidden"
+                                    >
+                                        <div
+                                            class="flex justify-between border-b border-border pb-2"
+                                        >
+                                            <span class="text-muted-foreground"
+                                                >Status</span
+                                            >
                                             <Tag
-                                                :value="data.is_active ? 'Active' : 'Inactive'"
-                                                :severity="data.is_active ? 'success' : 'danger'"
+                                                :value="
+                                                    data.is_active
+                                                        ? 'Active'
+                                                        : 'Inactive'
+                                                "
+                                                :severity="
+                                                    data.is_active
+                                                        ? 'success'
+                                                        : 'danger'
+                                                "
                                             />
                                         </div>
-                                        <div v-if="data.description" class="flex flex-col gap-1">
-                                            <span class="text-muted-foreground">Description</span>
+                                        <div
+                                            v-if="data.description"
+                                            class="flex flex-col gap-1"
+                                        >
+                                            <span class="text-muted-foreground"
+                                                >Description</span
+                                            >
                                             <span>{{ data.description }}</span>
                                         </div>
-                                        <div v-else class="text-muted-foreground">No description</div>
+                                        <div
+                                            v-else
+                                            class="text-muted-foreground"
+                                        >
+                                            No description
+                                        </div>
                                     </div>
                                 </template>
                             </DataTable>
@@ -387,14 +546,21 @@ function confirmRestoreSubcategory(subcategory: Subcategory) {
         <!-- Subcategory Dialog -->
         <Dialog
             v-model:visible="showSubcategoryDialog"
-            :header="editingSubcategory ? 'Edit Subcategory' : 'Add Subcategory'"
+            :header="
+                editingSubcategory ? 'Edit Subcategory' : 'Add Subcategory'
+            "
             :modal="true"
             :closable="true"
             class="w-full max-w-lg"
         >
-            <form @submit.prevent="submitSubcategory" class="flex flex-col gap-4">
+            <form
+                @submit.prevent="submitSubcategory"
+                class="flex flex-col gap-4"
+            >
                 <div class="flex flex-col gap-2">
-                    <label for="subcategory_name" class="font-medium">Subcategory Name *</label>
+                    <label for="subcategory_name" class="font-medium"
+                        >Subcategory Name *</label
+                    >
                     <InputText
                         id="subcategory_name"
                         v-model="subcategoryForm.subcategory_name"
@@ -403,13 +569,18 @@ function confirmRestoreSubcategory(subcategory: Subcategory) {
                         size="small"
                         fluid
                     />
-                    <small v-if="subcategoryForm.errors.subcategory_name" class="text-red-500">
+                    <small
+                        v-if="subcategoryForm.errors.subcategory_name"
+                        class="text-red-500"
+                    >
                         {{ subcategoryForm.errors.subcategory_name }}
                     </small>
                 </div>
 
                 <div class="flex flex-col gap-2">
-                    <label for="subcategory_code" class="font-medium">Subcategory Code *</label>
+                    <label for="subcategory_code" class="font-medium"
+                        >Subcategory Code *</label
+                    >
                     <InputText
                         id="subcategory_code"
                         v-model="subcategoryForm.subcategory_code"
@@ -420,14 +591,21 @@ function confirmRestoreSubcategory(subcategory: Subcategory) {
                         fluid
                         class="uppercase"
                     />
-                    <small class="text-muted-foreground">Max 4 characters, must be unique within category</small>
-                    <small v-if="subcategoryForm.errors.subcategory_code" class="text-red-500">
+                    <small class="text-muted-foreground"
+                        >Max 4 characters, must be unique within category</small
+                    >
+                    <small
+                        v-if="subcategoryForm.errors.subcategory_code"
+                        class="text-red-500"
+                    >
                         {{ subcategoryForm.errors.subcategory_code }}
                     </small>
                 </div>
 
                 <div class="flex flex-col gap-2">
-                    <label for="subcategory_description" class="font-medium">Description</label>
+                    <label for="subcategory_description" class="font-medium"
+                        >Description</label
+                    >
                     <Textarea
                         id="subcategory_description"
                         v-model="subcategoryForm.description"
@@ -436,14 +614,23 @@ function confirmRestoreSubcategory(subcategory: Subcategory) {
                         rows="2"
                         fluid
                     />
-                    <small v-if="subcategoryForm.errors.description" class="text-red-500">
+                    <small
+                        v-if="subcategoryForm.errors.description"
+                        class="text-red-500"
+                    >
                         {{ subcategoryForm.errors.description }}
                     </small>
                 </div>
 
                 <div class="flex items-center gap-3">
                     <ToggleSwitch v-model="subcategoryForm.is_active" />
-                    <span :class="subcategoryForm.is_active ? 'text-green-600' : 'text-red-600'">
+                    <span
+                        :class="
+                            subcategoryForm.is_active
+                                ? 'text-green-600'
+                                : 'text-red-600'
+                        "
+                    >
                         {{ subcategoryForm.is_active ? 'Active' : 'Inactive' }}
                     </span>
                 </div>
@@ -459,7 +646,11 @@ function confirmRestoreSubcategory(subcategory: Subcategory) {
                     />
                     <Button
                         type="submit"
-                        :label="editingSubcategory ? 'Save Changes' : 'Add Subcategory'"
+                        :label="
+                            editingSubcategory
+                                ? 'Save Changes'
+                                : 'Add Subcategory'
+                        "
                         size="small"
                         :loading="subcategoryForm.processing"
                     />

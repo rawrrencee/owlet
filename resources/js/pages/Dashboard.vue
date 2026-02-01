@@ -3,7 +3,11 @@ import { Head } from '@inertiajs/vue3';
 import ClockWidget from '@/components/timecards/ClockWidget.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
-import { type BreadcrumbItem, type Timecard, type TimecardStore } from '@/types';
+import {
+    type BreadcrumbItem,
+    type Timecard,
+    type TimecardStore,
+} from '@/types';
 import PlaceholderPattern from '../components/PlaceholderPattern.vue';
 
 interface Props {
@@ -33,7 +37,7 @@ const breadcrumbs: BreadcrumbItem[] = [
         <div
             class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
         >
-            <div class="grid auto-rows-min gap-4 md:grid-cols-3 max-w-4xl">
+            <div class="grid max-w-4xl auto-rows-min gap-4 md:grid-cols-3">
                 <!-- Clock Widget (only show if user has stores assigned) -->
                 <div v-if="stores && stores.length > 0" class="md:col-span-2">
                     <ClockWidget
@@ -55,7 +59,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                 </div>
             </div>
             <div
-                class="relative min-h-[100vh] flex-1 rounded-lg border border-border md:min-h-min "
+                class="relative min-h-[100vh] flex-1 rounded-lg border border-border md:min-h-min"
             >
                 <PlaceholderPattern />
             </div>

@@ -12,7 +12,11 @@ import Tag from 'primevue/tag';
 import { useConfirm } from 'primevue/useconfirm';
 import { computed, reactive, ref, watch } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type Currency, type PaginatedData } from '@/types';
+import {
+    type BreadcrumbItem,
+    type Currency,
+    type PaginatedData,
+} from '@/types';
 
 interface Filters {
     search?: string;
@@ -118,13 +122,17 @@ function confirmDelete(currency: Currency) {
 
 function refreshExchangeRates() {
     refreshing.value = true;
-    router.post('/currencies/refresh-rates', {}, {
-        preserveState: true,
-        preserveScroll: true,
-        onFinish: () => {
-            refreshing.value = false;
+    router.post(
+        '/currencies/refresh-rates',
+        {},
+        {
+            preserveState: true,
+            preserveScroll: true,
+            onFinish: () => {
+                refreshing.value = false;
+            },
         },
-    });
+    );
 }
 
 function onRowClick(event: { data: Currency }) {
@@ -133,7 +141,9 @@ function onRowClick(event: { data: Currency }) {
 
 function onPage(event: { page: number; rows: number }) {
     perPage.value = event.rows;
-    const params: Record<string, string | number | boolean> = { page: event.page + 1 };
+    const params: Record<string, string | number | boolean> = {
+        page: event.page + 1,
+    };
     if (filters.search) params.search = filters.search;
     if (filters.status) params.status = filters.status;
     if (event.rows !== 15) params.per_page = event.rows;
@@ -141,12 +151,16 @@ function onPage(event: { page: number; rows: number }) {
 }
 
 function formatExchangeRate(currency: Currency): string {
-    if (currency.exchange_rate === null || currency.exchange_rate === undefined) {
+    if (
+        currency.exchange_rate === null ||
+        currency.exchange_rate === undefined
+    ) {
         return '-';
     }
-    const rate = typeof currency.exchange_rate === 'string'
-        ? parseFloat(currency.exchange_rate)
-        : currency.exchange_rate;
+    const rate =
+        typeof currency.exchange_rate === 'string'
+            ? parseFloat(currency.exchange_rate)
+            : currency.exchange_rate;
     return rate.toFixed(6);
 }
 
@@ -161,7 +175,9 @@ function formatLastUpdated(currency: Currency): string {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <h1 class="heading-lg">Currencies</h1>
                 <div class="flex flex-wrap items-center gap-2">
                     <Button
@@ -182,7 +198,9 @@ function formatLastUpdated(currency: Currency): string {
             </div>
 
             <!-- Filter Section -->
-            <div class="filter-section flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div
+                class="filter-section flex flex-col gap-3 sm:flex-row sm:items-center"
+            >
                 <IconField class="flex-1">
                     <InputIcon class="pi pi-search" />
                     <InputText
@@ -224,7 +242,7 @@ function formatLastUpdated(currency: Currency): string {
                 :rows="perPage"
                 :rows-per-page-options="[10, 15, 25, 50]"
                 :total-records="currencies.total"
-                :first="((currencies.current_page - 1) * perPage)"
+                :first="(currencies.current_page - 1) * perPage"
                 @page="onPage"
                 @row-click="onRowClick"
                 striped-rows
@@ -252,12 +270,20 @@ function formatLastUpdated(currency: Currency): string {
                         <span class="font-mono">{{ data.symbol }}</span>
                     </template>
                 </Column>
-                <Column field="decimal_places" header="Decimals" class="hidden w-24 md:table-cell">
+                <Column
+                    field="decimal_places"
+                    header="Decimals"
+                    class="hidden w-24 md:table-cell"
+                >
                     <template #body="{ data }">
                         {{ data.decimal_places }}
                     </template>
                 </Column>
-                <Column field="exchange_rate" header="Exchange Rate" class="hidden w-32 lg:table-cell">
+                <Column
+                    field="exchange_rate"
+                    header="Exchange Rate"
+                    class="hidden w-32 lg:table-cell"
+                >
                     <template #body="{ data }">
                         {{ formatExchangeRate(data) }}
                     </template>
@@ -294,16 +320,28 @@ function formatLastUpdated(currency: Currency): string {
                 </Column>
                 <template #expansion="{ data }">
                     <div class="grid gap-3 p-3 text-sm md:hidden">
-                        <div class="flex justify-between border-b border-border pb-2">
-                            <span class="text-muted-foreground">Decimal Places</span>
+                        <div
+                            class="flex justify-between border-b border-border pb-2"
+                        >
+                            <span class="text-muted-foreground"
+                                >Decimal Places</span
+                            >
                             <span>{{ data.decimal_places }}</span>
                         </div>
-                        <div class="flex justify-between border-b border-border pb-2">
-                            <span class="text-muted-foreground">Exchange Rate</span>
+                        <div
+                            class="flex justify-between border-b border-border pb-2"
+                        >
+                            <span class="text-muted-foreground"
+                                >Exchange Rate</span
+                            >
                             <span>{{ formatExchangeRate(data) }}</span>
                         </div>
-                        <div class="flex justify-between border-b border-border pb-2">
-                            <span class="text-muted-foreground">Rate Updated</span>
+                        <div
+                            class="flex justify-between border-b border-border pb-2"
+                        >
+                            <span class="text-muted-foreground"
+                                >Rate Updated</span
+                            >
                             <span>{{ formatLastUpdated(data) }}</span>
                         </div>
                         <div class="flex gap-2 pt-2">

@@ -15,7 +15,9 @@ interface Props {
 const props = defineProps<Props>();
 
 const isEditing = computed(() => !!props.designation);
-const pageTitle = computed(() => (isEditing.value ? 'Edit Designation' : 'Create Designation'));
+const pageTitle = computed(() =>
+    isEditing.value ? 'Edit Designation' : 'Create Designation',
+);
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -53,43 +55,67 @@ function cancel() {
             <div class="mx-auto w-full max-w-2xl">
                 <Card>
                     <template #content>
-                        <form @submit.prevent="submit" class="flex flex-col gap-6">
+                        <form
+                            @submit.prevent="submit"
+                            class="flex flex-col gap-6"
+                        >
                             <div class="flex flex-col gap-4">
                                 <div class="flex flex-col gap-2">
-                                    <label for="designation_name" class="font-medium">Designation Name *</label>
+                                    <label
+                                        for="designation_name"
+                                        class="font-medium"
+                                        >Designation Name *</label
+                                    >
                                     <InputText
                                         id="designation_name"
                                         v-model="form.designation_name"
-                                        :invalid="!!form.errors.designation_name"
+                                        :invalid="
+                                            !!form.errors.designation_name
+                                        "
                                         placeholder="Senior Manager"
                                         size="small"
                                         fluid
                                     />
-                                    <small v-if="form.errors.designation_name" class="text-red-500">
+                                    <small
+                                        v-if="form.errors.designation_name"
+                                        class="text-red-500"
+                                    >
                                         {{ form.errors.designation_name }}
                                     </small>
                                 </div>
 
                                 <div class="flex flex-col gap-2">
-                                    <label for="designation_code" class="font-medium">Designation Code *</label>
+                                    <label
+                                        for="designation_code"
+                                        class="font-medium"
+                                        >Designation Code *</label
+                                    >
                                     <InputText
                                         id="designation_code"
                                         v-model="form.designation_code"
-                                        :invalid="!!form.errors.designation_code"
+                                        :invalid="
+                                            !!form.errors.designation_code
+                                        "
                                         placeholder="SM"
                                         size="small"
                                         fluid
                                     />
                                     <small class="text-muted-foreground">
-                                        A unique code to identify this designation.
+                                        A unique code to identify this
+                                        designation.
                                     </small>
-                                    <small v-if="form.errors.designation_code" class="text-red-500">
+                                    <small
+                                        v-if="form.errors.designation_code"
+                                        class="text-red-500"
+                                    >
                                         {{ form.errors.designation_code }}
                                     </small>
                                 </div>
                             </div>
 
-                            <div class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                            <div
+                                class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"
+                            >
                                 <Button
                                     type="button"
                                     label="Cancel"
@@ -100,7 +126,11 @@ function cancel() {
                                 />
                                 <Button
                                     type="submit"
-                                    :label="isEditing ? 'Save Changes' : 'Create Designation'"
+                                    :label="
+                                        isEditing
+                                            ? 'Save Changes'
+                                            : 'Create Designation'
+                                    "
                                     size="small"
                                     :loading="form.processing"
                                 />

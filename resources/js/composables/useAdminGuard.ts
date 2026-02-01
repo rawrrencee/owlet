@@ -30,7 +30,9 @@ export function useAdminGuard() {
         // Parse the URL to get the pathname
         try {
             const pathname = new URL(url, window.location.origin).pathname;
-            return ADMIN_ROUTE_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+            return ADMIN_ROUTE_PREFIXES.some((prefix) =>
+                pathname.startsWith(prefix),
+            );
         } catch {
             return false;
         }
@@ -42,7 +44,10 @@ export function useAdminGuard() {
 
         // If user is not admin and trying to access admin route, block it
         if (user?.role !== 'admin' && isAdminRoute(targetUrl)) {
-            showError("You're not allowed to access this page", 'Access Denied');
+            showError(
+                "You're not allowed to access this page",
+                'Access Denied',
+            );
             return false;
         }
 

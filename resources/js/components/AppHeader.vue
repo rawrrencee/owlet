@@ -53,7 +53,6 @@ const mainNavItems: NavItem[] = [
         icon: LayoutGrid,
     },
 ];
-
 </script>
 
 <template>
@@ -163,7 +162,6 @@ const mainNavItems: NavItem[] = [
                                 class="size-5 opacity-80 group-hover:opacity-100"
                             />
                         </Button>
-
                     </div>
 
                     <DropdownMenu>
@@ -184,7 +182,9 @@ const mainNavItems: NavItem[] = [
                                     <AvatarFallback
                                         class="rounded-lg bg-neutral-200 font-semibold text-black dark:bg-neutral-700 dark:text-white"
                                     >
-                                        {{ getInitials(auth.user?.display_name) }}
+                                        {{
+                                            getInitials(auth.user?.display_name)
+                                        }}
                                     </AvatarFallback>
                                 </Avatar>
                             </Button>

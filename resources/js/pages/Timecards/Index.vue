@@ -5,7 +5,12 @@ import { computed, ref } from 'vue';
 import ClockWidget from '@/components/timecards/ClockWidget.vue';
 import TimecardCalendar from '@/components/timecards/TimecardCalendar.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { BreadcrumbItem, CalendarDayData, Timecard, TimecardStore } from '@/types';
+import type {
+    BreadcrumbItem,
+    CalendarDayData,
+    Timecard,
+    TimecardStore,
+} from '@/types';
 
 interface MonthlyStats {
     total_hours: number;
@@ -76,27 +81,54 @@ const monthDisplayName = computed(() => {
                     <Card>
                         <template #content>
                             <div class="flex flex-col gap-3">
-                                <h3 class="text-sm font-medium text-muted-foreground">
+                                <h3
+                                    class="text-sm font-medium text-muted-foreground"
+                                >
                                     {{ monthDisplayName }} Summary
                                 </h3>
                                 <div class="grid grid-cols-3 gap-3">
-                                    <div class="flex flex-col items-center rounded-lg bg-green-50 p-3 dark:bg-green-900/20">
-                                        <span class="text-xl font-bold text-green-600 dark:text-green-400">
-                                            {{ formatHours(monthlyStats.total_hours) }}
+                                    <div
+                                        class="flex flex-col items-center rounded-lg bg-green-50 p-3 dark:bg-green-900/20"
+                                    >
+                                        <span
+                                            class="text-xl font-bold text-green-600 dark:text-green-400"
+                                        >
+                                            {{
+                                                formatHours(
+                                                    monthlyStats.total_hours,
+                                                )
+                                            }}
                                         </span>
-                                        <span class="text-xs text-muted-foreground">Total</span>
+                                        <span
+                                            class="text-xs text-muted-foreground"
+                                            >Total</span
+                                        >
                                     </div>
-                                    <div class="flex flex-col items-center rounded-lg bg-muted/50 p-3">
+                                    <div
+                                        class="flex flex-col items-center rounded-lg bg-muted/50 p-3"
+                                    >
                                         <span class="text-xl font-bold">
                                             {{ monthlyStats.days_worked }}
                                         </span>
-                                        <span class="text-xs text-muted-foreground">Days</span>
+                                        <span
+                                            class="text-xs text-muted-foreground"
+                                            >Days</span
+                                        >
                                     </div>
-                                    <div class="flex flex-col items-center rounded-lg bg-muted/50 p-3">
+                                    <div
+                                        class="flex flex-col items-center rounded-lg bg-muted/50 p-3"
+                                    >
                                         <span class="text-xl font-bold">
-                                            {{ formatHours(monthlyStats.daily_average) }}
+                                            {{
+                                                formatHours(
+                                                    monthlyStats.daily_average,
+                                                )
+                                            }}
                                         </span>
-                                        <span class="text-xs text-muted-foreground">Avg/Day</span>
+                                        <span
+                                            class="text-xs text-muted-foreground"
+                                            >Avg/Day</span
+                                        >
                                     </div>
                                 </div>
                             </div>

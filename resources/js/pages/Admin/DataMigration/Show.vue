@@ -79,7 +79,12 @@ const isComplete = computed(() => {
     return processed >= props.legacyCount;
 });
 
-const hasStarted = computed(() => props.migratedCount > 0 || props.failedCount > 0 || props.skippedCount > 0);
+const hasStarted = computed(
+    () =>
+        props.migratedCount > 0 ||
+        props.failedCount > 0 ||
+        props.skippedCount > 0,
+);
 
 const migrationButtonLabel = computed(() => {
     if (isComplete.value) return 'Complete';
@@ -98,7 +103,8 @@ function runMigration() {
             onSuccess: (page) => {
                 // Check if there are still pending records and auto-continue
                 const data = page.props as unknown as Props;
-                const processed = data.migratedCount + data.failedCount + data.skippedCount;
+                const processed =
+                    data.migratedCount + data.failedCount + data.skippedCount;
                 const stillPending = processed < data.legacyCount;
 
                 if (stillPending && autoMigrating.value) {
@@ -165,7 +171,9 @@ function formatDate(dateString: string | null): string {
     return new Date(dateString).toLocaleString();
 }
 
-function getRunStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'danger' {
+function getRunStatusSeverity(
+    status: string,
+): 'success' | 'info' | 'warn' | 'danger' {
     switch (status) {
         case 'completed':
             return 'success';
@@ -187,7 +195,9 @@ function getRunStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'da
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <!-- Header -->
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <div class="flex items-center gap-3">
                     <Button
                         icon="pi pi-arrow-left"
@@ -242,31 +252,76 @@ function getRunStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'da
                 <template #content>
                     <div class="flex flex-col gap-4">
                         <div class="flex items-center justify-between">
-                            <span class="text-lg font-semibold">Migration Progress</span>
+                            <span class="text-lg font-semibold"
+                                >Migration Progress</span
+                            >
                             <Tag
-                                :value="migrating ? 'Migrating...' : (isComplete ? 'Complete' : (hasStarted ? 'In Progress' : 'Pending'))"
-                                :severity="migrating ? 'warn' : (isComplete ? 'success' : (hasStarted ? 'info' : 'secondary'))"
+                                :value="
+                                    migrating
+                                        ? 'Migrating...'
+                                        : isComplete
+                                          ? 'Complete'
+                                          : hasStarted
+                                            ? 'In Progress'
+                                            : 'Pending'
+                                "
+                                :severity="
+                                    migrating
+                                        ? 'warn'
+                                        : isComplete
+                                          ? 'success'
+                                          : hasStarted
+                                            ? 'info'
+                                            : 'secondary'
+                                "
                             />
                         </div>
                         <ProgressBar :value="progress" style="height: 16px" />
                         <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                            <div class="rounded-lg border border-border p-3 text-center">
-                                <div class="text-2xl font-bold">{{ legacyCount.toLocaleString() }}</div>
-                                <div class="text-sm text-muted-foreground">Legacy Records</div>
+                            <div
+                                class="rounded-lg border border-border p-3 text-center"
+                            >
+                                <div class="text-2xl font-bold">
+                                    {{ legacyCount.toLocaleString() }}
+                                </div>
+                                <div class="text-sm text-muted-foreground">
+                                    Legacy Records
+                                </div>
                             </div>
-                            <div class="rounded-lg border border-border p-3 text-center">
-                                <div class="text-2xl font-bold text-green-600">{{ migratedCount.toLocaleString() }}</div>
-                                <div class="text-sm text-muted-foreground">Migrated</div>
+                            <div
+                                class="rounded-lg border border-border p-3 text-center"
+                            >
+                                <div class="text-2xl font-bold text-green-600">
+                                    {{ migratedCount.toLocaleString() }}
+                                </div>
+                                <div class="text-sm text-muted-foreground">
+                                    Migrated
+                                </div>
                             </div>
-                            <div class="rounded-lg border border-border p-3 text-center">
-                                <div :class="['text-2xl font-bold', failedCount > 0 ? 'text-red-600' : '']">
+                            <div
+                                class="rounded-lg border border-border p-3 text-center"
+                            >
+                                <div
+                                    :class="[
+                                        'text-2xl font-bold',
+                                        failedCount > 0 ? 'text-red-600' : '',
+                                    ]"
+                                >
                                     {{ failedCount.toLocaleString() }}
                                 </div>
-                                <div class="text-sm text-muted-foreground">Failed</div>
+                                <div class="text-sm text-muted-foreground">
+                                    Failed
+                                </div>
                             </div>
-                            <div class="rounded-lg border border-border p-3 text-center">
-                                <div class="text-2xl font-bold text-orange-500">{{ skippedCount.toLocaleString() }}</div>
-                                <div class="text-sm text-muted-foreground">Skipped</div>
+                            <div
+                                class="rounded-lg border border-border p-3 text-center"
+                            >
+                                <div class="text-2xl font-bold text-orange-500">
+                                    {{ skippedCount.toLocaleString() }}
+                                </div>
+                                <div class="text-sm text-muted-foreground">
+                                    Skipped
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -295,13 +350,18 @@ function getRunStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'da
                                 <i
                                     :class="[
                                         'pi',
-                                        dep.is_complete ? 'pi-check-circle text-green-500' : 'pi-clock text-orange-500'
+                                        dep.is_complete
+                                            ? 'pi-check-circle text-green-500'
+                                            : 'pi-clock text-orange-500',
                                     ]"
                                 />
-                                <span class="font-medium">{{ dep.display_name }}</span>
+                                <span class="font-medium">{{
+                                    dep.display_name
+                                }}</span>
                             </div>
                             <span class="text-sm text-muted-foreground">
-                                {{ dep.migrated_count.toLocaleString() }} / {{ dep.legacy_count.toLocaleString() }}
+                                {{ dep.migrated_count.toLocaleString() }} /
+                                {{ dep.legacy_count.toLocaleString() }}
                             </span>
                         </div>
                     </div>
@@ -332,23 +392,40 @@ function getRunStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'da
                             <template #body="{ data }">
                                 <Tag
                                     :value="data.status_label"
-                                    :severity="getRunStatusSeverity(data.status)"
+                                    :severity="
+                                        getRunStatusSeverity(data.status)
+                                    "
                                 />
                             </template>
                         </Column>
-                        <Column header="Migrated" class="hidden w-24 sm:table-cell">
+                        <Column
+                            header="Migrated"
+                            class="hidden w-24 sm:table-cell"
+                        >
                             <template #body="{ data }">
                                 {{ data.migrated_count.toLocaleString() }}
                             </template>
                         </Column>
-                        <Column header="Failed" class="hidden w-24 sm:table-cell">
+                        <Column
+                            header="Failed"
+                            class="hidden w-24 sm:table-cell"
+                        >
                             <template #body="{ data }">
-                                <span :class="data.failed_count > 0 ? 'text-red-500' : ''">
+                                <span
+                                    :class="
+                                        data.failed_count > 0
+                                            ? 'text-red-500'
+                                            : ''
+                                    "
+                                >
                                     {{ data.failed_count.toLocaleString() }}
                                 </span>
                             </template>
                         </Column>
-                        <Column header="Initiated By" class="hidden md:table-cell">
+                        <Column
+                            header="Initiated By"
+                            class="hidden md:table-cell"
+                        >
                             <template #body="{ data }">
                                 {{ data.initiated_by }}
                             </template>
@@ -362,7 +439,10 @@ function getRunStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'da
                 <template #title>
                     <div class="flex items-center gap-2">
                         <span>Failed Records</span>
-                        <Tag :value="failedCount.toString()" severity="danger" />
+                        <Tag
+                            :value="failedCount.toString()"
+                            severity="danger"
+                        />
                     </div>
                 </template>
                 <template #content>
@@ -372,15 +452,24 @@ function getRunStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'da
                         size="small"
                         class="overflow-hidden rounded-lg border border-border"
                     >
-                        <Column field="legacy_id" header="Legacy ID" class="w-28" />
+                        <Column
+                            field="legacy_id"
+                            header="Legacy ID"
+                            class="w-28"
+                        />
                         <Column field="error_message" header="Error">
                             <template #body="{ data }">
-                                <div class="whitespace-pre-wrap break-words text-sm text-red-600">
+                                <div
+                                    class="text-sm break-words whitespace-pre-wrap text-red-600"
+                                >
                                     {{ data.error_message }}
                                 </div>
                             </template>
                         </Column>
-                        <Column header="Last Attempt" class="hidden w-40 md:table-cell">
+                        <Column
+                            header="Last Attempt"
+                            class="hidden w-40 md:table-cell"
+                        >
                             <template #body="{ data }">
                                 {{ formatDate(data.updated_at) }}
                             </template>

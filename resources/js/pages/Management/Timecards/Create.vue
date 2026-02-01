@@ -52,7 +52,7 @@ const includeTimeEntries = ref(false);
 const breaks = ref<BreakEntry[]>([]);
 
 const form = useForm({
-    employee_id: props.preselectedEmployee?.id || null as number | null,
+    employee_id: props.preselectedEmployee?.id || (null as number | null),
     store_id: null as number | null,
     date: props.preselectedDate ? new Date(props.preselectedDate) : new Date(),
     status: 'COMPLETED',
@@ -95,9 +95,10 @@ const statusOptions = props.statuses.map((s) => ({
 
 function handleSubmit() {
     // Convert date to string format
-    const dateString = form.date instanceof Date
-        ? form.date.toISOString().split('T')[0]
-        : form.date;
+    const dateString =
+        form.date instanceof Date
+            ? form.date.toISOString().split('T')[0]
+            : form.date;
 
     // Build breaks array with ISO strings
     const breaksData = breaks.value
@@ -110,12 +111,14 @@ function handleSubmit() {
     form.transform((data) => ({
         ...data,
         date: dateString,
-        start_time: includeTimeEntries.value && data.start_time
-            ? (data.start_time as Date).toISOString()
-            : null,
-        end_time: includeTimeEntries.value && data.end_time
-            ? (data.end_time as Date).toISOString()
-            : null,
+        start_time:
+            includeTimeEntries.value && data.start_time
+                ? (data.start_time as Date).toISOString()
+                : null,
+        end_time:
+            includeTimeEntries.value && data.end_time
+                ? (data.end_time as Date).toISOString()
+                : null,
         breaks: includeTimeEntries.value ? breaksData : [],
     })).post('/management/timecards');
 }
@@ -144,10 +147,16 @@ function navigateBack() {
 
             <Card class="max-w-2xl">
                 <template #content>
-                    <form @submit.prevent="handleSubmit" class="flex flex-col gap-4">
+                    <form
+                        @submit.prevent="handleSubmit"
+                        class="flex flex-col gap-4"
+                    >
                         <!-- Employee -->
                         <div class="flex flex-col gap-2">
-                            <label for="employee_id" class="text-sm font-medium">
+                            <label
+                                for="employee_id"
+                                class="text-sm font-medium"
+                            >
                                 Employee <span class="text-red-500">*</span>
                             </label>
                             <Select
@@ -161,7 +170,10 @@ function navigateBack() {
                                 size="small"
                                 :invalid="!!form.errors.employee_id"
                             />
-                            <small v-if="form.errors.employee_id" class="text-red-500">
+                            <small
+                                v-if="form.errors.employee_id"
+                                class="text-red-500"
+                            >
                                 {{ form.errors.employee_id }}
                             </small>
                         </div>
@@ -182,7 +194,10 @@ function navigateBack() {
                                 size="small"
                                 :invalid="!!form.errors.store_id"
                             />
-                            <small v-if="form.errors.store_id" class="text-red-500">
+                            <small
+                                v-if="form.errors.store_id"
+                                class="text-red-500"
+                            >
                                 {{ form.errors.store_id }}
                             </small>
                         </div>
@@ -218,7 +233,10 @@ function navigateBack() {
                                 size="small"
                                 :invalid="!!form.errors.status"
                             />
-                            <small v-if="form.errors.status" class="text-red-500">
+                            <small
+                                v-if="form.errors.status"
+                                class="text-red-500"
+                            >
                                 {{ form.errors.status }}
                             </small>
                         </div>
@@ -232,21 +250,32 @@ function navigateBack() {
                                 input-id="include_time_entries"
                                 :binary="true"
                             />
-                            <label for="include_time_entries" class="text-sm font-medium cursor-pointer">
+                            <label
+                                for="include_time_entries"
+                                class="cursor-pointer text-sm font-medium"
+                            >
                                 Add time entries now
                             </label>
                         </div>
 
                         <!-- Time Entry Fields -->
                         <template v-if="includeTimeEntries">
-                            <div class="rounded-lg border border-muted bg-muted/20 p-4">
-                                <h4 class="mb-4 text-sm font-medium">Work Time</h4>
+                            <div
+                                class="rounded-lg border border-muted bg-muted/20 p-4"
+                            >
+                                <h4 class="mb-4 text-sm font-medium">
+                                    Work Time
+                                </h4>
 
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <!-- Start Time -->
                                     <div class="flex flex-col gap-2">
-                                        <label for="start_time" class="text-sm font-medium">
-                                            Start Time <span class="text-red-500">*</span>
+                                        <label
+                                            for="start_time"
+                                            class="text-sm font-medium"
+                                        >
+                                            Start Time
+                                            <span class="text-red-500">*</span>
                                         </label>
                                         <DatePicker
                                             id="start_time"
@@ -256,14 +285,20 @@ function navigateBack() {
                                             size="small"
                                             :invalid="!!form.errors.start_time"
                                         />
-                                        <small v-if="form.errors.start_time" class="text-red-500">
+                                        <small
+                                            v-if="form.errors.start_time"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.start_time }}
                                         </small>
                                     </div>
 
                                     <!-- End Time -->
                                     <div class="flex flex-col gap-2">
-                                        <label for="end_time" class="text-sm font-medium">
+                                        <label
+                                            for="end_time"
+                                            class="text-sm font-medium"
+                                        >
                                             End Time
                                         </label>
                                         <DatePicker
@@ -274,7 +309,10 @@ function navigateBack() {
                                             size="small"
                                             :invalid="!!form.errors.end_time"
                                         />
-                                        <small v-if="form.errors.end_time" class="text-red-500">
+                                        <small
+                                            v-if="form.errors.end_time"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.end_time }}
                                         </small>
                                         <small class="text-muted-foreground">
@@ -285,8 +323,12 @@ function navigateBack() {
                             </div>
 
                             <!-- Breaks Section -->
-                            <div class="rounded-lg border border-muted bg-muted/20 p-4">
-                                <div class="mb-4 flex items-center justify-between">
+                            <div
+                                class="rounded-lg border border-muted bg-muted/20 p-4"
+                            >
+                                <div
+                                    class="mb-4 flex items-center justify-between"
+                                >
                                     <h4 class="text-sm font-medium">Breaks</h4>
                                     <Button
                                         label="Add Break"
@@ -297,7 +339,10 @@ function navigateBack() {
                                     />
                                 </div>
 
-                                <div v-if="breaks.length === 0" class="text-center text-sm text-muted-foreground py-4">
+                                <div
+                                    v-if="breaks.length === 0"
+                                    class="py-4 text-center text-sm text-muted-foreground"
+                                >
                                     No breaks added
                                 </div>
 
@@ -308,7 +353,10 @@ function navigateBack() {
                                         class="flex items-end gap-4 rounded-lg bg-background p-3"
                                     >
                                         <div class="flex-1">
-                                            <label class="text-xs text-muted-foreground">Break Start</label>
+                                            <label
+                                                class="text-xs text-muted-foreground"
+                                                >Break Start</label
+                                            >
                                             <DatePicker
                                                 v-model="breakEntry.start_time"
                                                 show-time
@@ -318,7 +366,10 @@ function navigateBack() {
                                             />
                                         </div>
                                         <div class="flex-1">
-                                            <label class="text-xs text-muted-foreground">Break End</label>
+                                            <label
+                                                class="text-xs text-muted-foreground"
+                                                >Break End</label
+                                            >
                                             <DatePicker
                                                 v-model="breakEntry.end_time"
                                                 show-time

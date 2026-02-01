@@ -41,17 +41,22 @@ const editedPermissions = ref<Map<number, string[]>>(new Map());
 const filteredUsers = computed(() => {
     if (!searchQuery.value) return users.value;
     const query = searchQuery.value.toLowerCase();
-    return users.value.filter(user =>
-        user.name.toLowerCase().includes(query) ||
-        user.email?.toLowerCase().includes(query)
+    return users.value.filter(
+        (user) =>
+            user.name.toLowerCase().includes(query) ||
+            user.email?.toLowerCase().includes(query),
     );
 });
 
 const hasChanges = computed(() => {
     for (const user of users.value) {
         const original = originalPermissions.value.get(user.id) ?? [];
-        const current = editedPermissions.value.get(user.id) ?? user.permissions;
-        if (JSON.stringify([...original].sort()) !== JSON.stringify([...current].sort())) {
+        const current =
+            editedPermissions.value.get(user.id) ?? user.permissions;
+        if (
+            JSON.stringify([...original].sort()) !==
+            JSON.stringify([...current].sort())
+        ) {
             return true;
         }
     }
@@ -63,7 +68,7 @@ async function fetchUsers() {
     try {
         const response = await fetch(`/page-permissions/${props.page}`, {
             headers: {
-                'Accept': 'application/json',
+                Accept: 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
             },
             credentials: 'same-origin',
@@ -111,7 +116,7 @@ function hasPermission(userId: number, permissionKey: string): boolean {
 function togglePermission(userId: number, permissionKey: string) {
     const current = getUserPermissions(userId);
     const newPerms = current.includes(permissionKey)
-        ? current.filter(p => p !== permissionKey)
+        ? current.filter((p) => p !== permissionKey)
         : [...current, permissionKey];
     editedPermissions.value.set(userId, newPerms);
 }
@@ -119,7 +124,9 @@ function togglePermission(userId: number, permissionKey: string) {
 function resetChanges() {
     editedPermissions.value.clear();
     for (const user of users.value) {
-        editedPermissions.value.set(user.id, [...(originalPermissions.value.get(user.id) ?? [])]);
+        editedPermissions.value.set(user.id, [
+            ...(originalPermissions.value.get(user.id) ?? []),
+        ]);
     }
 }
 
@@ -128,7 +135,7 @@ async function saveChanges() {
     try {
         // Build payload with all users that have changes
         const payload = {
-            users: users.value.map(user => ({
+            users: users.value.map((user) => ({
                 employee_id: user.id,
                 permissions: editedPermissions.value.get(user.id) ?? [],
             })),
@@ -138,9 +145,12 @@ async function saveChanges() {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',
+                Accept: 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '',
+                'X-CSRF-TOKEN':
+                    document
+                        .querySelector('meta[name="csrf-token"]')
+                        ?.getAttribute('content') ?? '',
             },
             credentials: 'same-origin',
             body: JSON.stringify(payload),
@@ -157,7 +167,9 @@ async function saveChanges() {
 
         // Update original permissions to match current
         for (const user of users.value) {
-            originalPermissions.value.set(user.id, [...(editedPermissions.value.get(user.id) ?? [])]);
+            originalPermissions.value.set(user.id, [
+                ...(editedPermissions.value.get(user.id) ?? []),
+            ]);
         }
 
         // Refresh the page to update navigation
@@ -177,7 +189,8 @@ async function saveChanges() {
 function handleClose() {
     if (hasChanges.value) {
         confirm.require({
-            message: 'You have unsaved changes. Are you sure you want to close?',
+            message:
+                'You have unsaved changes. Are you sure you want to close?',
             header: 'Unsaved Changes',
             icon: 'pi pi-exclamation-triangle',
             rejectLabel: 'Cancel',
@@ -200,12 +213,15 @@ function handleClose() {
 }
 
 // Fetch users when dialog opens
-watch(() => props.visible, (newVisible) => {
-    if (newVisible) {
-        fetchUsers();
-        searchQuery.value = '';
-    }
-});
+watch(
+    () => props.visible,
+    (newVisible) => {
+        if (newVisible) {
+            fetchUsers();
+            searchQuery.value = '';
+        }
+    },
+);
 </script>
 
 <template>
@@ -251,7 +267,7 @@ watch(() => props.visible, (newVisible) => {
                         Loading users...
                     </div>
                 </template>
-                <Column header="User" class="!pl-4 min-w-[200px]">
+                <Column header="User" class="min-w-[200px] !pl-4">
                     <template #body="{ data }">
                         <div class="flex items-center gap-3">
                             <Avatar
@@ -268,7 +284,9 @@ watch(() => props.visible, (newVisible) => {
                             />
                             <div class="flex flex-col">
                                 <span class="font-medium">{{ data.name }}</span>
-                                <span class="text-xs text-muted-foreground">{{ data.email }}</span>
+                                <span class="text-xs text-muted-foreground">{{
+                                    data.email
+                                }}</span>
                             </div>
                         </div>
                     </template>
@@ -282,8 +300,12 @@ watch(() => props.visible, (newVisible) => {
                     <template #body="{ data }">
                         <div class="flex justify-center">
                             <Checkbox
-                                :modelValue="hasPermission(data.id, permission.key)"
-                                @update:modelValue="togglePermission(data.id, permission.key)"
+                                :modelValue="
+                                    hasPermission(data.id, permission.key)
+                                "
+                                @update:modelValue="
+                                    togglePermission(data.id, permission.key)
+                                "
                                 :binary="true"
                             />
                         </div>
@@ -292,7 +314,9 @@ watch(() => props.visible, (newVisible) => {
             </DataTable>
 
             <!-- Actions -->
-            <div class="flex items-center justify-between border-t border-border pt-4">
+            <div
+                class="flex items-center justify-between border-t border-border pt-4"
+            >
                 <div class="text-sm text-muted-foreground">
                     <span v-if="hasChanges" class="text-amber-600">
                         <i class="pi pi-exclamation-circle mr-1"></i>

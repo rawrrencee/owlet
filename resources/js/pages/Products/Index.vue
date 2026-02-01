@@ -27,7 +27,14 @@ import SelectionPreviewDialog from '@/components/products/SelectionPreviewDialog
 import { usePermissions } from '@/composables/usePermissions';
 import { useProductPreview } from '@/composables/useProductPreview';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type Category, type Currency, type PaginatedData, type Product, type Subcategory } from '@/types';
+import {
+    type BreadcrumbItem,
+    type Category,
+    type Currency,
+    type PaginatedData,
+    type Product,
+    type Subcategory,
+} from '@/types';
 import { formatProductPrice } from '@/utils/currency';
 
 interface Filters {
@@ -121,21 +128,21 @@ const statusOptions = [
 
 const brandOptions = computed(() => [
     { label: 'All Brands', value: '' },
-    ...props.brands.map(b => ({ label: b.brand_name, value: b.id })),
+    ...props.brands.map((b) => ({ label: b.brand_name, value: b.id })),
 ]);
 
 const categoryOptions = computed(() => [
     { label: 'All Categories', value: '' },
-    ...props.categories.map(c => ({ label: c.category_name, value: c.id })),
+    ...props.categories.map((c) => ({ label: c.category_name, value: c.id })),
 ]);
 
 const supplierOptions = computed(() => [
     { label: 'All Suppliers', value: '' },
-    ...props.suppliers.map(s => ({ label: s.supplier_name, value: s.id })),
+    ...props.suppliers.map((s) => ({ label: s.supplier_name, value: s.id })),
 ]);
 
 const storeOptions = computed(() =>
-    props.stores.map(s => ({ label: s.store_name, value: s.id }))
+    props.stores.map((s) => ({ label: s.store_name, value: s.id })),
 );
 
 const activeFilterCount = computed(() => {
@@ -223,8 +230,15 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const expandedRows = ref({});
-const hasActiveFilters = computed(() =>
-    filters.search || filters.status || filters.brand_id || filters.category_id || filters.supplier_id || filters.store_ids.length > 0 || filters.showDeleted
+const hasActiveFilters = computed(
+    () =>
+        filters.search ||
+        filters.status ||
+        filters.brand_id ||
+        filters.category_id ||
+        filters.supplier_id ||
+        filters.store_ids.length > 0 ||
+        filters.showDeleted,
 );
 const confirm = useConfirm();
 
@@ -244,11 +258,13 @@ const selectionPreviewDialogVisible = ref(false);
 
 // Filter out deleted products from selection
 const selectableProducts = computed(() =>
-    props.products.data.filter(p => !isDeleted(p))
+    props.products.data.filter((p) => !isDeleted(p)),
 );
 
 // Set of selected product IDs for efficient lookup
-const selectedProductIds = computed(() => new Set(selectedProducts.value.map(p => p.id)));
+const selectedProductIds = computed(
+    () => new Set(selectedProducts.value.map((p) => p.id)),
+);
 
 // Check if a specific product is selected
 function isProductSelected(product: Product): boolean {
@@ -257,7 +273,7 @@ function isProductSelected(product: Product): boolean {
 
 // Toggle selection for a single product
 function toggleProductSelection(product: Product) {
-    const index = selectedProducts.value.findIndex(p => p.id === product.id);
+    const index = selectedProducts.value.findIndex((p) => p.id === product.id);
     if (index >= 0) {
         selectedProducts.value.splice(index, 1);
     } else {
@@ -265,9 +281,12 @@ function toggleProductSelection(product: Product) {
     }
 }
 
-const allSelectableSelected = computed(() =>
-    selectableProducts.value.length > 0 &&
-    selectableProducts.value.every(p => selectedProductIds.value.has(p.id))
+const allSelectableSelected = computed(
+    () =>
+        selectableProducts.value.length > 0 &&
+        selectableProducts.value.every((p) =>
+            selectedProductIds.value.has(p.id),
+        ),
 );
 
 function toggleSelectAll() {
@@ -283,7 +302,7 @@ function toggleSelectAll() {
 function handleDeselectPage() {
     // Deselect all on this page only
     selectedProducts.value = selectedProducts.value.filter(
-        s => !selectableProducts.value.some(p => p.id === s.id)
+        (s) => !selectableProducts.value.some((p) => p.id === s.id),
     );
 }
 
@@ -295,7 +314,7 @@ function handleDeselectAll() {
 function handleSelectPage() {
     // Select all on this page (that aren't already selected)
     const newSelections = selectableProducts.value.filter(
-        p => !selectedProductIds.value.has(p.id)
+        (p) => !selectedProductIds.value.has(p.id),
     );
     selectedProducts.value = [...selectedProducts.value, ...newSelections];
 }
@@ -306,13 +325,17 @@ async function handleSelectAll() {
         const params = new URLSearchParams();
         if (filters.search) params.append('search', filters.search);
         if (filters.status) params.append('status', filters.status);
-        if (filters.brand_id) params.append('brand_id', String(filters.brand_id));
-        if (filters.category_id) params.append('category_id', String(filters.category_id));
-        if (filters.supplier_id) params.append('supplier_id', String(filters.supplier_id));
-        if (filters.store_ids.length > 0) params.append('store_ids', filters.store_ids.join(','));
+        if (filters.brand_id)
+            params.append('brand_id', String(filters.brand_id));
+        if (filters.category_id)
+            params.append('category_id', String(filters.category_id));
+        if (filters.supplier_id)
+            params.append('supplier_id', String(filters.supplier_id));
+        if (filters.store_ids.length > 0)
+            params.append('store_ids', filters.store_ids.join(','));
 
         const response = await fetch(`/products/ids?${params.toString()}`, {
-            headers: { 'Accept': 'application/json' },
+            headers: { Accept: 'application/json' },
         });
 
         if (response.ok) {
@@ -333,12 +356,14 @@ function openSelectionPreviewDialog() {
 }
 
 function handlePreviewFromSelection(productId: number) {
-    const selectedIds = selectedProducts.value.map(p => p.id);
+    const selectedIds = selectedProducts.value.map((p) => p.id);
     openPreviewFromSelection(productId, selectedIds);
 }
 
 function handleDeselectFromPreview(productId: number) {
-    selectedProducts.value = selectedProducts.value.filter(p => p.id !== productId);
+    selectedProducts.value = selectedProducts.value.filter(
+        (p) => p.id !== productId,
+    );
     // Close dialog if empty
     if (selectedProducts.value.length === 0) {
         selectionPreviewDialogVisible.value = false;
@@ -361,7 +386,6 @@ function onBatchEditSuccess() {
     clearSelection();
     router.reload({ only: ['products'] });
 }
-
 
 function getInitials(product: Product): string {
     const words = product.product_name.split(' ');
@@ -438,7 +462,9 @@ function onRowClick(event: { data: Product }) {
 
 function onPage(event: { page: number; rows: number }) {
     perPage.value = event.rows;
-    const params: Record<string, string | number | boolean | number[]> = { page: event.page + 1 };
+    const params: Record<string, string | number | boolean | number[]> = {
+        page: event.page + 1,
+    };
     if (filters.search) params.search = filters.search;
     if (filters.status) params.status = filters.status;
     if (filters.brand_id) params.brand_id = filters.brand_id;
@@ -456,7 +482,9 @@ function onPage(event: { page: number; rows: number }) {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <h1 class="heading-lg">Products</h1>
                 <PagePermissionsSplitButton
                     page="products"
@@ -479,10 +507,19 @@ function onPage(event: { page: number; rows: number }) {
                 </IconField>
 
                 <div class="flex items-center gap-2">
-                    <Button severity="secondary" size="small" outlined @click="filterDrawerVisible = true">
+                    <Button
+                        severity="secondary"
+                        size="small"
+                        outlined
+                        @click="filterDrawerVisible = true"
+                    >
                         <i class="pi pi-filter mr-2"></i>
                         Filters
-                        <Badge v-if="activeFilterCount > 0" :value="activeFilterCount" class="ml-2" />
+                        <Badge
+                            v-if="activeFilterCount > 0"
+                            :value="activeFilterCount"
+                            class="ml-2"
+                        />
                     </Button>
                     <Button
                         v-if="hasActiveFilters"
@@ -497,7 +534,12 @@ function onPage(event: { page: number; rows: number }) {
             </div>
 
             <!-- Filter Drawer (Mobile only) -->
-            <Drawer v-model:visible="filterDrawerVisible" header="Filters" position="right" class="!w-full">
+            <Drawer
+                v-model:visible="filterDrawerVisible"
+                header="Filters"
+                position="right"
+                class="!w-full"
+            >
                 <div class="flex flex-col gap-4">
                     <div class="flex flex-col gap-2">
                         <label class="text-sm font-medium">Store</label>
@@ -656,7 +698,9 @@ function onPage(event: { page: number; rows: number }) {
                     />
                     <label class="flex cursor-pointer items-center gap-2">
                         <ToggleSwitch v-model="filters.showDeleted" />
-                        <span class="whitespace-nowrap text-sm">Show Deleted</span>
+                        <span class="text-sm whitespace-nowrap"
+                            >Show Deleted</span
+                        >
                     </label>
                     <Button
                         v-if="hasActiveFilters"
@@ -680,7 +724,7 @@ function onPage(event: { page: number; rows: number }) {
                 :rows="perPage"
                 :rows-per-page-options="[10, 15, 25, 50]"
                 :total-records="products.total"
-                :first="((products.current_page - 1) * perPage)"
+                :first="(products.current_page - 1) * perPage"
                 @page="onPage"
                 @row-click="onRowClick"
                 striped-rows
@@ -694,14 +738,22 @@ function onPage(event: { page: number; rows: number }) {
                 </template>
                 <Column expander class="w-12 !pr-0 md:hidden" />
                 <!-- Selection checkbox column (only visible when canEdit) -->
-                <Column v-if="canEdit" class="w-10 !pl-3 !pr-0" :exportable="false">
+                <Column
+                    v-if="canEdit"
+                    class="w-10 !pr-0 !pl-3"
+                    :exportable="false"
+                >
                     <template #header>
                         <div @click.stop>
                             <Checkbox
                                 :model-value="allSelectableSelected"
                                 :binary="true"
                                 @update:model-value="toggleSelectAll"
-                                v-tooltip.top="allSelectableSelected ? 'Deselect all' : 'Select all'"
+                                v-tooltip.top="
+                                    allSelectableSelected
+                                        ? 'Deselect all'
+                                        : 'Select all'
+                                "
                             />
                         </div>
                     </template>
@@ -710,19 +762,24 @@ function onPage(event: { page: number; rows: number }) {
                             <Checkbox
                                 :model-value="isProductSelected(data)"
                                 :binary="true"
-                                @update:model-value="toggleProductSelection(data)"
+                                @update:model-value="
+                                    toggleProductSelection(data)
+                                "
                             />
                         </div>
                     </template>
                 </Column>
-                <Column header="" class="w-12 !pl-4 !pr-0">
+                <Column header="" class="w-12 !pr-0 !pl-4">
                     <template #body="{ data }">
                         <div v-if="data.image_url" @click.stop>
                             <Image
                                 :src="data.image_url"
                                 :alt="data.product_name"
                                 image-class="h-8 w-8 rounded object-cover cursor-pointer"
-                                :pt="{ root: { class: 'rounded overflow-hidden' }, previewMask: { class: 'rounded' } }"
+                                :pt="{
+                                    root: { class: 'rounded overflow-hidden' },
+                                    previewMask: { class: 'rounded' },
+                                }"
                                 preview
                             />
                         </div>
@@ -740,26 +797,47 @@ function onPage(event: { page: number; rows: number }) {
                             <div class="flex items-center gap-2">
                                 <span
                                     class="font-medium"
-                                    :class="{ 'text-muted-foreground line-through': isDeleted(data) }"
+                                    :class="{
+                                        'text-muted-foreground line-through':
+                                            isDeleted(data),
+                                    }"
                                 >
                                     {{ data.product_name }}
                                 </span>
-                                <Tag v-if="isDeleted(data)" value="Deleted" severity="danger" class="!text-xs" />
+                                <Tag
+                                    v-if="isDeleted(data)"
+                                    value="Deleted"
+                                    severity="danger"
+                                    class="!text-xs"
+                                />
                             </div>
-                            <span class="text-xs text-muted-foreground">{{ data.product_number }}</span>
+                            <span class="text-xs text-muted-foreground">{{
+                                data.product_number
+                            }}</span>
                         </div>
                     </template>
                 </Column>
-                <Column field="brand_name" header="Brand" class="hidden md:table-cell">
+                <Column
+                    field="brand_name"
+                    header="Brand"
+                    class="hidden md:table-cell"
+                >
                     <template #body="{ data }">
                         {{ data.brand_name ?? '-' }}
                     </template>
                 </Column>
-                <Column field="category_name" header="Category" class="hidden lg:table-cell">
+                <Column
+                    field="category_name"
+                    header="Category"
+                    class="hidden lg:table-cell"
+                >
                     <template #body="{ data }">
                         <div class="flex flex-col gap-0.5">
                             <span>{{ data.category_name }}</span>
-                            <span v-if="data.subcategory_name" class="text-xs text-muted-foreground">
+                            <span
+                                v-if="data.subcategory_name"
+                                class="text-xs text-muted-foreground"
+                            >
                                 {{ data.subcategory_name }}
                             </span>
                         </div>
@@ -780,7 +858,10 @@ function onPage(event: { page: number; rows: number }) {
                 </Column>
                 <Column header="" class="hidden w-24 !pr-4 md:table-cell">
                     <template #body="{ data }">
-                        <div v-if="isDeleted(data)" class="flex justify-end gap-1">
+                        <div
+                            v-if="isDeleted(data)"
+                            class="flex justify-end gap-1"
+                        >
                             <Button
                                 v-if="canDelete"
                                 icon="pi pi-history"
@@ -825,27 +906,42 @@ function onPage(event: { page: number; rows: number }) {
                 </Column>
                 <template #expansion="{ data }">
                     <div class="grid gap-3 p-3 text-sm md:hidden">
-                        <div class="flex justify-between border-b border-border pb-2">
+                        <div
+                            class="flex justify-between border-b border-border pb-2"
+                        >
                             <span class="text-muted-foreground">Brand</span>
                             <span>{{ data.brand_name ?? '-' }}</span>
                         </div>
-                        <div class="flex justify-between border-b border-border pb-2">
+                        <div
+                            class="flex justify-between border-b border-border pb-2"
+                        >
                             <span class="text-muted-foreground">Category</span>
                             <span>{{ data.category_name ?? '-' }}</span>
                         </div>
-                        <div class="flex justify-between border-b border-border pb-2">
-                            <span class="text-muted-foreground">Subcategory</span>
+                        <div
+                            class="flex justify-between border-b border-border pb-2"
+                        >
+                            <span class="text-muted-foreground"
+                                >Subcategory</span
+                            >
                             <span>{{ data.subcategory_name ?? '-' }}</span>
                         </div>
-                        <div class="flex justify-between border-b border-border pb-2">
+                        <div
+                            class="flex justify-between border-b border-border pb-2"
+                        >
                             <span class="text-muted-foreground">Price</span>
                             <span>{{ getFirstPrice(data) }}</span>
                         </div>
-                        <div class="flex justify-between border-b border-border pb-2">
+                        <div
+                            class="flex justify-between border-b border-border pb-2"
+                        >
                             <span class="text-muted-foreground">Barcode</span>
                             <span>{{ data.barcode ?? '-' }}</span>
                         </div>
-                        <div v-if="isDeleted(data) && canDelete" class="flex gap-2 pt-2">
+                        <div
+                            v-if="isDeleted(data) && canDelete"
+                            class="flex gap-2 pt-2"
+                        >
                             <Button
                                 label="Restore"
                                 icon="pi pi-history"
@@ -855,7 +951,10 @@ function onPage(event: { page: number; rows: number }) {
                                 class="flex-1"
                             />
                         </div>
-                        <div v-else-if="!isDeleted(data)" class="flex gap-2 pt-2">
+                        <div
+                            v-else-if="!isDeleted(data)"
+                            class="flex gap-2 pt-2"
+                        >
                             <Button
                                 label="View"
                                 icon="pi pi-external-link"
@@ -919,7 +1018,7 @@ function onPage(event: { page: number; rows: number }) {
         >
             <div
                 v-if="selectedProducts.length > 0 && canEdit"
-                class="fixed bottom-24 left-4 right-4 z-50 flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-4 py-2 shadow-lg sm:bottom-4 sm:left-1/2 sm:right-auto sm:-translate-x-1/2"
+                class="fixed right-4 bottom-24 left-4 z-50 flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-4 py-2 shadow-lg sm:right-auto sm:bottom-4 sm:left-1/2 sm:-translate-x-1/2"
             >
                 <span class="text-sm font-medium">
                     {{ selectedProducts.length }} selected
@@ -974,7 +1073,10 @@ function onPage(event: { page: number; rows: number }) {
         <!-- Deselect Confirmation Dialog -->
         <DeselectConfirmDialog
             v-model:visible="deselectConfirmVisible"
-            :page-count="selectableProducts.filter(p => selectedProductIds.has(p.id)).length"
+            :page-count="
+                selectableProducts.filter((p) => selectedProductIds.has(p.id))
+                    .length
+            "
             :total-count="selectedProducts.length"
             @deselect-page="handleDeselectPage"
             @deselect-all="handleDeselectAll"

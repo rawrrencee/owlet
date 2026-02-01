@@ -9,12 +9,18 @@ let listenerAttached = false;
 if (typeof window !== 'undefined') {
     // Detect if this is a page refresh or direct navigation (not Inertia SPA navigation)
     // Check using PerformanceNavigationTiming API
-    const navEntries = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
+    const navEntries = performance.getEntriesByType(
+        'navigation',
+    ) as PerformanceNavigationTiming[];
     const navType = navEntries.length > 0 ? navEntries[0].type : 'navigate';
-    const isPageRefreshOrDirectAccess = navType === 'reload' || navType === 'navigate';
+    const isPageRefreshOrDirectAccess =
+        navType === 'reload' || navType === 'navigate';
 
     // Reset history on page refresh, direct access, or first visit
-    if (isPageRefreshOrDirectAccess || sessionStorage.getItem(NAV_HISTORY_KEY) === null) {
+    if (
+        isPageRefreshOrDirectAccess ||
+        sessionStorage.getItem(NAV_HISTORY_KEY) === null
+    ) {
         sessionStorage.setItem(NAV_HISTORY_KEY, JSON.stringify([]));
         sessionStorage.removeItem(NAV_INITIALIZED_KEY);
         sessionStorage.removeItem(NAV_SKIP_URL_KEY);
@@ -24,7 +30,9 @@ if (typeof window !== 'undefined') {
     if (!listenerAttached) {
         listenerAttached = true;
         router.on('navigate', (event) => {
-            let history: string[] = JSON.parse(sessionStorage.getItem(NAV_HISTORY_KEY) || '[]');
+            let history: string[] = JSON.parse(
+                sessionStorage.getItem(NAV_HISTORY_KEY) || '[]',
+            );
             const currentUrl = event.detail.page.url;
             // Get pathname for comparison (ignore query params)
             const currentPath = currentUrl.split('?')[0];
@@ -38,7 +46,9 @@ if (typeof window !== 'undefined') {
                 // This handles the case where the server redirects back to the same Edit page
                 if (currentPath !== skipPath) {
                     // Remove all occurrences of the skip URL from history (compare by path)
-                    history = history.filter(url => url.split('?')[0] !== skipPath);
+                    history = history.filter(
+                        (url) => url.split('?')[0] !== skipPath,
+                    );
                     sessionStorage.removeItem(NAV_SKIP_URL_KEY);
                     // Add the new URL (avoid duplicates)
                     const lastUrl = history[history.length - 1];
@@ -48,7 +58,10 @@ if (typeof window !== 'undefined') {
                             history.shift();
                         }
                     }
-                    sessionStorage.setItem(NAV_HISTORY_KEY, JSON.stringify(history));
+                    sessionStorage.setItem(
+                        NAV_HISTORY_KEY,
+                        JSON.stringify(history),
+                    );
                 }
                 // If navigating to the same page (skipUrl), don't add it to history again
                 // and keep the skip marker for the next navigation
@@ -61,7 +74,10 @@ if (typeof window !== 'undefined') {
                     if (history.length > 50) {
                         history.shift();
                     }
-                    sessionStorage.setItem(NAV_HISTORY_KEY, JSON.stringify(history));
+                    sessionStorage.setItem(
+                        NAV_HISTORY_KEY,
+                        JSON.stringify(history),
+                    );
                 }
             }
             sessionStorage.setItem(NAV_INITIALIZED_KEY, 'true');
@@ -71,7 +87,9 @@ if (typeof window !== 'undefined') {
 
 export function useSmartBack(fallbackUrl: string) {
     const goBack = () => {
-        const history: string[] = JSON.parse(sessionStorage.getItem(NAV_HISTORY_KEY) || '[]');
+        const history: string[] = JSON.parse(
+            sessionStorage.getItem(NAV_HISTORY_KEY) || '[]',
+        );
 
         // Remove current page from history
         history.pop();
@@ -108,7 +126,10 @@ export function useSmartBack(fallbackUrl: string) {
  */
 export function skipCurrentPageInHistory() {
     if (typeof window !== 'undefined') {
-        sessionStorage.setItem(NAV_SKIP_URL_KEY, window.location.pathname + window.location.search);
+        sessionStorage.setItem(
+            NAV_SKIP_URL_KEY,
+            window.location.pathname + window.location.search,
+        );
     }
 }
 

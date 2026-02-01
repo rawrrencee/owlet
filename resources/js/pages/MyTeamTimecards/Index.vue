@@ -10,7 +10,11 @@ import Tag from 'primevue/tag';
 import { computed, ref } from 'vue';
 import TimecardCalendar from '@/components/timecards/TimecardCalendar.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { BreadcrumbItem, SubordinateInfo, TeamTimecardDayData } from '@/types';
+import type {
+    BreadcrumbItem,
+    SubordinateInfo,
+    TeamTimecardDayData,
+} from '@/types';
 
 interface Props {
     month: string;
@@ -36,7 +40,7 @@ const filteredSubordinates = computed(() => {
     return props.subordinates.filter(
         (s) =>
             s.name.toLowerCase().includes(query) ||
-            s.employee_number?.toLowerCase().includes(query)
+            s.employee_number?.toLowerCase().includes(query),
     );
 });
 
@@ -50,7 +54,10 @@ const subordinateOptions = computed(() => [
 
 // Convert monthlyData to CalendarDayData format for the calendar
 const calendarData = computed(() => {
-    const data: Record<string, { date: string; total_hours: number; employee_count: number }> = {};
+    const data: Record<
+        string,
+        { date: string; total_hours: number; employee_count: number }
+    > = {};
     for (const [date, dayData] of Object.entries(props.monthlyData)) {
         data[date] = {
             date: dayData.date,
@@ -69,14 +76,20 @@ function handleDateClick(date: string) {
         // For now, we'll just navigate with the first subordinate if there's data
         const dayData = props.monthlyData[date];
         if (dayData?.employees?.length) {
-            router.visit(`/my-team-timecards/${dayData.employees[0].id}/${date}`);
+            router.visit(
+                `/my-team-timecards/${dayData.employees[0].id}/${date}`,
+            );
         }
     }
 }
 
 function handleMonthChange(month: Date) {
     const monthString = month.toISOString().split('T')[0];
-    router.get('/my-team-timecards', { month: monthString }, { preserveState: true });
+    router.get(
+        '/my-team-timecards',
+        { month: monthString },
+        { preserveState: true },
+    );
 }
 
 function handleSubordinateChange() {
@@ -103,7 +116,9 @@ function getInitials(name: string): string {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <div class="flex items-center gap-3">
                     <h1 class="heading-lg">Team Timecards</h1>
                     <Tag
@@ -114,7 +129,9 @@ function getInitials(name: string): string {
             </div>
 
             <!-- Filter Section -->
-            <div class="filter-section flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div
+                class="filter-section flex flex-col gap-3 sm:flex-row sm:items-center"
+            >
                 <IconField class="flex-1 sm:max-w-md">
                     <InputIcon class="pi pi-search" />
                     <InputText
@@ -141,10 +158,14 @@ function getInitials(name: string): string {
                 <div class="lg:col-span-1">
                     <Card>
                         <template #title>
-                            <span class="text-base font-semibold">Team Members</span>
+                            <span class="text-base font-semibold"
+                                >Team Members</span
+                            >
                         </template>
                         <template #content>
-                            <div class="flex max-h-96 flex-col gap-2 overflow-y-auto">
+                            <div
+                                class="flex max-h-96 flex-col gap-2 overflow-y-auto"
+                            >
                                 <div
                                     v-for="member in filteredSubordinates"
                                     :key="member.id"
@@ -164,7 +185,9 @@ function getInitials(name: string): string {
                                         class="shrink-0 bg-primary/10 text-primary"
                                     />
                                     <div class="min-w-0 flex-1">
-                                        <p class="truncate font-medium">{{ member.name }}</p>
+                                        <p class="truncate font-medium">
+                                            {{ member.name }}
+                                        </p>
                                         <p
                                             v-if="member.employee_number"
                                             class="truncate text-xs text-muted-foreground"
@@ -172,7 +195,9 @@ function getInitials(name: string): string {
                                             #{{ member.employee_number }}
                                         </p>
                                     </div>
-                                    <i class="pi pi-chevron-right text-muted-foreground"></i>
+                                    <i
+                                        class="pi pi-chevron-right text-muted-foreground"
+                                    ></i>
                                 </div>
 
                                 <div

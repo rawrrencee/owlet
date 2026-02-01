@@ -8,7 +8,10 @@ import InputText from 'primevue/inputtext';
 import ToggleSwitch from 'primevue/toggleswitch';
 import { computed } from 'vue';
 import BackButton from '@/components/BackButton.vue';
-import { clearSkipPageInHistory, skipCurrentPageInHistory } from '@/composables/useSmartBack';
+import {
+    clearSkipPageInHistory,
+    skipCurrentPageInHistory,
+} from '@/composables/useSmartBack';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type Currency } from '@/types';
 
@@ -19,7 +22,9 @@ interface Props {
 const props = defineProps<Props>();
 
 const isEditing = computed(() => !!props.currency);
-const pageTitle = computed(() => (isEditing.value ? 'Edit Currency' : 'Create Currency'));
+const pageTitle = computed(() =>
+    isEditing.value ? 'Edit Currency' : 'Create Currency',
+);
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -33,9 +38,9 @@ const form = useForm({
     symbol: props.currency?.symbol ?? '',
     decimal_places: props.currency?.decimal_places ?? 2,
     exchange_rate: props.currency?.exchange_rate
-        ? (typeof props.currency.exchange_rate === 'string'
+        ? typeof props.currency.exchange_rate === 'string'
             ? parseFloat(props.currency.exchange_rate)
-            : props.currency.exchange_rate)
+            : props.currency.exchange_rate
         : null,
     active: props.currency?.active ?? true,
 });
@@ -78,13 +83,20 @@ function cancel() {
             <div class="mx-auto w-full max-w-4xl">
                 <Card>
                     <template #content>
-                        <form @submit.prevent="submit" class="flex flex-col gap-6">
+                        <form
+                            @submit.prevent="submit"
+                            class="flex flex-col gap-6"
+                        >
                             <!-- Basic Information -->
                             <div>
-                                <h3 class="mb-4 text-lg font-medium">Basic Information</h3>
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Basic Information
+                                </h3>
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div class="flex flex-col gap-2">
-                                        <label for="code" class="font-medium">Currency Code *</label>
+                                        <label for="code" class="font-medium"
+                                            >Currency Code *</label
+                                        >
                                         <InputText
                                             id="code"
                                             v-model="form.code"
@@ -95,14 +107,21 @@ function cancel() {
                                             fluid
                                             class="uppercase"
                                         />
-                                        <small class="text-muted-foreground">3-letter ISO currency code</small>
-                                        <small v-if="form.errors.code" class="text-red-500">
+                                        <small class="text-muted-foreground"
+                                            >3-letter ISO currency code</small
+                                        >
+                                        <small
+                                            v-if="form.errors.code"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.code }}
                                         </small>
                                     </div>
 
                                     <div class="flex flex-col gap-2">
-                                        <label for="name" class="font-medium">Currency Name *</label>
+                                        <label for="name" class="font-medium"
+                                            >Currency Name *</label
+                                        >
                                         <InputText
                                             id="name"
                                             v-model="form.name"
@@ -111,13 +130,18 @@ function cancel() {
                                             size="small"
                                             fluid
                                         />
-                                        <small v-if="form.errors.name" class="text-red-500">
+                                        <small
+                                            v-if="form.errors.name"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.name }}
                                         </small>
                                     </div>
 
                                     <div class="flex flex-col gap-2">
-                                        <label for="symbol" class="font-medium">Symbol *</label>
+                                        <label for="symbol" class="font-medium"
+                                            >Symbol *</label
+                                        >
                                         <InputText
                                             id="symbol"
                                             v-model="form.symbol"
@@ -127,25 +151,39 @@ function cancel() {
                                             size="small"
                                             fluid
                                         />
-                                        <small v-if="form.errors.symbol" class="text-red-500">
+                                        <small
+                                            v-if="form.errors.symbol"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.symbol }}
                                         </small>
                                     </div>
 
                                     <div class="flex flex-col gap-2">
-                                        <label for="decimal_places" class="font-medium">Decimal Places *</label>
+                                        <label
+                                            for="decimal_places"
+                                            class="font-medium"
+                                            >Decimal Places *</label
+                                        >
                                         <InputNumber
                                             id="decimal_places"
                                             v-model="form.decimal_places"
-                                            :invalid="!!form.errors.decimal_places"
+                                            :invalid="
+                                                !!form.errors.decimal_places
+                                            "
                                             :min="0"
                                             :max="4"
                                             size="small"
                                             fluid
                                             show-buttons
                                         />
-                                        <small class="text-muted-foreground">0-4 decimal places</small>
-                                        <small v-if="form.errors.decimal_places" class="text-red-500">
+                                        <small class="text-muted-foreground"
+                                            >0-4 decimal places</small
+                                        >
+                                        <small
+                                            v-if="form.errors.decimal_places"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.decimal_places }}
                                         </small>
                                     </div>
@@ -156,14 +194,22 @@ function cancel() {
 
                             <!-- Exchange Rate -->
                             <div>
-                                <h3 class="mb-4 text-lg font-medium">Exchange Rate</h3>
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Exchange Rate
+                                </h3>
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div class="flex flex-col gap-2">
-                                        <label for="exchange_rate" class="font-medium">Exchange Rate (SGD Base)</label>
+                                        <label
+                                            for="exchange_rate"
+                                            class="font-medium"
+                                            >Exchange Rate (SGD Base)</label
+                                        >
                                         <InputNumber
                                             id="exchange_rate"
                                             v-model="form.exchange_rate"
-                                            :invalid="!!form.errors.exchange_rate"
+                                            :invalid="
+                                                !!form.errors.exchange_rate
+                                            "
                                             :min-fraction-digits="2"
                                             :max-fraction-digits="10"
                                             :min="0"
@@ -171,9 +217,14 @@ function cancel() {
                                             fluid
                                         />
                                         <small class="text-muted-foreground">
-                                            Rate relative to SGD (1 SGD = X currency). Use "Refresh Rates" to fetch from API.
+                                            Rate relative to SGD (1 SGD = X
+                                            currency). Use "Refresh Rates" to
+                                            fetch from API.
                                         </small>
-                                        <small v-if="form.errors.exchange_rate" class="text-red-500">
+                                        <small
+                                            v-if="form.errors.exchange_rate"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.exchange_rate }}
                                         </small>
                                     </div>
@@ -187,13 +238,23 @@ function cancel() {
                                 <h3 class="mb-4 text-lg font-medium">Status</h3>
                                 <div class="flex items-center gap-3">
                                     <ToggleSwitch v-model="form.active" />
-                                    <span :class="form.active ? 'text-green-600' : 'text-red-600'">
-                                        {{ form.active ? 'Active' : 'Inactive' }}
+                                    <span
+                                        :class="
+                                            form.active
+                                                ? 'text-green-600'
+                                                : 'text-red-600'
+                                        "
+                                    >
+                                        {{
+                                            form.active ? 'Active' : 'Inactive'
+                                        }}
                                     </span>
                                 </div>
                             </div>
 
-                            <div class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                            <div
+                                class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"
+                            >
                                 <Button
                                     type="button"
                                     label="Cancel"
@@ -204,7 +265,11 @@ function cancel() {
                                 />
                                 <Button
                                     type="submit"
-                                    :label="isEditing ? 'Save Changes' : 'Create Currency'"
+                                    :label="
+                                        isEditing
+                                            ? 'Save Changes'
+                                            : 'Create Currency'
+                                    "
                                     size="small"
                                     :loading="form.processing"
                                 />

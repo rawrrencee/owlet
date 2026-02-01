@@ -16,7 +16,13 @@ import Tag from 'primevue/tag';
 import ToggleSwitch from 'primevue/toggleswitch';
 import { computed, reactive, ref, watch } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type Company, type EmployeeContract, type EmployeeInsurance, type PaginatedData } from '@/types';
+import {
+    type BreadcrumbItem,
+    type Company,
+    type EmployeeContract,
+    type EmployeeInsurance,
+    type PaginatedData,
+} from '@/types';
 
 interface ContractWithEmployee extends EmployeeContract {
     employee?: {
@@ -72,7 +78,10 @@ const statusOptions = [
 
 const companyOptions = computed(() => [
     { label: 'All Companies', value: '' },
-    ...(props.companies ?? []).map((c) => ({ label: c.company_name, value: c.id })),
+    ...(props.companies ?? []).map((c) => ({
+        label: c.company_name,
+        value: c.id,
+    })),
 ]);
 
 let searchTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -109,7 +118,9 @@ watch(
 );
 
 function applyFilters() {
-    const params: Record<string, string | number | boolean> = { type: props.type };
+    const params: Record<string, string | number | boolean> = {
+        type: props.type,
+    };
     if (filters.search) params.search = filters.search;
     if (filters.status) params.status = filters.status;
     if (filters.company) params.company = filters.company;
@@ -126,14 +137,25 @@ function clearFilters() {
     router.get('/documents', { type: props.type }, { preserveState: true });
 }
 
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Dashboard', href: '/dashboard' }, { title: 'Documents' }];
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: '/dashboard' },
+    { title: 'Documents' },
+];
 
-const pageTitle = computed(() => (props.type === 'contracts' ? 'Contracts' : 'Insurances'));
+const pageTitle = computed(() =>
+    props.type === 'contracts' ? 'Contracts' : 'Insurances',
+);
 
 const expandedContractRows = ref({});
 const expandedInsuranceRows = ref({});
 
-const hasActiveFilters = computed(() => filters.search || filters.status || filters.company || filters.showDeleted);
+const hasActiveFilters = computed(
+    () =>
+        filters.search ||
+        filters.status ||
+        filters.company ||
+        filters.showDeleted,
+);
 
 function switchType(newType: string | number) {
     filters.search = '';
@@ -148,23 +170,31 @@ function formatDate(dateString: string | null): string {
     return new Date(dateString).toLocaleDateString();
 }
 
-function getEmployeeName(doc: ContractWithEmployee | InsuranceWithEmployee): string {
+function getEmployeeName(
+    doc: ContractWithEmployee | InsuranceWithEmployee,
+): string {
     if (!doc.employee) return '-';
     return `${doc.employee.first_name} ${doc.employee.last_name}`;
 }
 
-function isEmployeeDeleted(doc: ContractWithEmployee | InsuranceWithEmployee): boolean {
+function isEmployeeDeleted(
+    doc: ContractWithEmployee | InsuranceWithEmployee,
+): boolean {
     return doc.employee_is_deleted === true;
 }
 
-function getInitials(doc: ContractWithEmployee | InsuranceWithEmployee): string {
+function getInitials(
+    doc: ContractWithEmployee | InsuranceWithEmployee,
+): string {
     if (!doc.employee) return '?';
     const first = doc.employee.first_name?.charAt(0)?.toUpperCase() ?? '';
     const last = doc.employee.last_name?.charAt(0)?.toUpperCase() ?? '';
     return `${first}${last}`;
 }
 
-function getProfilePictureUrl(doc: ContractWithEmployee | InsuranceWithEmployee): string | undefined {
+function getProfilePictureUrl(
+    doc: ContractWithEmployee | InsuranceWithEmployee,
+): string | undefined {
     return doc.employee?.profile_picture_url ?? undefined;
 }
 
@@ -212,10 +242,16 @@ function navigateToCreate() {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <h1 class="heading-lg">Documents</h1>
                 <Button
-                    :label="type === 'contracts' ? 'Create Contract' : 'Create Insurance'"
+                    :label="
+                        type === 'contracts'
+                            ? 'Create Contract'
+                            : 'Create Insurance'
+                    "
                     icon="pi pi-plus"
                     size="small"
                     @click="navigateToCreate"
@@ -238,7 +274,9 @@ function navigateToCreate() {
                     <InputText
                         v-model="filters.search"
                         :placeholder="
-                            type === 'contracts' ? 'Search by employee name or company...' : 'Search by employee name, title, insurer, or policy...'
+                            type === 'contracts'
+                                ? 'Search by employee name or company...'
+                                : 'Search by employee name, title, insurer, or policy...'
                         "
                         size="small"
                         fluid
@@ -266,7 +304,9 @@ function navigateToCreate() {
                     />
                     <label class="flex cursor-pointer items-center gap-2">
                         <ToggleSwitch v-model="filters.showDeleted" />
-                        <span class="whitespace-nowrap text-sm">Show Deleted</span>
+                        <span class="text-sm whitespace-nowrap"
+                            >Show Deleted</span
+                        >
                     </label>
                     <Button
                         v-if="hasActiveFilters"
@@ -297,20 +337,35 @@ function navigateToCreate() {
                 striped-rows
                 size="small"
                 tableLayout="fixed"
-                class="overflow-hidden rounded-lg border border-border  [&_.p-datatable-tbody>tr]:cursor-pointer"
+                class="overflow-hidden rounded-lg border border-border [&_.p-datatable-tbody>tr]:cursor-pointer"
             >
                 <template #empty>
-                    <div class="p-4 text-center text-muted-foreground">No contracts found.</div>
+                    <div class="p-4 text-center text-muted-foreground">
+                        No contracts found.
+                    </div>
                 </template>
                 <Column expander style="width: 3rem" class="!pr-0 sm:hidden" />
-                <Column header="" :style="{ width: '3.5rem', minWidth: '3.5rem', maxWidth: '3.5rem' }" class="!pl-4 !pr-0">
+                <Column
+                    header=""
+                    :style="{
+                        width: '3.5rem',
+                        minWidth: '3.5rem',
+                        maxWidth: '3.5rem',
+                    }"
+                    class="!pr-0 !pl-4"
+                >
                     <template #body="{ data }">
                         <div v-if="getProfilePictureUrl(data)" @click.stop>
                             <Image
                                 :src="getProfilePictureUrl(data)"
                                 :alt="getEmployeeName(data)"
                                 image-class="!h-8 !w-8 rounded-full object-cover cursor-pointer"
-                                :pt="{ root: { class: 'rounded-full overflow-hidden' }, previewMask: { class: 'rounded-full' } }"
+                                :pt="{
+                                    root: {
+                                        class: 'rounded-full overflow-hidden',
+                                    },
+                                    previewMask: { class: 'rounded-full' },
+                                }"
                                 preview
                             />
                         </div>
@@ -322,42 +377,81 @@ function navigateToCreate() {
                         />
                     </template>
                 </Column>
-                <Column field="employee" header="Employee" style="width: 20%" class="!pl-3">
+                <Column
+                    field="employee"
+                    header="Employee"
+                    style="width: 20%"
+                    class="!pl-3"
+                >
                     <template #body="{ data }">
                         <div class="flex items-center gap-2">
                             <span
                                 class="font-medium"
-                                :class="{ 'text-muted-foreground line-through': isEmployeeDeleted(data) }"
+                                :class="{
+                                    'text-muted-foreground line-through':
+                                        isEmployeeDeleted(data),
+                                }"
                             >
                                 {{ getEmployeeName(data) }}
                             </span>
-                            <Tag v-if="isEmployeeDeleted(data)" value="Deleted" severity="danger" class="!text-xs" />
+                            <Tag
+                                v-if="isEmployeeDeleted(data)"
+                                value="Deleted"
+                                severity="danger"
+                                class="!text-xs"
+                            />
                         </div>
                     </template>
                 </Column>
-                <Column field="company" header="Company" style="width: 20%" class="hidden md:table-cell">
+                <Column
+                    field="company"
+                    header="Company"
+                    style="width: 20%"
+                    class="hidden md:table-cell"
+                >
                     <template #body="{ data }">
                         {{ data.company?.company_name ?? '-' }}
                     </template>
                 </Column>
-                <Column field="start_date" header="Start Date" style="width: 12%" class="hidden sm:table-cell">
+                <Column
+                    field="start_date"
+                    header="Start Date"
+                    style="width: 12%"
+                    class="hidden sm:table-cell"
+                >
                     <template #body="{ data }">
                         {{ formatDate(data.start_date) }}
                     </template>
                 </Column>
-                <Column field="end_date" header="End Date" style="width: 12%" class="hidden lg:table-cell">
+                <Column
+                    field="end_date"
+                    header="End Date"
+                    style="width: 12%"
+                    class="hidden lg:table-cell"
+                >
                     <template #body="{ data }">
                         {{ formatDate(data.end_date) }}
                     </template>
                 </Column>
                 <Column header="Status" style="width: 6rem">
                     <template #body="{ data }">
-                        <Tag :value="data.is_active ? 'Active' : 'Expired'" :severity="data.is_active ? 'success' : 'secondary'" />
+                        <Tag
+                            :value="data.is_active ? 'Active' : 'Expired'"
+                            :severity="data.is_active ? 'success' : 'secondary'"
+                        />
                     </template>
                 </Column>
-                <Column header="Doc" style="width: 3rem" class="hidden sm:table-cell">
+                <Column
+                    header="Doc"
+                    style="width: 3rem"
+                    class="hidden sm:table-cell"
+                >
                     <template #body="{ data }">
-                        <i v-if="data.has_document" class="pi pi-file text-muted-foreground" v-tooltip.top="'Has document'" />
+                        <i
+                            v-if="data.has_document"
+                            class="pi pi-file text-muted-foreground"
+                            v-tooltip.top="'Has document'"
+                        />
                     </template>
                 </Column>
                 <Column header="" style="width: 3.5rem" class="!pr-4">
@@ -377,22 +471,47 @@ function navigateToCreate() {
                 </Column>
                 <template #expansion="{ data }">
                     <div class="grid gap-3 p-3 text-sm sm:hidden">
-                        <div class="flex justify-between gap-4 border-b border-border pb-2">
-                            <span class="shrink-0 text-muted-foreground">Company</span>
-                            <span class="text-right">{{ data.company?.company_name ?? '-' }}</span>
+                        <div
+                            class="flex justify-between gap-4 border-b border-border pb-2"
+                        >
+                            <span class="shrink-0 text-muted-foreground"
+                                >Company</span
+                            >
+                            <span class="text-right">{{
+                                data.company?.company_name ?? '-'
+                            }}</span>
                         </div>
-                        <div class="flex justify-between gap-4 border-b border-border pb-2">
-                            <span class="shrink-0 text-muted-foreground">Start Date</span>
-                            <span class="text-right">{{ formatDate(data.start_date) }}</span>
+                        <div
+                            class="flex justify-between gap-4 border-b border-border pb-2"
+                        >
+                            <span class="shrink-0 text-muted-foreground"
+                                >Start Date</span
+                            >
+                            <span class="text-right">{{
+                                formatDate(data.start_date)
+                            }}</span>
                         </div>
-                        <div class="flex justify-between gap-4 border-b border-border pb-2">
-                            <span class="shrink-0 text-muted-foreground">End Date</span>
-                            <span class="text-right">{{ formatDate(data.end_date) }}</span>
+                        <div
+                            class="flex justify-between gap-4 border-b border-border pb-2"
+                        >
+                            <span class="shrink-0 text-muted-foreground"
+                                >End Date</span
+                            >
+                            <span class="text-right">{{
+                                formatDate(data.end_date)
+                            }}</span>
                         </div>
-                        <div class="flex justify-between gap-4 border-b border-border pb-2">
-                            <span class="shrink-0 text-muted-foreground">Document</span>
+                        <div
+                            class="flex justify-between gap-4 border-b border-border pb-2"
+                        >
+                            <span class="shrink-0 text-muted-foreground"
+                                >Document</span
+                            >
                             <span class="text-right">
-                                <i v-if="data.has_document" class="pi pi-file text-primary" />
+                                <i
+                                    v-if="data.has_document"
+                                    class="pi pi-file text-primary"
+                                />
                                 <span v-else>-</span>
                             </span>
                         </div>
@@ -427,20 +546,35 @@ function navigateToCreate() {
                 striped-rows
                 size="small"
                 tableLayout="fixed"
-                class="overflow-hidden rounded-lg border border-border  [&_.p-datatable-tbody>tr]:cursor-pointer"
+                class="overflow-hidden rounded-lg border border-border [&_.p-datatable-tbody>tr]:cursor-pointer"
             >
                 <template #empty>
-                    <div class="p-4 text-center text-muted-foreground">No insurances found.</div>
+                    <div class="p-4 text-center text-muted-foreground">
+                        No insurances found.
+                    </div>
                 </template>
                 <Column expander style="width: 3rem" class="!pr-0 sm:hidden" />
-                <Column header="" :style="{ width: '3.5rem', minWidth: '3.5rem', maxWidth: '3.5rem' }" class="!pl-4 !pr-0">
+                <Column
+                    header=""
+                    :style="{
+                        width: '3.5rem',
+                        minWidth: '3.5rem',
+                        maxWidth: '3.5rem',
+                    }"
+                    class="!pr-0 !pl-4"
+                >
                     <template #body="{ data }">
                         <div v-if="getProfilePictureUrl(data)" @click.stop>
                             <Image
                                 :src="getProfilePictureUrl(data)"
                                 :alt="getEmployeeName(data)"
                                 image-class="!h-8 !w-8 rounded-full object-cover cursor-pointer"
-                                :pt="{ root: { class: 'rounded-full overflow-hidden' }, previewMask: { class: 'rounded-full' } }"
+                                :pt="{
+                                    root: {
+                                        class: 'rounded-full overflow-hidden',
+                                    },
+                                    previewMask: { class: 'rounded-full' },
+                                }"
                                 preview
                             />
                         </div>
@@ -452,47 +586,91 @@ function navigateToCreate() {
                         />
                     </template>
                 </Column>
-                <Column field="employee" header="Employee" style="width: 20%" class="!pl-3">
+                <Column
+                    field="employee"
+                    header="Employee"
+                    style="width: 20%"
+                    class="!pl-3"
+                >
                     <template #body="{ data }">
                         <div class="flex items-center gap-2">
                             <span
                                 class="font-medium"
-                                :class="{ 'text-muted-foreground line-through': isEmployeeDeleted(data) }"
+                                :class="{
+                                    'text-muted-foreground line-through':
+                                        isEmployeeDeleted(data),
+                                }"
                             >
                                 {{ getEmployeeName(data) }}
                             </span>
-                            <Tag v-if="isEmployeeDeleted(data)" value="Deleted" severity="danger" class="!text-xs" />
+                            <Tag
+                                v-if="isEmployeeDeleted(data)"
+                                value="Deleted"
+                                severity="danger"
+                                class="!text-xs"
+                            />
                         </div>
                     </template>
                 </Column>
-                <Column field="title" header="Title" style="width: 20%" class="hidden sm:table-cell">
+                <Column
+                    field="title"
+                    header="Title"
+                    style="width: 20%"
+                    class="hidden sm:table-cell"
+                >
                     <template #body="{ data }">
                         {{ data.title }}
                     </template>
                 </Column>
-                <Column field="insurer_name" header="Insurer" style="width: 15%" class="hidden md:table-cell">
+                <Column
+                    field="insurer_name"
+                    header="Insurer"
+                    style="width: 15%"
+                    class="hidden md:table-cell"
+                >
                     <template #body="{ data }">
                         {{ data.insurer_name }}
                     </template>
                 </Column>
-                <Column field="start_date" header="Start Date" style="width: 12%" class="hidden lg:table-cell">
+                <Column
+                    field="start_date"
+                    header="Start Date"
+                    style="width: 12%"
+                    class="hidden lg:table-cell"
+                >
                     <template #body="{ data }">
                         {{ formatDate(data.start_date) }}
                     </template>
                 </Column>
-                <Column field="end_date" header="End Date" style="width: 12%" class="hidden xl:table-cell">
+                <Column
+                    field="end_date"
+                    header="End Date"
+                    style="width: 12%"
+                    class="hidden xl:table-cell"
+                >
                     <template #body="{ data }">
                         {{ formatDate(data.end_date) }}
                     </template>
                 </Column>
                 <Column header="Status" style="width: 6rem">
                     <template #body="{ data }">
-                        <Tag :value="data.is_active ? 'Active' : 'Expired'" :severity="data.is_active ? 'success' : 'secondary'" />
+                        <Tag
+                            :value="data.is_active ? 'Active' : 'Expired'"
+                            :severity="data.is_active ? 'success' : 'secondary'"
+                        />
                     </template>
                 </Column>
-                <Column header="Doc" style="width: 3rem" class="hidden sm:table-cell">
+                <Column
+                    header="Doc"
+                    style="width: 3rem"
+                    class="hidden sm:table-cell"
+                >
                     <template #body="{ data }">
-                        <i v-if="data.has_document" class="pi pi-file text-muted-foreground" v-tooltip.top="'Has document'" />
+                        <i
+                            v-if="data.has_document"
+                            class="pi pi-file text-muted-foreground"
+                            v-tooltip.top="'Has document'"
+                        />
                     </template>
                 </Column>
                 <Column header="" style="width: 3.5rem" class="!pr-4">
@@ -512,26 +690,55 @@ function navigateToCreate() {
                 </Column>
                 <template #expansion="{ data }">
                     <div class="grid gap-3 p-3 text-sm sm:hidden">
-                        <div class="flex justify-between gap-4 border-b border-border pb-2">
-                            <span class="shrink-0 text-muted-foreground">Title</span>
+                        <div
+                            class="flex justify-between gap-4 border-b border-border pb-2"
+                        >
+                            <span class="shrink-0 text-muted-foreground"
+                                >Title</span
+                            >
                             <span class="text-right">{{ data.title }}</span>
                         </div>
-                        <div class="flex justify-between gap-4 border-b border-border pb-2">
-                            <span class="shrink-0 text-muted-foreground">Insurer</span>
-                            <span class="text-right">{{ data.insurer_name }}</span>
+                        <div
+                            class="flex justify-between gap-4 border-b border-border pb-2"
+                        >
+                            <span class="shrink-0 text-muted-foreground"
+                                >Insurer</span
+                            >
+                            <span class="text-right">{{
+                                data.insurer_name
+                            }}</span>
                         </div>
-                        <div class="flex justify-between gap-4 border-b border-border pb-2">
-                            <span class="shrink-0 text-muted-foreground">Start Date</span>
-                            <span class="text-right">{{ formatDate(data.start_date) }}</span>
+                        <div
+                            class="flex justify-between gap-4 border-b border-border pb-2"
+                        >
+                            <span class="shrink-0 text-muted-foreground"
+                                >Start Date</span
+                            >
+                            <span class="text-right">{{
+                                formatDate(data.start_date)
+                            }}</span>
                         </div>
-                        <div class="flex justify-between gap-4 border-b border-border pb-2">
-                            <span class="shrink-0 text-muted-foreground">End Date</span>
-                            <span class="text-right">{{ formatDate(data.end_date) }}</span>
+                        <div
+                            class="flex justify-between gap-4 border-b border-border pb-2"
+                        >
+                            <span class="shrink-0 text-muted-foreground"
+                                >End Date</span
+                            >
+                            <span class="text-right">{{
+                                formatDate(data.end_date)
+                            }}</span>
                         </div>
-                        <div class="flex justify-between gap-4 border-b border-border pb-2">
-                            <span class="shrink-0 text-muted-foreground">Document</span>
+                        <div
+                            class="flex justify-between gap-4 border-b border-border pb-2"
+                        >
+                            <span class="shrink-0 text-muted-foreground"
+                                >Document</span
+                            >
                             <span class="text-right">
-                                <i v-if="data.has_document" class="pi pi-file text-primary" />
+                                <i
+                                    v-if="data.has_document"
+                                    class="pi pi-file text-primary"
+                                />
                                 <span v-else>-</span>
                             </span>
                         </div>

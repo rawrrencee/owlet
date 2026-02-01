@@ -39,7 +39,9 @@ function toggleMonthPicker(event: Event) {
     monthPickerPopover.value.toggle(event);
 }
 
-function handleMonthSelect(value: Date | Date[] | (Date | null)[] | null | undefined) {
+function handleMonthSelect(
+    value: Date | Date[] | (Date | null)[] | null | undefined,
+) {
     const date = Array.isArray(value) ? value[0] : value;
     if (!date) return;
     const newMonth = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -135,7 +137,7 @@ function previousMonth() {
     const newMonth = new Date(
         currentMonth.value.getFullYear(),
         currentMonth.value.getMonth() - 1,
-        1
+        1,
     );
     currentMonth.value = newMonth;
     emit('monthChange', newMonth);
@@ -145,7 +147,7 @@ function nextMonth() {
     const newMonth = new Date(
         currentMonth.value.getFullYear(),
         currentMonth.value.getMonth() + 1,
-        1
+        1,
     );
     currentMonth.value = newMonth;
     emit('monthChange', newMonth);
@@ -221,7 +223,8 @@ function formatHours(hours: number): string {
                 :key="day.dateString"
                 class="min-h-[60px] cursor-pointer rounded-lg border p-1 transition-colors sm:min-h-[80px] sm:p-2"
                 :class="{
-                    'border-primary bg-primary/5': selectedDate === day.dateString,
+                    'border-primary bg-primary/5':
+                        selectedDate === day.dateString,
                     'bg-muted/30': !day.isCurrentMonth,
                     'border-primary/50 ring-1 ring-primary/30': day.isToday,
                     'hover:bg-muted/50': day.isCurrentMonth,
@@ -251,7 +254,11 @@ function formatHours(hours: number): string {
                             class="text-xs text-muted-foreground"
                         >
                             {{ day.data.employee_count }}
-                            {{ day.data.employee_count === 1 ? 'person' : 'people' }}
+                            {{
+                                day.data.employee_count === 1
+                                    ? 'person'
+                                    : 'people'
+                            }}
                         </span>
                     </template>
                 </div>

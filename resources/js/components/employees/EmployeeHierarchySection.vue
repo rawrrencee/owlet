@@ -41,7 +41,8 @@ async function fetchHierarchyData() {
         });
         const data = await response.json();
         hierarchyData.value = data;
-        visibilityForm.visible_sections = data.visibility_settings?.visible_sections ?? [];
+        visibilityForm.visible_sections =
+            data.visibility_settings?.visible_sections ?? [];
     } catch (error) {
         console.error('Failed to fetch hierarchy data:', error);
     } finally {
@@ -89,12 +90,15 @@ function confirmRemoveSubordinate(subordinate: SubordinateInfo) {
             size: 'small',
         },
         accept: () => {
-            router.delete(`/users/${props.employeeId}/hierarchy/${subordinate.id}`, {
-                preserveScroll: true,
-                onSuccess: () => {
-                    fetchHierarchyData();
+            router.delete(
+                `/users/${props.employeeId}/hierarchy/${subordinate.id}`,
+                {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        fetchHierarchyData();
+                    },
                 },
-            });
+            );
         },
     });
 }
@@ -150,7 +154,11 @@ function getTierColor(tier: number): string {
             <h3 class="text-lg font-medium">Subordinates</h3>
             <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
                 <div class="flex-1">
-                    <label for="subordinate_select" class="mb-2 block text-sm font-medium">Add Subordinate</label>
+                    <label
+                        for="subordinate_select"
+                        class="mb-2 block text-sm font-medium"
+                        >Add Subordinate</label
+                    >
                     <Select
                         id="subordinate_select"
                         v-model="selectedSubordinateId"
@@ -162,7 +170,9 @@ function getTierColor(tier: number): string {
                         size="small"
                         fluid
                         :loading="loading"
-                        :disabled="!hierarchyData?.available_subordinates?.length"
+                        :disabled="
+                            !hierarchyData?.available_subordinates?.length
+                        "
                     />
                 </div>
                 <Button
@@ -187,7 +197,8 @@ function getTierColor(tier: number): string {
             >
                 <template #empty>
                     <div class="p-4 text-center text-muted-foreground">
-                        No subordinates assigned. Use the dropdown above to add subordinates.
+                        No subordinates assigned. Use the dropdown above to add
+                        subordinates.
                     </div>
                 </template>
                 <Column expander style="width: 3rem" class="!pr-0 sm:hidden" />
@@ -209,7 +220,10 @@ function getTierColor(tier: number): string {
                             />
                             <div class="flex flex-col">
                                 <span class="font-medium">{{ data.name }}</span>
-                                <span v-if="data.employee_number" class="text-xs text-muted-foreground">
+                                <span
+                                    v-if="data.employee_number"
+                                    class="text-xs text-muted-foreground"
+                                >
                                     {{ data.employee_number }}
                                 </span>
                             </div>
@@ -221,7 +235,7 @@ function getTierColor(tier: number): string {
                         {{ data.email ?? '-' }}
                     </template>
                 </Column>
-                <Column header="" class="w-20 hidden sm:table-cell">
+                <Column header="" class="hidden w-20 sm:table-cell">
                     <template #body="{ data }">
                         <div class="flex justify-end">
                             <Button
@@ -238,9 +252,15 @@ function getTierColor(tier: number): string {
                 </Column>
                 <template #expansion="{ data }">
                     <div class="grid gap-3 p-3 text-sm sm:hidden">
-                        <div class="flex justify-between gap-4 border-b border-border pb-2">
-                            <span class="shrink-0 text-muted-foreground">Email</span>
-                            <span class="text-right">{{ data.email ?? '-' }}</span>
+                        <div
+                            class="flex justify-between gap-4 border-b border-border pb-2"
+                        >
+                            <span class="shrink-0 text-muted-foreground"
+                                >Email</span
+                            >
+                            <span class="text-right">{{
+                                data.email ?? '-'
+                            }}</span>
                         </div>
                         <div class="flex justify-end gap-1 pt-1">
                             <Button
@@ -264,24 +284,38 @@ function getTierColor(tier: number): string {
             <div>
                 <h3 class="text-lg font-medium">Visibility Settings</h3>
                 <p class="text-sm text-muted-foreground">
-                    Choose what information this employee can see about their subordinates in "My Team".
+                    Choose what information this employee can see about their
+                    subordinates in "My Team".
                 </p>
             </div>
-            <div class="flex flex-col gap-3 rounded-lg border border-border p-4">
+            <div
+                class="flex flex-col gap-3 rounded-lg border border-border p-4"
+            >
                 <div
-                    v-for="(label, key) in hierarchyData?.available_sections ?? {}"
+                    v-for="(label, key) in hierarchyData?.available_sections ??
+                    {}"
                     :key="key"
                     class="flex items-center gap-3"
                 >
                     <Checkbox
-                        :model-value="visibilityForm.visible_sections.includes(key as string)"
+                        :model-value="
+                            visibilityForm.visible_sections.includes(
+                                key as string,
+                            )
+                        "
                         binary
                         @change="toggleSection(key as string)"
                         :disabled="saving"
                     />
                     <span>{{ label }}</span>
                 </div>
-                <div v-if="!Object.keys(hierarchyData?.available_sections ?? {}).length && !loading" class="text-sm text-muted-foreground">
+                <div
+                    v-if="
+                        !Object.keys(hierarchyData?.available_sections ?? {})
+                            .length && !loading
+                    "
+                    class="text-sm text-muted-foreground"
+                >
                     No visibility options available.
                 </div>
             </div>
@@ -294,10 +328,14 @@ function getTierColor(tier: number): string {
             <div>
                 <h3 class="text-lg font-medium">Hierarchy Preview</h3>
                 <p class="text-sm text-muted-foreground">
-                    Visual representation of this employee's position in the hierarchy.
+                    Visual representation of this employee's position in the
+                    hierarchy.
                 </p>
             </div>
-            <div v-if="hierarchyData?.subtree?.length" class="overflow-x-auto rounded-lg border border-border p-4">
+            <div
+                v-if="hierarchyData?.subtree?.length"
+                class="overflow-x-auto rounded-lg border border-border p-4"
+            >
                 <OrganizationChart
                     v-for="node in hierarchyData.subtree"
                     :key="node.key"
@@ -320,8 +358,13 @@ function getTierColor(tier: number): string {
                                 class="bg-primary/10 text-primary"
                             />
                             <div class="text-center">
-                                <div class="text-sm font-medium">{{ chartNode.data.name }}</div>
-                                <div v-if="chartNode.data.designation" class="text-xs text-muted-foreground">
+                                <div class="text-sm font-medium">
+                                    {{ chartNode.data.name }}
+                                </div>
+                                <div
+                                    v-if="chartNode.data.designation"
+                                    class="text-xs text-muted-foreground"
+                                >
                                     {{ chartNode.data.designation }}
                                 </div>
                             </div>
@@ -334,7 +377,10 @@ function getTierColor(tier: number): string {
                     </template>
                 </OrganizationChart>
             </div>
-            <div v-else-if="!loading" class="rounded-lg border border-dashed border-border p-6 text-center text-muted-foreground">
+            <div
+                v-else-if="!loading"
+                class="rounded-lg border border-dashed border-border p-6 text-center text-muted-foreground"
+            >
                 <i class="pi pi-sitemap mb-2 text-2xl"></i>
                 <p>No subordinates in hierarchy.</p>
             </div>

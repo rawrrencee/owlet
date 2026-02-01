@@ -17,7 +17,12 @@ import { computed, reactive, ref, watch } from 'vue';
 import PagePermissionsSplitButton from '@/components/admin/PagePermissionsSplitButton.vue';
 import { usePermissions } from '@/composables/usePermissions';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type Company, type PaginatedData, type Store } from '@/types';
+import {
+    type BreadcrumbItem,
+    type Company,
+    type PaginatedData,
+    type Store,
+} from '@/types';
 
 interface Filters {
     search?: string;
@@ -56,7 +61,7 @@ const statusOptions = [
 
 const companyOptions = computed(() => [
     { label: 'All Companies', value: '' },
-    ...props.companies.map(c => ({ label: c.company_name, value: c.id })),
+    ...props.companies.map((c) => ({ label: c.company_name, value: c.id })),
 ]);
 
 let searchTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -116,7 +121,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const expandedRows = ref({});
-const hasActiveFilters = computed(() => filters.search || filters.status || filters.company_id || filters.showDeleted);
+const hasActiveFilters = computed(
+    () =>
+        filters.search ||
+        filters.status ||
+        filters.company_id ||
+        filters.showDeleted,
+);
 const confirm = useConfirm();
 
 function getInitials(store: Store): string {
@@ -187,7 +198,9 @@ function onRowClick(event: { data: Store }) {
 
 function onPage(event: { page: number; rows: number }) {
     perPage.value = event.rows;
-    const params: Record<string, string | number | boolean> = { page: event.page + 1 };
+    const params: Record<string, string | number | boolean> = {
+        page: event.page + 1,
+    };
     if (filters.search) params.search = filters.search;
     if (filters.status) params.status = filters.status;
     if (filters.company_id) params.company_id = filters.company_id;
@@ -202,7 +215,9 @@ function onPage(event: { page: number; rows: number }) {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <h1 class="heading-lg">Stores</h1>
                 <PagePermissionsSplitButton
                     page="stores"
@@ -213,7 +228,9 @@ function onPage(event: { page: number; rows: number }) {
             </div>
 
             <!-- Filter Section -->
-            <div class="filter-section flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div
+                class="filter-section flex flex-col gap-3 sm:flex-row sm:items-center"
+            >
                 <IconField class="flex-1">
                     <InputIcon class="pi pi-search" />
                     <InputText
@@ -244,7 +261,9 @@ function onPage(event: { page: number; rows: number }) {
                     />
                     <label class="flex cursor-pointer items-center gap-2">
                         <ToggleSwitch v-model="filters.showDeleted" />
-                        <span class="whitespace-nowrap text-sm">Show Deleted</span>
+                        <span class="text-sm whitespace-nowrap"
+                            >Show Deleted</span
+                        >
                     </label>
                     <Button
                         v-if="hasActiveFilters"
@@ -268,12 +287,12 @@ function onPage(event: { page: number; rows: number }) {
                 :rows="perPage"
                 :rows-per-page-options="[10, 15, 25, 50]"
                 :total-records="stores.total"
-                :first="((stores.current_page - 1) * perPage)"
+                :first="(stores.current_page - 1) * perPage"
                 @page="onPage"
                 @row-click="onRowClick"
                 striped-rows
                 size="small"
-                class="overflow-hidden rounded-lg border border-border  [&_.p-datatable-tbody>tr]:cursor-pointer"
+                class="overflow-hidden rounded-lg border border-border [&_.p-datatable-tbody>tr]:cursor-pointer"
             >
                 <template #empty>
                     <div class="p-4 text-center text-muted-foreground">
@@ -281,14 +300,19 @@ function onPage(event: { page: number; rows: number }) {
                     </div>
                 </template>
                 <Column expander class="w-12 !pr-0 md:hidden" />
-                <Column header="" class="w-12 !pl-4 !pr-0">
+                <Column header="" class="w-12 !pr-0 !pl-4">
                     <template #body="{ data }">
                         <div v-if="data.logo_url" @click.stop>
                             <Image
                                 :src="data.logo_url"
                                 :alt="data.store_name"
                                 image-class="h-8 w-8 rounded-full object-cover cursor-pointer"
-                                :pt="{ root: { class: 'rounded-full overflow-hidden' }, previewMask: { class: 'rounded-full' } }"
+                                :pt="{
+                                    root: {
+                                        class: 'rounded-full overflow-hidden',
+                                    },
+                                    previewMask: { class: 'rounded-full' },
+                                }"
                                 preview
                             />
                         </div>
@@ -305,11 +329,19 @@ function onPage(event: { page: number; rows: number }) {
                         <div class="flex items-center gap-2">
                             <span
                                 class="font-medium"
-                                :class="{ 'text-muted-foreground line-through': isDeleted(data) }"
+                                :class="{
+                                    'text-muted-foreground line-through':
+                                        isDeleted(data),
+                                }"
                             >
                                 {{ data.store_name }}
                             </span>
-                            <Tag v-if="isDeleted(data)" value="Deleted" severity="danger" class="!text-xs" />
+                            <Tag
+                                v-if="isDeleted(data)"
+                                value="Deleted"
+                                severity="danger"
+                                class="!text-xs"
+                            />
                         </div>
                     </template>
                 </Column>
@@ -318,22 +350,41 @@ function onPage(event: { page: number; rows: number }) {
                         <Tag :value="data.store_code" severity="secondary" />
                     </template>
                 </Column>
-                <Column field="company" header="Company" class="hidden md:table-cell">
+                <Column
+                    field="company"
+                    header="Company"
+                    class="hidden md:table-cell"
+                >
                     <template #body="{ data }">
                         {{ data.company?.company_name ?? '-' }}
                     </template>
                 </Column>
-                <Column field="email" header="Email" class="hidden lg:table-cell">
+                <Column
+                    field="email"
+                    header="Email"
+                    class="hidden lg:table-cell"
+                >
                     <template #body="{ data }">
                         {{ data.email ?? '-' }}
                     </template>
                 </Column>
-                <Column field="store_currencies" header="Currency" class="hidden lg:table-cell">
+                <Column
+                    field="store_currencies"
+                    header="Currency"
+                    class="hidden lg:table-cell"
+                >
                     <template #body="{ data }">
                         <div class="flex items-center gap-1">
-                            <template v-if="data.store_currencies && data.store_currencies.length > 0">
+                            <template
+                                v-if="
+                                    data.store_currencies &&
+                                    data.store_currencies.length > 0
+                                "
+                            >
                                 <Tag
-                                    :value="data.store_currencies[0].currency?.code"
+                                    :value="
+                                        data.store_currencies[0].currency?.code
+                                    "
                                     severity="secondary"
                                 />
                                 <Tag
@@ -341,7 +392,12 @@ function onPage(event: { page: number; rows: number }) {
                                     :value="`+${data.store_currencies.length - 1}`"
                                     severity="info"
                                     class="!text-xs"
-                                    v-tooltip.top="data.store_currencies.slice(1).map((sc: any) => sc.currency?.code).join(', ')"
+                                    v-tooltip.top="
+                                        data.store_currencies
+                                            .slice(1)
+                                            .map((sc: any) => sc.currency?.code)
+                                            .join(', ')
+                                    "
                                 />
                             </template>
                             <span v-else class="text-muted-foreground">-</span>
@@ -358,7 +414,10 @@ function onPage(event: { page: number; rows: number }) {
                 </Column>
                 <Column header="" class="w-24 !pr-4">
                     <template #body="{ data }">
-                        <div v-if="isDeleted(data)" class="flex justify-end gap-1">
+                        <div
+                            v-if="isDeleted(data)"
+                            class="flex justify-end gap-1"
+                        >
                             <Button
                                 v-if="canManageStores"
                                 icon="pi pi-history"
@@ -393,28 +452,46 @@ function onPage(event: { page: number; rows: number }) {
                 </Column>
                 <template #expansion="{ data }">
                     <div class="grid gap-3 p-3 text-sm md:hidden">
-                        <div class="flex justify-between border-b border-border pb-2">
+                        <div
+                            class="flex justify-between border-b border-border pb-2"
+                        >
                             <span class="text-muted-foreground">Company</span>
                             <span>{{ data.company?.company_name ?? '-' }}</span>
                         </div>
-                        <div class="flex justify-between border-b border-border pb-2">
+                        <div
+                            class="flex justify-between border-b border-border pb-2"
+                        >
                             <span class="text-muted-foreground">Email</span>
                             <span>{{ data.email ?? '-' }}</span>
                         </div>
-                        <div class="flex justify-between border-b border-border pb-2">
+                        <div
+                            class="flex justify-between border-b border-border pb-2"
+                        >
                             <span class="text-muted-foreground">Phone</span>
                             <span>{{ data.phone_number ?? '-' }}</span>
                         </div>
-                        <div class="flex justify-between border-b border-border pb-2">
+                        <div
+                            class="flex justify-between border-b border-border pb-2"
+                        >
                             <span class="text-muted-foreground">Website</span>
                             <span>{{ data.website ?? '-' }}</span>
                         </div>
-                        <div class="flex justify-between border-b border-border pb-2 lg:hidden">
+                        <div
+                            class="flex justify-between border-b border-border pb-2 lg:hidden"
+                        >
                             <span class="text-muted-foreground">Currency</span>
                             <div class="flex items-center gap-1">
-                                <template v-if="data.store_currencies && data.store_currencies.length > 0">
+                                <template
+                                    v-if="
+                                        data.store_currencies &&
+                                        data.store_currencies.length > 0
+                                    "
+                                >
                                     <Tag
-                                        :value="data.store_currencies[0].currency?.code"
+                                        :value="
+                                            data.store_currencies[0].currency
+                                                ?.code
+                                        "
                                         severity="secondary"
                                     />
                                     <Tag
@@ -427,7 +504,10 @@ function onPage(event: { page: number; rows: number }) {
                                 <span v-else>-</span>
                             </div>
                         </div>
-                        <div v-if="isDeleted(data) && canManageStores" class="flex gap-2 pt-2">
+                        <div
+                            v-if="isDeleted(data) && canManageStores"
+                            class="flex gap-2 pt-2"
+                        >
                             <Button
                                 label="Restore"
                                 icon="pi pi-history"
@@ -437,7 +517,10 @@ function onPage(event: { page: number; rows: number }) {
                                 class="flex-1"
                             />
                         </div>
-                        <div v-else-if="!isDeleted(data)" class="flex gap-2 pt-2">
+                        <div
+                            v-else-if="!isDeleted(data)"
+                            class="flex gap-2 pt-2"
+                        >
                             <Button
                                 label="Edit"
                                 icon="pi pi-pencil"

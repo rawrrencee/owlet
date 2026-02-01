@@ -93,7 +93,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const expandedRows = ref({});
-const hasActiveFilters = computed(() => filters.search || filters.status || filters.showDeleted);
+const hasActiveFilters = computed(
+    () => filters.search || filters.status || filters.showDeleted,
+);
 const confirm = useConfirm();
 
 function getInitials(company: Company): string {
@@ -165,7 +167,9 @@ function confirmRestore(company: Company) {
 
 function onPage(event: { page: number; rows: number }) {
     perPage.value = event.rows;
-    const params: Record<string, string | number | boolean> = { page: event.page + 1 };
+    const params: Record<string, string | number | boolean> = {
+        page: event.page + 1,
+    };
     if (filters.search) params.search = filters.search;
     if (filters.status) params.status = filters.status;
     if (filters.showDeleted) params.show_deleted = true;
@@ -179,7 +183,9 @@ function onPage(event: { page: number; rows: number }) {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <h1 class="heading-lg">Companies</h1>
                 <Button
                     label="Create Company"
@@ -190,7 +196,9 @@ function onPage(event: { page: number; rows: number }) {
             </div>
 
             <!-- Filter Section -->
-            <div class="filter-section flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div
+                class="filter-section flex flex-col gap-3 sm:flex-row sm:items-center"
+            >
                 <IconField class="flex-1">
                     <InputIcon class="pi pi-search" />
                     <InputText
@@ -212,7 +220,9 @@ function onPage(event: { page: number; rows: number }) {
                     />
                     <label class="flex cursor-pointer items-center gap-2">
                         <ToggleSwitch v-model="filters.showDeleted" />
-                        <span class="whitespace-nowrap text-sm">Show Deleted</span>
+                        <span class="text-sm whitespace-nowrap"
+                            >Show Deleted</span
+                        >
                     </label>
                     <Button
                         v-if="hasActiveFilters"
@@ -236,7 +246,7 @@ function onPage(event: { page: number; rows: number }) {
                 :rows="perPage"
                 :rows-per-page-options="[10, 15, 25, 50]"
                 :total-records="companies.total"
-                :first="((companies.current_page - 1) * perPage)"
+                :first="(companies.current_page - 1) * perPage"
                 @page="onPage"
                 @row-click="(e) => navigateToView(e.data)"
                 striped-rows
@@ -249,14 +259,19 @@ function onPage(event: { page: number; rows: number }) {
                     </div>
                 </template>
                 <Column expander class="w-12 !pr-0 md:hidden" />
-                <Column header="" class="w-12 !pl-4 !pr-0">
+                <Column header="" class="w-12 !pr-0 !pl-4">
                     <template #body="{ data }">
                         <div v-if="data.logo_url" @click.stop>
                             <Image
                                 :src="data.logo_url"
                                 :alt="data.company_name"
                                 image-class="h-8 w-8 rounded-full object-cover cursor-pointer"
-                                :pt="{ root: { class: 'rounded-full overflow-hidden' }, previewMask: { class: 'rounded-full' } }"
+                                :pt="{
+                                    root: {
+                                        class: 'rounded-full overflow-hidden',
+                                    },
+                                    previewMask: { class: 'rounded-full' },
+                                }"
                                 preview
                             />
                         </div>
@@ -268,25 +283,45 @@ function onPage(event: { page: number; rows: number }) {
                         />
                     </template>
                 </Column>
-                <Column field="company_name" header="Company Name" class="!pl-3">
+                <Column
+                    field="company_name"
+                    header="Company Name"
+                    class="!pl-3"
+                >
                     <template #body="{ data }">
                         <div class="flex items-center gap-2">
                             <span
                                 class="font-medium"
-                                :class="{ 'text-muted-foreground line-through': isDeleted(data) }"
+                                :class="{
+                                    'text-muted-foreground line-through':
+                                        isDeleted(data),
+                                }"
                             >
                                 {{ data.company_name }}
                             </span>
-                            <Tag v-if="isDeleted(data)" value="Deleted" severity="danger" class="!text-xs" />
+                            <Tag
+                                v-if="isDeleted(data)"
+                                value="Deleted"
+                                severity="danger"
+                                class="!text-xs"
+                            />
                         </div>
                     </template>
                 </Column>
-                <Column field="email" header="Email" class="hidden md:table-cell">
+                <Column
+                    field="email"
+                    header="Email"
+                    class="hidden md:table-cell"
+                >
                     <template #body="{ data }">
                         {{ data.email ?? '-' }}
                     </template>
                 </Column>
-                <Column field="phone_number" header="Phone" class="hidden md:table-cell">
+                <Column
+                    field="phone_number"
+                    header="Phone"
+                    class="hidden md:table-cell"
+                >
                     <template #body="{ data }">
                         {{ data.phone_number ?? '-' }}
                     </template>
@@ -301,7 +336,10 @@ function onPage(event: { page: number; rows: number }) {
                 </Column>
                 <Column header="" class="w-24 !pr-4">
                     <template #body="{ data }">
-                        <div v-if="isDeleted(data)" class="flex justify-end gap-1">
+                        <div
+                            v-if="isDeleted(data)"
+                            class="flex justify-end gap-1"
+                        >
                             <Button
                                 icon="pi pi-history"
                                 severity="success"
@@ -334,15 +372,21 @@ function onPage(event: { page: number; rows: number }) {
                 </Column>
                 <template #expansion="{ data }">
                     <div class="grid gap-3 p-3 text-sm md:hidden">
-                        <div class="flex justify-between border-b border-border pb-2">
+                        <div
+                            class="flex justify-between border-b border-border pb-2"
+                        >
                             <span class="text-muted-foreground">Email</span>
                             <span>{{ data.email ?? '-' }}</span>
                         </div>
-                        <div class="flex justify-between border-b border-border pb-2">
+                        <div
+                            class="flex justify-between border-b border-border pb-2"
+                        >
                             <span class="text-muted-foreground">Phone</span>
                             <span>{{ data.phone_number ?? '-' }}</span>
                         </div>
-                        <div class="flex justify-between border-b border-border pb-2">
+                        <div
+                            class="flex justify-between border-b border-border pb-2"
+                        >
                             <span class="text-muted-foreground">Website</span>
                             <span>{{ data.website ?? '-' }}</span>
                         </div>

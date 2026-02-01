@@ -22,9 +22,9 @@ const props = defineProps<Props>();
 
 const emit = defineEmits<{
     'update:visible': [value: boolean];
-    'deselect': [productId: number];
+    deselect: [productId: number];
     'clear-all': [];
-    'preview': [productId: number];
+    preview: [productId: number];
 }>();
 
 const dialogVisible = computed({
@@ -109,9 +109,14 @@ function handleClose() {
                                     <div class="truncate text-sm font-medium">
                                         {{ item.product_name }}
                                     </div>
-                                    <div class="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <div
+                                        class="flex items-center gap-2 text-xs text-muted-foreground"
+                                    >
                                         <span>{{ item.product_number }}</span>
-                                        <span v-if="item.brand_name" class="truncate">
+                                        <span
+                                            v-if="item.brand_name"
+                                            class="truncate"
+                                        >
                                             {{ item.brand_name }}
                                         </span>
                                     </div>
@@ -134,9 +139,16 @@ function handleClose() {
             </div>
 
             <!-- Empty State -->
-            <div v-else class="flex flex-col items-center justify-center p-8 text-center">
-                <i class="pi pi-inbox mb-3 text-4xl text-muted-foreground/50"></i>
-                <p class="text-sm text-muted-foreground">No products selected</p>
+            <div
+                v-else
+                class="flex flex-col items-center justify-center p-8 text-center"
+            >
+                <i
+                    class="pi pi-inbox mb-3 text-4xl text-muted-foreground/50"
+                ></i>
+                <p class="text-sm text-muted-foreground">
+                    No products selected
+                </p>
             </div>
 
             <!-- Footer -->
@@ -152,14 +164,13 @@ function handleClose() {
                 <span v-else></span>
 
                 <div class="flex items-center gap-2">
-                    <span v-if="products.length > 0" class="text-sm text-muted-foreground">
+                    <span
+                        v-if="products.length > 0"
+                        class="text-sm text-muted-foreground"
+                    >
                         {{ products.length }} selected
                     </span>
-                    <Button
-                        label="Done"
-                        size="small"
-                        @click="handleClose"
-                    />
+                    <Button label="Done" size="small" @click="handleClose" />
                 </div>
             </div>
         </div>

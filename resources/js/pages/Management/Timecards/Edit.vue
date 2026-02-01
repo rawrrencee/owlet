@@ -151,7 +151,7 @@ function handleDetailSubmit() {
                 onSuccess: () => {
                     showDetailDialog.value = false;
                 },
-            }
+            },
         );
     } else {
         router.post(
@@ -162,7 +162,7 @@ function handleDetailSubmit() {
                 onSuccess: () => {
                     showDetailDialog.value = false;
                 },
-            }
+            },
         );
     }
 }
@@ -185,7 +185,7 @@ function confirmDeleteDetail(detail: TimecardDetail) {
         accept: () => {
             router.delete(
                 `/management/timecards/${props.timecard.id}/details/${detail.id}`,
-                { preserveScroll: true }
+                { preserveScroll: true },
             );
         },
     });
@@ -193,7 +193,8 @@ function confirmDeleteDetail(detail: TimecardDetail) {
 
 function confirmDeleteTimecard() {
     confirm.require({
-        message: 'Are you sure you want to delete this timecard? This will also delete all time entries.',
+        message:
+            'Are you sure you want to delete this timecard? This will also delete all time entries.',
         header: 'Delete Timecard',
         icon: 'pi pi-exclamation-triangle',
         rejectLabel: 'Cancel',
@@ -219,11 +220,16 @@ function confirmDeleteTimecard() {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <!-- Header -->
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <div class="flex items-center gap-3">
                     <BackButton fallback-url="/management/timecards" />
                     <h1 class="heading-lg">Edit Timecard #{{ timecard.id }}</h1>
-                    <Tag :value="timecard.status_label" :severity="getStatusSeverity()" />
+                    <Tag
+                        :value="timecard.status_label"
+                        :severity="getStatusSeverity()"
+                    />
                 </div>
                 <Button
                     label="Delete Timecard"
@@ -239,15 +245,26 @@ function confirmDeleteTimecard() {
                 <!-- Timecard Info -->
                 <Card>
                     <template #title>
-                        <span class="text-base font-semibold">Timecard Information</span>
+                        <span class="text-base font-semibold"
+                            >Timecard Information</span
+                        >
                     </template>
                     <template #content>
-                        <form @submit.prevent="handleTimecardSubmit" class="flex flex-col gap-4">
+                        <form
+                            @submit.prevent="handleTimecardSubmit"
+                            class="flex flex-col gap-4"
+                        >
                             <!-- Employee (read-only) -->
-                            <div class="flex items-center gap-3 rounded-lg bg-muted/50 p-3">
+                            <div
+                                class="flex items-center gap-3 rounded-lg bg-muted/50 p-3"
+                            >
                                 <Avatar
-                                    v-if="timecard.employee?.profile_picture_url"
-                                    :image="timecard.employee.profile_picture_url"
+                                    v-if="
+                                        timecard.employee?.profile_picture_url
+                                    "
+                                    :image="
+                                        timecard.employee.profile_picture_url
+                                    "
                                     shape="circle"
                                 />
                                 <Avatar
@@ -257,9 +274,13 @@ function confirmDeleteTimecard() {
                                     class="bg-primary/10 text-primary"
                                 />
                                 <div>
-                                    <p class="font-semibold">{{ timecard.employee?.name }}</p>
+                                    <p class="font-semibold">
+                                        {{ timecard.employee?.name }}
+                                    </p>
                                     <p
-                                        v-if="timecard.employee?.employee_number"
+                                        v-if="
+                                            timecard.employee?.employee_number
+                                        "
                                         class="text-sm text-muted-foreground"
                                     >
                                         #{{ timecard.employee.employee_number }}
@@ -269,7 +290,11 @@ function confirmDeleteTimecard() {
 
                             <!-- Store -->
                             <div class="flex flex-col gap-2">
-                                <label for="store_id" class="text-sm font-medium">Store</label>
+                                <label
+                                    for="store_id"
+                                    class="text-sm font-medium"
+                                    >Store</label
+                                >
                                 <Select
                                     id="store_id"
                                     v-model="timecardForm.store_id"
@@ -279,14 +304,19 @@ function confirmDeleteTimecard() {
                                     size="small"
                                     :invalid="!!timecardForm.errors.store_id"
                                 />
-                                <small v-if="timecardForm.errors.store_id" class="text-red-500">
+                                <small
+                                    v-if="timecardForm.errors.store_id"
+                                    class="text-red-500"
+                                >
                                     {{ timecardForm.errors.store_id }}
                                 </small>
                             </div>
 
                             <!-- Status -->
                             <div class="flex flex-col gap-2">
-                                <label for="status" class="text-sm font-medium">Status</label>
+                                <label for="status" class="text-sm font-medium"
+                                    >Status</label
+                                >
                                 <Select
                                     id="status"
                                     v-model="timecardForm.status"
@@ -296,7 +326,10 @@ function confirmDeleteTimecard() {
                                     size="small"
                                     :invalid="!!timecardForm.errors.status"
                                 />
-                                <small v-if="timecardForm.errors.status" class="text-red-500">
+                                <small
+                                    v-if="timecardForm.errors.status"
+                                    class="text-red-500"
+                                >
                                     {{ timecardForm.errors.status }}
                                 </small>
                             </div>
@@ -306,15 +339,25 @@ function confirmDeleteTimecard() {
                             <!-- Summary -->
                             <div class="grid gap-2 text-sm">
                                 <div class="flex justify-between">
-                                    <span class="text-muted-foreground">Start Time</span>
-                                    <span>{{ formatDateTime(timecard.start_date) }}</span>
+                                    <span class="text-muted-foreground"
+                                        >Start Time</span
+                                    >
+                                    <span>{{
+                                        formatDateTime(timecard.start_date)
+                                    }}</span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-muted-foreground">End Time</span>
-                                    <span>{{ formatDateTime(timecard.end_date) }}</span>
+                                    <span class="text-muted-foreground"
+                                        >End Time</span
+                                    >
+                                    <span>{{
+                                        formatDateTime(timecard.end_date)
+                                    }}</span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-muted-foreground">Total Hours Worked</span>
+                                    <span class="text-muted-foreground"
+                                        >Total Hours Worked</span
+                                    >
                                     <span class="font-bold text-green-600">
                                         {{ formatHours(timecard.hours_worked) }}
                                     </span>
@@ -337,7 +380,9 @@ function confirmDeleteTimecard() {
                 <!-- Time Entries -->
                 <Card>
                     <template #title>
-                        <span class="text-base font-semibold">Time Entries</span>
+                        <span class="text-base font-semibold"
+                            >Time Entries</span
+                        >
                     </template>
                     <template #content>
                         <TimecardDetailsTable
@@ -359,10 +404,15 @@ function confirmDeleteTimecard() {
             :modal="true"
             :style="{ width: '400px' }"
         >
-            <form @submit.prevent="handleDetailSubmit" class="flex flex-col gap-4">
+            <form
+                @submit.prevent="handleDetailSubmit"
+                class="flex flex-col gap-4"
+            >
                 <!-- Type -->
                 <div class="flex flex-col gap-2">
-                    <label for="detail_type" class="text-sm font-medium">Type</label>
+                    <label for="detail_type" class="text-sm font-medium"
+                        >Type</label
+                    >
                     <Select
                         id="detail_type"
                         v-model="detailForm.type"
@@ -375,7 +425,9 @@ function confirmDeleteTimecard() {
 
                 <!-- Start Time -->
                 <div class="flex flex-col gap-2">
-                    <label for="detail_start" class="text-sm font-medium">Start Time</label>
+                    <label for="detail_start" class="text-sm font-medium"
+                        >Start Time</label
+                    >
                     <DatePicker
                         id="detail_start"
                         v-model="detailForm.start_date"
@@ -387,7 +439,9 @@ function confirmDeleteTimecard() {
 
                 <!-- End Time -->
                 <div class="flex flex-col gap-2">
-                    <label for="detail_end" class="text-sm font-medium">End Time</label>
+                    <label for="detail_end" class="text-sm font-medium"
+                        >End Time</label
+                    >
                     <DatePicker
                         id="detail_end"
                         v-model="detailForm.end_date"

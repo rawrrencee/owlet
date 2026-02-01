@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { router } from '@inertiajs/vue3';
-import AutoComplete, { type AutoCompleteCompleteEvent } from 'primevue/autocomplete';
+import AutoComplete, {
+    type AutoCompleteCompleteEvent,
+} from 'primevue/autocomplete';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
@@ -38,16 +40,21 @@ const emit = defineEmits<{
 }>();
 
 const { canAccessPage } = usePermissions();
-const canViewCostPrice = computed(() => canAccessPage('products.view_cost_price'));
+const canViewCostPrice = computed(() =>
+    canAccessPage('products.view_cost_price'),
+);
 const canEdit = computed(() => canAccessPage('products.edit'));
 
 const searchQuery = ref<string | ProductSearchResult>('');
 
-watch(() => props.visible, (newVal) => {
-    if (!newVal) {
-        searchQuery.value = '';
-    }
-});
+watch(
+    () => props.visible,
+    (newVal) => {
+        if (!newVal) {
+            searchQuery.value = '';
+        }
+    },
+);
 
 function onSearch(event: AutoCompleteCompleteEvent) {
     emit('search', event.query);
@@ -66,7 +73,10 @@ function getInitials(name: string): string {
     return name.substring(0, 2).toUpperCase();
 }
 
-function formatPrice(price: string | number | null | undefined, symbol: string = ''): string {
+function formatPrice(
+    price: string | number | null | undefined,
+    symbol: string = '',
+): string {
     if (price === null || price === undefined) return '-';
     const num = typeof price === 'string' ? parseFloat(price) : price;
     return `${symbol}${num.toFixed(2)}`;
@@ -85,8 +95,12 @@ function navigateToEdit() {
 }
 
 function getTotalStoreQuantity(product: Product): number {
-    if (!product.product_stores || product.product_stores.length === 0) return 0;
-    return product.product_stores.reduce((sum, ps) => sum + (ps.quantity ?? 0), 0);
+    if (!product.product_stores || product.product_stores.length === 0)
+        return 0;
+    return product.product_stores.reduce(
+        (sum, ps) => sum + (ps.quantity ?? 0),
+        0,
+    );
 }
 </script>
 
@@ -102,7 +116,9 @@ function getTotalStoreQuantity(product: Product): number {
         @update:visible="emit('update:visible', $event)"
     >
         <template #header>
-            <div class="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                class="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <!-- Navigation controls -->
                 <div class="order-last flex items-center gap-2 sm:order-first">
                     <!-- Back button (search mode or when can go back) -->
@@ -118,7 +134,12 @@ function getTotalStoreQuantity(product: Product): number {
                     />
 
                     <!-- Prev/Next buttons (list or selection mode) -->
-                    <template v-if="currentMode === 'list' || currentMode === 'selection'">
+                    <template
+                        v-if="
+                            currentMode === 'list' ||
+                            currentMode === 'selection'
+                        "
+                    >
                         <Button
                             icon="pi pi-chevron-left"
                             severity="secondary"
@@ -129,7 +150,10 @@ function getTotalStoreQuantity(product: Product): number {
                             @click="emit('prev')"
                             v-tooltip.bottom="'Previous'"
                         />
-                        <span v-if="positionText" class="whitespace-nowrap text-sm text-muted-foreground">
+                        <span
+                            v-if="positionText"
+                            class="text-sm whitespace-nowrap text-muted-foreground"
+                        >
                             {{ positionText }}
                         </span>
                         <Button
@@ -146,7 +170,9 @@ function getTotalStoreQuantity(product: Product): number {
                 </div>
 
                 <!-- Search autocomplete + close button (first on mobile) -->
-                <div class="order-first flex items-center gap-2 sm:order-last sm:max-w-xs">
+                <div
+                    class="order-first flex items-center gap-2 sm:order-last sm:max-w-xs"
+                >
                     <AutoComplete
                         v-model="searchQuery"
                         :suggestions="searchResults"
@@ -174,10 +200,16 @@ function getTotalStoreQuantity(product: Product): number {
                                     class="!h-6 !w-6 rounded bg-primary/10 !text-xs text-primary"
                                 />
                                 <div class="flex min-w-0 flex-1 flex-col">
-                                    <span class="truncate text-sm font-medium">{{ option.product_name }}</span>
+                                    <span
+                                        class="truncate text-sm font-medium"
+                                        >{{ option.product_name }}</span
+                                    >
                                     <span class="text-xs text-muted-foreground">
                                         {{ option.product_number }}
-                                        <template v-if="option.brand_name"> &middot; {{ option.brand_name }}</template>
+                                        <template v-if="option.brand_name">
+                                            &middot;
+                                            {{ option.brand_name }}</template
+                                        >
                                     </span>
                                 </div>
                             </div>
@@ -201,14 +233,36 @@ function getTotalStoreQuantity(product: Product): number {
             <!-- Loading skeleton -->
             <div v-if="loading" class="flex flex-col gap-4">
                 <!-- Header skeleton -->
-                <div class="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
-                    <Skeleton width="5rem" height="5rem" border-radius="0.5rem" />
-                    <div class="flex flex-1 flex-col gap-2 text-center sm:text-left">
+                <div
+                    class="flex flex-col items-center gap-4 sm:flex-row sm:items-start"
+                >
+                    <Skeleton
+                        width="5rem"
+                        height="5rem"
+                        border-radius="0.5rem"
+                    />
+                    <div
+                        class="flex flex-1 flex-col gap-2 text-center sm:text-left"
+                    >
                         <Skeleton width="60%" height="1.5rem" />
-                        <div class="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-                            <Skeleton width="5rem" height="1.25rem" border-radius="1rem" />
-                            <Skeleton width="4rem" height="1.25rem" border-radius="1rem" />
-                            <Skeleton width="3.5rem" height="1.25rem" border-radius="1rem" />
+                        <div
+                            class="flex flex-wrap items-center justify-center gap-2 sm:justify-start"
+                        >
+                            <Skeleton
+                                width="5rem"
+                                height="1.25rem"
+                                border-radius="1rem"
+                            />
+                            <Skeleton
+                                width="4rem"
+                                height="1.25rem"
+                                border-radius="1rem"
+                            />
+                            <Skeleton
+                                width="3.5rem"
+                                height="1.25rem"
+                                border-radius="1rem"
+                            />
                         </div>
                         <Skeleton width="40%" height="1rem" />
                     </div>
@@ -230,9 +284,17 @@ function getTotalStoreQuantity(product: Product): number {
                 <div>
                     <Skeleton width="6rem" height="1rem" class="mb-2" />
                     <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                        <div v-for="i in 2" :key="i" class="rounded-lg border border-border p-2">
+                        <div
+                            v-for="i in 2"
+                            :key="i"
+                            class="rounded-lg border border-border p-2"
+                        >
                             <Skeleton width="50%" height="1rem" class="mb-2" />
-                            <Skeleton width="100%" height="0.875rem" class="mb-1" />
+                            <Skeleton
+                                width="100%"
+                                height="0.875rem"
+                                class="mb-1"
+                            />
                             <Skeleton width="100%" height="0.875rem" />
                         </div>
                     </div>
@@ -241,7 +303,9 @@ function getTotalStoreQuantity(product: Product): number {
                 <Divider class="!my-2" />
 
                 <!-- Store summary skeleton -->
-                <div class="flex items-center justify-between rounded-lg border border-border bg-muted/20 p-3">
+                <div
+                    class="flex items-center justify-between rounded-lg border border-border bg-muted/20 p-3"
+                >
                     <div class="flex items-center gap-2">
                         <Skeleton shape="circle" size="1.25rem" />
                         <Skeleton width="10rem" height="1rem" />
@@ -253,13 +317,18 @@ function getTotalStoreQuantity(product: Product): number {
             <!-- Product details -->
             <div v-else-if="product" class="flex flex-col gap-4">
                 <!-- Product Header -->
-                <div class="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
+                <div
+                    class="flex flex-col items-center gap-4 sm:flex-row sm:items-start"
+                >
                     <Image
                         v-if="product.image_url"
                         :src="product.image_url"
                         :alt="product.product_name"
                         image-class="!h-20 !w-20 rounded-lg object-cover cursor-pointer"
-                        :pt="{ root: { class: 'rounded-lg overflow-hidden' }, previewMask: { class: 'rounded-lg' } }"
+                        :pt="{
+                            root: { class: 'rounded-lg overflow-hidden' },
+                            previewMask: { class: 'rounded-lg' },
+                        }"
                         preview
                     />
                     <Avatar
@@ -269,17 +338,37 @@ function getTotalStoreQuantity(product: Product): number {
                         class="!h-20 !w-20 rounded-lg bg-primary/10 text-2xl text-primary"
                     />
                     <div class="flex flex-col gap-1 text-center sm:text-left">
-                        <h2 class="text-lg font-semibold">{{ product.product_name }}</h2>
-                        <div class="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-                            <Tag :value="product.product_number" severity="secondary" class="!text-xs" />
-                            <Tag v-if="product.barcode" :value="product.barcode" severity="info" class="!text-xs" />
+                        <h2 class="text-lg font-semibold">
+                            {{ product.product_name }}
+                        </h2>
+                        <div
+                            class="flex flex-wrap items-center justify-center gap-2 sm:justify-start"
+                        >
                             <Tag
-                                :value="product.is_active ? 'Active' : 'Inactive'"
-                                :severity="product.is_active ? 'success' : 'danger'"
+                                :value="product.product_number"
+                                severity="secondary"
+                                class="!text-xs"
+                            />
+                            <Tag
+                                v-if="product.barcode"
+                                :value="product.barcode"
+                                severity="info"
+                                class="!text-xs"
+                            />
+                            <Tag
+                                :value="
+                                    product.is_active ? 'Active' : 'Inactive'
+                                "
+                                :severity="
+                                    product.is_active ? 'success' : 'danger'
+                                "
                                 class="!text-xs"
                             />
                         </div>
-                        <p v-if="product.brand_name" class="text-sm text-muted-foreground">
+                        <p
+                            v-if="product.brand_name"
+                            class="text-sm text-muted-foreground"
+                        >
                             {{ product.brand_name }}
                         </p>
                     </div>
@@ -291,19 +380,33 @@ function getTotalStoreQuantity(product: Product): number {
                 <div class="grid gap-3 sm:grid-cols-2">
                     <div class="flex flex-col gap-0.5">
                         <span class="text-xs text-muted-foreground">Brand</span>
-                        <span class="text-sm">{{ product.brand_name ?? '-' }}</span>
+                        <span class="text-sm">{{
+                            product.brand_name ?? '-'
+                        }}</span>
                     </div>
                     <div class="flex flex-col gap-0.5">
-                        <span class="text-xs text-muted-foreground">Supplier</span>
-                        <span class="text-sm">{{ product.supplier_name ?? '-' }}</span>
+                        <span class="text-xs text-muted-foreground"
+                            >Supplier</span
+                        >
+                        <span class="text-sm">{{
+                            product.supplier_name ?? '-'
+                        }}</span>
                     </div>
                     <div class="flex flex-col gap-0.5">
-                        <span class="text-xs text-muted-foreground">Category</span>
-                        <span class="text-sm">{{ product.category_name ?? '-' }}</span>
+                        <span class="text-xs text-muted-foreground"
+                            >Category</span
+                        >
+                        <span class="text-sm">{{
+                            product.category_name ?? '-'
+                        }}</span>
                     </div>
                     <div class="flex flex-col gap-0.5">
-                        <span class="text-xs text-muted-foreground">Subcategory</span>
-                        <span class="text-sm">{{ product.subcategory_name ?? '-' }}</span>
+                        <span class="text-xs text-muted-foreground"
+                            >Subcategory</span
+                        >
+                        <span class="text-sm">{{
+                            product.subcategory_name ?? '-'
+                        }}</span>
                     </div>
                 </div>
 
@@ -319,17 +422,40 @@ function getTotalStoreQuantity(product: Product): number {
                                 class="rounded-lg border border-border p-2"
                             >
                                 <div class="mb-1 flex items-center gap-1.5">
-                                    <span class="text-sm font-medium">{{ price.currency?.code }}</span>
-                                    <span class="text-xs text-muted-foreground">({{ price.currency?.name }})</span>
+                                    <span class="text-sm font-medium">{{
+                                        price.currency?.code
+                                    }}</span>
+                                    <span class="text-xs text-muted-foreground"
+                                        >({{ price.currency?.name }})</span
+                                    >
                                 </div>
                                 <div class="flex flex-col gap-0.5 text-sm">
-                                    <div v-if="canViewCostPrice" class="flex justify-between">
-                                        <span class="text-xs text-muted-foreground">Cost</span>
-                                        <span class="text-xs">{{ formatPrice(price.cost_price, price.currency?.symbol) }}</span>
+                                    <div
+                                        v-if="canViewCostPrice"
+                                        class="flex justify-between"
+                                    >
+                                        <span
+                                            class="text-xs text-muted-foreground"
+                                            >Cost</span
+                                        >
+                                        <span class="text-xs">{{
+                                            formatPrice(
+                                                price.cost_price,
+                                                price.currency?.symbol,
+                                            )
+                                        }}</span>
                                     </div>
                                     <div class="flex justify-between">
-                                        <span class="text-xs text-muted-foreground">Unit</span>
-                                        <span class="text-sm font-medium">{{ formatPrice(price.unit_price, price.currency?.symbol) }}</span>
+                                        <span
+                                            class="text-xs text-muted-foreground"
+                                            >Unit</span
+                                        >
+                                        <span class="text-sm font-medium">{{
+                                            formatPrice(
+                                                price.unit_price,
+                                                price.currency?.symbol,
+                                            )
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -338,18 +464,37 @@ function getTotalStoreQuantity(product: Product): number {
                 </template>
 
                 <!-- Store Summary -->
-                <template v-if="product.product_stores && product.product_stores.length > 0">
+                <template
+                    v-if="
+                        product.product_stores &&
+                        product.product_stores.length > 0
+                    "
+                >
                     <Divider class="!my-2" />
-                    <div class="flex items-center justify-between rounded-lg border border-border bg-muted/20 p-3">
+                    <div
+                        class="flex items-center justify-between rounded-lg border border-border bg-muted/20 p-3"
+                    >
                         <div class="flex items-center gap-2">
                             <i class="pi pi-shop text-muted-foreground" />
                             <span class="text-sm">
-                                Assigned to <strong>{{ product.product_stores.length }}</strong> store{{ product.product_stores.length === 1 ? '' : 's' }}
+                                Assigned to
+                                <strong>{{
+                                    product.product_stores.length
+                                }}</strong>
+                                store{{
+                                    product.product_stores.length === 1
+                                        ? ''
+                                        : 's'
+                                }}
                             </span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="text-sm text-muted-foreground">Total Qty:</span>
-                            <span class="font-medium">{{ getTotalStoreQuantity(product) }}</span>
+                            <span class="text-sm text-muted-foreground"
+                                >Total Qty:</span
+                            >
+                            <span class="font-medium">{{
+                                getTotalStoreQuantity(product)
+                            }}</span>
                         </div>
                     </div>
                 </template>
@@ -373,7 +518,10 @@ function getTotalStoreQuantity(product: Product): number {
             </div>
 
             <!-- No product state -->
-            <div v-else class="flex h-full items-center justify-center text-muted-foreground">
+            <div
+                v-else
+                class="flex h-full items-center justify-center text-muted-foreground"
+            >
                 Product not found
             </div>
         </div>

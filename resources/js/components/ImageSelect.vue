@@ -101,25 +101,42 @@ const hasNewSelection = () => previewUrl.value !== null;
         <div class="flex flex-col items-center gap-2">
             <div
                 :class="[
-                    'relative overflow-hidden bg-surface-200 dark:bg-surface-700',
+                    'bg-surface-200 dark:bg-surface-700 relative overflow-hidden',
                     circular ? 'rounded-full' : 'rounded-lg',
                 ]"
-                :style="{ width: `${previewSize}px`, height: `${previewSize}px` }"
+                :style="{
+                    width: `${previewSize}px`,
+                    height: `${previewSize}px`,
+                }"
             >
                 <Image
                     v-if="hasImage()"
                     :src="displayUrl() || ''"
                     :alt="alt"
                     :image-class="`object-cover cursor-pointer`"
-                    :image-style="{ width: `${previewSize}px`, height: `${previewSize}px` }"
+                    :image-style="{
+                        width: `${previewSize}px`,
+                        height: `${previewSize}px`,
+                    }"
                     :pt="{
-                        root: { class: circular ? 'rounded-full overflow-hidden' : 'rounded-lg overflow-hidden' },
-                        previewMask: { class: circular ? 'rounded-full' : 'rounded-lg' },
+                        root: {
+                            class: circular
+                                ? 'rounded-full overflow-hidden'
+                                : 'rounded-lg overflow-hidden',
+                        },
+                        previewMask: {
+                            class: circular ? 'rounded-full' : 'rounded-lg',
+                        },
                     }"
                     preview
                 />
-                <div v-else class="flex h-full w-full items-center justify-center">
-                    <i :class="[placeholderIcon, 'text-3xl text-surface-400']"></i>
+                <div
+                    v-else
+                    class="flex h-full w-full items-center justify-center"
+                >
+                    <i
+                        :class="[placeholderIcon, 'text-surface-400 text-3xl']"
+                    ></i>
                 </div>
             </div>
         </div>

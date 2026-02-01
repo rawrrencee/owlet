@@ -21,7 +21,9 @@ const props = withDefaults(defineProps<Props>(), {
 const { isAdmin } = usePermissions();
 const dialogVisible = ref(false);
 
-const buttonLabel = computed(() => props.createLabel ?? `Create ${props.pageLabel}`);
+const buttonLabel = computed(
+    () => props.createLabel ?? `Create ${props.pageLabel}`,
+);
 
 const menuItems = computed(() => [
     {
@@ -55,7 +57,9 @@ function handleCreate() {
         :model="menuItems"
         :disabled="!canManage"
         @click="handleCreate"
-        v-tooltip.top="!canManage ? 'You do not have permission to create' : undefined"
+        v-tooltip.top="
+            !canManage ? 'You do not have permission to create' : undefined
+        "
     />
     <!-- Non-admin: Regular Button -->
     <Button
@@ -65,7 +69,9 @@ function handleCreate() {
         size="small"
         :disabled="!canManage"
         @click="handleCreate"
-        v-tooltip.top="!canManage ? 'You do not have permission to create' : undefined"
+        v-tooltip.top="
+            !canManage ? 'You do not have permission to create' : undefined
+        "
     />
     <PagePermissionsDialog
         v-model:visible="dialogVisible"

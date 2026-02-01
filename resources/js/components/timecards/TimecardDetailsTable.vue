@@ -26,7 +26,7 @@ const emit = defineEmits<{
 const sortedDetails = computed(() => {
     return [...props.details].sort(
         (a, b) =>
-            new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
+            new Date(a.start_date).getTime() - new Date(b.start_date).getTime(),
     );
 });
 
@@ -95,7 +95,10 @@ function getTypeSeverity(type: string): 'success' | 'warn' {
 
             <Column field="end_date" header="End Time">
                 <template #body="{ data }">
-                    <span v-if="data.is_open" class="text-muted-foreground italic">
+                    <span
+                        v-if="data.is_open"
+                        class="text-muted-foreground italic"
+                    >
                         In progress...
                     </span>
                     <span v-else>{{ formatTime(data.end_date) }}</span>
@@ -104,7 +107,9 @@ function getTypeSeverity(type: string): 'success' | 'warn' {
 
             <Column field="hours" header="Duration" style="width: 100px">
                 <template #body="{ data }">
-                    <span v-if="data.is_open" class="text-muted-foreground">-</span>
+                    <span v-if="data.is_open" class="text-muted-foreground"
+                        >-</span
+                    >
                     <span v-else>{{ formatHours(data.hours) }}</span>
                 </template>
             </Column>

@@ -28,7 +28,7 @@ async function fetchPermissions() {
     try {
         const response = await fetch(`/users/${props.employeeId}/permissions`, {
             headers: {
-                'Accept': 'application/json',
+                Accept: 'application/json',
             },
         });
         const data = await response.json();
@@ -57,13 +57,18 @@ function togglePermission(permissionKey: string) {
 }
 
 function toggleGroupPermissions(group: string) {
-    const groupPermissions = availablePermissions.value[group]?.map(p => p.key) ?? [];
-    const allSelected = groupPermissions.every(p => form.page_permissions.includes(p));
+    const groupPermissions =
+        availablePermissions.value[group]?.map((p) => p.key) ?? [];
+    const allSelected = groupPermissions.every((p) =>
+        form.page_permissions.includes(p),
+    );
 
     if (allSelected) {
-        form.page_permissions = form.page_permissions.filter(p => !groupPermissions.includes(p));
+        form.page_permissions = form.page_permissions.filter(
+            (p) => !groupPermissions.includes(p),
+        );
     } else {
-        groupPermissions.forEach(p => {
+        groupPermissions.forEach((p) => {
             if (!form.page_permissions.includes(p)) {
                 form.page_permissions.push(p);
             }
@@ -73,37 +78,49 @@ function toggleGroupPermissions(group: string) {
 }
 
 function isGroupFullySelected(group: string): boolean {
-    const groupPermissions = availablePermissions.value[group]?.map(p => p.key) ?? [];
-    return groupPermissions.length > 0 && groupPermissions.every(p => form.page_permissions.includes(p));
+    const groupPermissions =
+        availablePermissions.value[group]?.map((p) => p.key) ?? [];
+    return (
+        groupPermissions.length > 0 &&
+        groupPermissions.every((p) => form.page_permissions.includes(p))
+    );
 }
 
 function isGroupPartiallySelected(group: string): boolean {
-    const groupPermissions = availablePermissions.value[group]?.map(p => p.key) ?? [];
-    const selectedCount = groupPermissions.filter(p => form.page_permissions.includes(p)).length;
+    const groupPermissions =
+        availablePermissions.value[group]?.map((p) => p.key) ?? [];
+    const selectedCount = groupPermissions.filter((p) =>
+        form.page_permissions.includes(p),
+    ).length;
     return selectedCount > 0 && selectedCount < groupPermissions.length;
 }
 
 function checkForChanges() {
     const originalSorted = [...pagePermissions.value].sort();
     const currentSorted = [...form.page_permissions].sort();
-    hasChanges.value = JSON.stringify(originalSorted) !== JSON.stringify(currentSorted);
+    hasChanges.value =
+        JSON.stringify(originalSorted) !== JSON.stringify(currentSorted);
 }
 
 function savePermissions() {
     saving.value = true;
 
-    router.put(`/users/${props.employeeId}/permissions`, {
-        page_permissions: form.page_permissions,
-    }, {
-        preserveScroll: true,
-        onSuccess: () => {
-            pagePermissions.value = [...form.page_permissions];
-            hasChanges.value = false;
+    router.put(
+        `/users/${props.employeeId}/permissions`,
+        {
+            page_permissions: form.page_permissions,
         },
-        onFinish: () => {
-            saving.value = false;
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                pagePermissions.value = [...form.page_permissions];
+                hasChanges.value = false;
+            },
+            onFinish: () => {
+                saving.value = false;
+            },
         },
-    });
+    );
 }
 
 function resetChanges() {
@@ -119,8 +136,9 @@ function resetChanges() {
         </div>
 
         <Message severity="info" :closable="false" class="!m-0">
-            These permissions control which pages the employee can access in the application.
-            Store-specific permissions are configured in the "Stores" tab.
+            These permissions control which pages the employee can access in the
+            application. Store-specific permissions are configured in the
+            "Stores" tab.
         </Message>
 
         <div v-if="loading" class="flex items-center justify-center py-8">
@@ -136,7 +154,9 @@ function resetChanges() {
                 <div class="mb-3 flex items-center gap-2">
                     <Checkbox
                         :model-value="isGroupFullySelected(group as string)"
-                        :indeterminate="isGroupPartiallySelected(group as string)"
+                        :indeterminate="
+                            isGroupPartiallySelected(group as string)
+                        "
                         binary
                         @change="toggleGroupPermissions(group as string)"
                     />
@@ -149,7 +169,9 @@ function resetChanges() {
                         class="flex items-center gap-2"
                     >
                         <Checkbox
-                            :model-value="form.page_permissions.includes(perm.key)"
+                            :model-value="
+                                form.page_permissions.includes(perm.key)
+                            "
                             binary
                             @change="togglePermission(perm.key)"
                         />
@@ -158,7 +180,10 @@ function resetChanges() {
                 </div>
             </div>
 
-            <div v-if="hasChanges" class="flex justify-end gap-2 border-t border-border pt-4">
+            <div
+                v-if="hasChanges"
+                class="flex justify-end gap-2 border-t border-border pt-4"
+            >
                 <Button
                     type="button"
                     label="Reset"

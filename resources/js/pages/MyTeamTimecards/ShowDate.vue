@@ -5,7 +5,7 @@ import Card from 'primevue/card';
 import BackButton from '@/components/BackButton.vue';
 import TimecardSummaryCard from '@/components/timecards/TimecardSummaryCard.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { BreadcrumbItem, Timecard, SubordinateInfo } from '@/types';
+import type { BreadcrumbItem, SubordinateInfo, Timecard } from '@/types';
 
 interface Props {
     employee: SubordinateInfo;
@@ -16,11 +16,13 @@ interface Props {
 
 const props = defineProps<Props>();
 
-
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
     { title: 'Team Timecards', href: '/my-team-timecards' },
-    { title: props.employee.name, href: `/my-team-timecards/${props.employee.id}` },
+    {
+        title: props.employee.name,
+        href: `/my-team-timecards/${props.employee.id}`,
+    },
     { title: props.dateFormatted },
 ];
 
@@ -52,9 +54,13 @@ function getInitials(name: string): string {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <!-- Header -->
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <div class="flex items-center gap-3">
-                    <BackButton :fallback-url="`/my-team-timecards/${employee.id}`" />
+                    <BackButton
+                        :fallback-url="`/my-team-timecards/${employee.id}`"
+                    />
                     <Avatar
                         v-if="employee.profile_picture_url"
                         :image="employee.profile_picture_url"
@@ -71,7 +77,8 @@ function getInitials(name: string): string {
                     <div>
                         <h1 class="heading-lg">{{ employee.name }}</h1>
                         <p class="text-sm text-muted-foreground">
-                            {{ dateFormatted }} - Total: {{ formatHours(getTotalHours()) }}
+                            {{ dateFormatted }} - Total:
+                            {{ formatHours(getTotalHours()) }}
                         </p>
                     </div>
                 </div>
@@ -89,8 +96,12 @@ function getInitials(name: string): string {
             <!-- Empty State -->
             <Card v-else>
                 <template #content>
-                    <div class="flex flex-col items-center justify-center gap-4 py-8">
-                        <i class="pi pi-clock text-4xl text-muted-foreground"></i>
+                    <div
+                        class="flex flex-col items-center justify-center gap-4 py-8"
+                    >
+                        <i
+                            class="pi pi-clock text-4xl text-muted-foreground"
+                        ></i>
                         <div class="text-center">
                             <h3 class="font-medium">No timecards</h3>
                             <p class="text-sm text-muted-foreground">

@@ -20,14 +20,18 @@ const currentIndex = ref(0);
 const selectedEndTime = ref<Date | null>(null);
 const isSubmitting = ref(false);
 
-const incompleteTimecards = computed(() => page.props.incompleteTimecards ?? []);
+const incompleteTimecards = computed(
+    () => page.props.incompleteTimecards ?? [],
+);
 
 const currentTimecard = computed(() => {
     if (currentIndex.value >= incompleteTimecards.value.length) return null;
     return incompleteTimecards.value[currentIndex.value];
 });
 
-const hasMore = computed(() => currentIndex.value < incompleteTimecards.value.length - 1);
+const hasMore = computed(
+    () => currentIndex.value < incompleteTimecards.value.length - 1,
+);
 
 const minDate = computed(() => {
     if (!currentTimecard.value) return undefined;
@@ -81,7 +85,7 @@ function handleSubmit() {
             onFinish: () => {
                 isSubmitting.value = false;
             },
-        }
+        },
     );
 }
 
@@ -104,7 +108,7 @@ watch(
             visible.value = true;
         }
     },
-    { immediate: true }
+    { immediate: true },
 );
 </script>
 
@@ -118,13 +122,21 @@ watch(
     >
         <template #header>
             <div class="flex items-center gap-3">
-                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
-                    <AlertTriangle class="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                <div
+                    class="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30"
+                >
+                    <AlertTriangle
+                        class="h-5 w-5 text-amber-600 dark:text-amber-400"
+                    />
                 </div>
                 <div>
                     <h2 class="text-lg font-semibold">Incomplete Timecard</h2>
-                    <p v-if="incompleteTimecards.length > 1" class="text-xs text-muted-foreground">
-                        {{ currentIndex + 1 }} of {{ incompleteTimecards.length }}
+                    <p
+                        v-if="incompleteTimecards.length > 1"
+                        class="text-xs text-muted-foreground"
+                    >
+                        {{ currentIndex + 1 }} of
+                        {{ incompleteTimecards.length }}
                     </p>
                 </div>
             </div>
@@ -132,17 +144,22 @@ watch(
 
         <div v-if="currentTimecard" class="flex flex-col gap-4">
             <Message severity="warn" :closable="false">
-                You have a timecard that was not clocked out. Please provide the time you finished working.
+                You have a timecard that was not clocked out. Please provide the
+                time you finished working.
             </Message>
 
             <!-- Timecard Info -->
             <div class="rounded-lg bg-muted/50 p-4">
-                <div class="flex items-center gap-3 mb-3">
-                    <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+                <div class="mb-3 flex items-center gap-3">
+                    <div
+                        class="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10"
+                    >
                         <Clock class="h-4 w-4 text-primary" />
                     </div>
                     <div>
-                        <p class="font-medium">{{ currentTimecard.store?.name }}</p>
+                        <p class="font-medium">
+                            {{ currentTimecard.store?.name }}
+                        </p>
                         <p class="text-sm text-muted-foreground">
                             {{ formatDate(currentTimecard.start_date) }}
                         </p>
@@ -150,14 +167,17 @@ watch(
                 </div>
                 <div class="text-sm">
                     <span class="text-muted-foreground">Clocked in at: </span>
-                    <span class="font-medium">{{ formatTime(currentTimecard.start_date) }}</span>
+                    <span class="font-medium">{{
+                        formatTime(currentTimecard.start_date)
+                    }}</span>
                 </div>
             </div>
 
             <!-- End Time Input -->
             <div class="flex flex-col gap-2">
                 <label for="end_time" class="text-sm font-medium">
-                    What time did you finish working? <span class="text-red-500">*</span>
+                    What time did you finish working?
+                    <span class="text-red-500">*</span>
                 </label>
                 <DatePicker
                     id="end_time"

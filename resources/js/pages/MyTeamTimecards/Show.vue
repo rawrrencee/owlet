@@ -15,7 +15,6 @@ interface Props {
 
 const props = defineProps<Props>();
 
-
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
     { title: 'Team Timecards', href: '/my-team-timecards' },
@@ -28,7 +27,11 @@ function handleDateClick(date: string) {
 
 function handleMonthChange(month: Date) {
     const monthString = month.toISOString().split('T')[0];
-    router.get(`/my-team-timecards/${props.employee.id}`, { month: monthString }, { preserveState: true });
+    router.get(
+        `/my-team-timecards/${props.employee.id}`,
+        { month: monthString },
+        { preserveState: true },
+    );
 }
 
 function getInitials(name: string): string {
@@ -46,7 +49,9 @@ function getInitials(name: string): string {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <!-- Header -->
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <div class="flex items-center gap-3">
                     <BackButton fallback-url="/my-team-timecards" />
                     <Avatar

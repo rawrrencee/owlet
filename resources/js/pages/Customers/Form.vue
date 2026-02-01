@@ -4,7 +4,10 @@ import Button from 'primevue/button';
 import Card from 'primevue/card';
 import InputText from 'primevue/inputtext';
 import { computed } from 'vue';
-import { clearSkipPageInHistory, skipCurrentPageInHistory } from '@/composables/useSmartBack';
+import {
+    clearSkipPageInHistory,
+    skipCurrentPageInHistory,
+} from '@/composables/useSmartBack';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type Customer } from '@/types';
 
@@ -15,7 +18,9 @@ interface Props {
 const props = defineProps<Props>();
 
 const isEditing = computed(() => !!props.customer);
-const pageTitle = computed(() => (isEditing.value ? 'Edit Customer' : 'Create Customer'));
+const pageTitle = computed(() =>
+    isEditing.value ? 'Edit Customer' : 'Create Customer',
+);
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -72,14 +77,22 @@ function cancel() {
             <div class="mx-auto w-full max-w-2xl">
                 <Card>
                     <template #content>
-                        <form @submit.prevent="submit" class="flex flex-col gap-4">
-                            <p v-if="!isEditing" class="text-surface-500 dark:text-surface-400 text-sm">
+                        <form
+                            @submit.prevent="submit"
+                            class="flex flex-col gap-4"
+                        >
+                            <p
+                                v-if="!isEditing"
+                                class="text-surface-500 dark:text-surface-400 text-sm"
+                            >
                                 Add a new customer to the system.
                             </p>
 
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <div class="flex flex-col gap-2">
-                                    <label for="first_name" class="font-medium">First Name</label>
+                                    <label for="first_name" class="font-medium"
+                                        >First Name</label
+                                    >
                                     <InputText
                                         id="first_name"
                                         v-model="form.first_name"
@@ -88,13 +101,18 @@ function cancel() {
                                         size="small"
                                         fluid
                                     />
-                                    <small v-if="form.errors.first_name" class="text-red-500">
+                                    <small
+                                        v-if="form.errors.first_name"
+                                        class="text-red-500"
+                                    >
                                         {{ form.errors.first_name }}
                                     </small>
                                 </div>
 
                                 <div class="flex flex-col gap-2">
-                                    <label for="last_name" class="font-medium">Last Name</label>
+                                    <label for="last_name" class="font-medium"
+                                        >Last Name</label
+                                    >
                                     <InputText
                                         id="last_name"
                                         v-model="form.last_name"
@@ -103,14 +121,19 @@ function cancel() {
                                         size="small"
                                         fluid
                                     />
-                                    <small v-if="form.errors.last_name" class="text-red-500">
+                                    <small
+                                        v-if="form.errors.last_name"
+                                        class="text-red-500"
+                                    >
                                         {{ form.errors.last_name }}
                                     </small>
                                 </div>
                             </div>
 
                             <div class="flex flex-col gap-2">
-                                <label for="email" class="font-medium">Email</label>
+                                <label for="email" class="font-medium"
+                                    >Email</label
+                                >
                                 <InputText
                                     id="email"
                                     v-model="form.email"
@@ -120,13 +143,18 @@ function cancel() {
                                     size="small"
                                     fluid
                                 />
-                                <small v-if="form.errors.email" class="text-red-500">
+                                <small
+                                    v-if="form.errors.email"
+                                    class="text-red-500"
+                                >
                                     {{ form.errors.email }}
                                 </small>
                             </div>
 
                             <div class="flex flex-col gap-2">
-                                <label for="phone" class="font-medium">Phone</label>
+                                <label for="phone" class="font-medium"
+                                    >Phone</label
+                                >
                                 <InputText
                                     id="phone"
                                     v-model="form.phone"
@@ -135,13 +163,18 @@ function cancel() {
                                     size="small"
                                     fluid
                                 />
-                                <small v-if="form.errors.phone" class="text-red-500">
+                                <small
+                                    v-if="form.errors.phone"
+                                    class="text-red-500"
+                                >
                                     {{ form.errors.phone }}
                                 </small>
                             </div>
 
                             <div class="flex flex-col gap-2">
-                                <label for="company_name" class="font-medium">Company Name</label>
+                                <label for="company_name" class="font-medium"
+                                    >Company Name</label
+                                >
                                 <InputText
                                     id="company_name"
                                     v-model="form.company_name"
@@ -150,26 +183,51 @@ function cancel() {
                                     size="small"
                                     fluid
                                 />
-                                <small v-if="form.errors.company_name" class="text-red-500">
+                                <small
+                                    v-if="form.errors.company_name"
+                                    class="text-red-500"
+                                >
                                     {{ form.errors.company_name }}
                                 </small>
                             </div>
 
-                            <div v-if="isEditing && customer" class="border-t border-border pt-4">
-                                <h3 class="mb-3 text-sm font-medium text-muted-foreground">Customer Info</h3>
+                            <div
+                                v-if="isEditing && customer"
+                                class="border-t border-border pt-4"
+                            >
+                                <h3
+                                    class="mb-3 text-sm font-medium text-muted-foreground"
+                                >
+                                    Customer Info
+                                </h3>
                                 <div class="grid gap-2 text-sm">
                                     <div class="flex justify-between">
-                                        <span class="text-muted-foreground">Customer Since</span>
-                                        <span>{{ customer.customer_since ? new Date(customer.customer_since).toLocaleDateString() : '-' }}</span>
+                                        <span class="text-muted-foreground"
+                                            >Customer Since</span
+                                        >
+                                        <span>{{
+                                            customer.customer_since
+                                                ? new Date(
+                                                      customer.customer_since,
+                                                  ).toLocaleDateString()
+                                                : '-'
+                                        }}</span>
                                     </div>
                                     <div class="flex justify-between">
-                                        <span class="text-muted-foreground">Loyalty Points</span>
-                                        <span>{{ customer.loyalty_points?.toLocaleString() ?? 0 }}</span>
+                                        <span class="text-muted-foreground"
+                                            >Loyalty Points</span
+                                        >
+                                        <span>{{
+                                            customer.loyalty_points?.toLocaleString() ??
+                                            0
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                            <div
+                                class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"
+                            >
                                 <Button
                                     type="button"
                                     label="Cancel"
@@ -180,7 +238,11 @@ function cancel() {
                                 />
                                 <Button
                                     type="submit"
-                                    :label="isEditing ? 'Save Changes' : 'Create Customer'"
+                                    :label="
+                                        isEditing
+                                            ? 'Save Changes'
+                                            : 'Create Customer'
+                                    "
                                     size="small"
                                     :loading="form.processing"
                                 />

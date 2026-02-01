@@ -15,7 +15,10 @@ import BackButton from '@/components/BackButton.vue';
 import ImageSelect from '@/components/ImageSelect.vue';
 import ImageUpload from '@/components/ImageUpload.vue';
 import { usePermissions } from '@/composables/usePermissions';
-import { clearSkipPageInHistory, skipCurrentPageInHistory } from '@/composables/useSmartBack';
+import {
+    clearSkipPageInHistory,
+    skipCurrentPageInHistory,
+} from '@/composables/useSmartBack';
 import AppLayout from '@/layouts/AppLayout.vue';
 import {
     type BreadcrumbItem,
@@ -51,10 +54,14 @@ interface Props {
 const props = defineProps<Props>();
 
 const { canAccessPage } = usePermissions();
-const canViewCostPrice = computed(() => canAccessPage('products.view_cost_price'));
+const canViewCostPrice = computed(() =>
+    canAccessPage('products.view_cost_price'),
+);
 
 const isEditing = computed(() => !!props.product);
-const pageTitle = computed(() => (isEditing.value ? 'Edit Product' : 'Create Product'));
+const pageTitle = computed(() =>
+    isEditing.value ? 'Edit Product' : 'Create Product',
+);
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -71,7 +78,9 @@ const categoryOptions = computed(() =>
 );
 
 const subcategoryOptions = computed(() => {
-    const selectedCategory = props.categories.find((c) => c.id === form.category_id);
+    const selectedCategory = props.categories.find(
+        (c) => c.id === form.category_id,
+    );
     if (!selectedCategory?.subcategories) return [];
     return selectedCategory.subcategories.map((s) => ({
         label: s.subcategory_name,
@@ -84,7 +93,11 @@ const supplierOptions = computed(() =>
 );
 
 const currencyOptions = computed(() =>
-    props.currencies.map((c) => ({ label: `${c.code} - ${c.name}`, value: c.id, currency: c })),
+    props.currencies.map((c) => ({
+        label: `${c.code} - ${c.name}`,
+        value: c.id,
+        currency: c,
+    })),
 );
 
 const storeOptions = computed(() =>
@@ -145,7 +158,9 @@ const form = useForm({
 const imageUrl = ref<string | null>(props.product?.image_url ?? null);
 
 // Selected currencies for base prices
-const selectedCurrencyIds = ref<number[]>(initialPrices.map((p) => p.currency_id));
+const selectedCurrencyIds = ref<number[]>(
+    initialPrices.map((p) => p.currency_id),
+);
 
 // Selected stores
 const selectedStoreIds = ref<number[]>(initialStores.map((s) => s.store_id));
@@ -155,7 +170,9 @@ watch(
     () => form.category_id,
     () => {
         // Reset subcategory if current one doesn't belong to selected category
-        const selectedCategory = props.categories.find((c) => c.id === form.category_id);
+        const selectedCategory = props.categories.find(
+            (c) => c.id === form.category_id,
+        );
         const validSubcategories = selectedCategory?.subcategories ?? [];
         if (!validSubcategories.find((s) => s.id === form.subcategory_id)) {
             form.subcategory_id = null;
@@ -192,11 +209,13 @@ watch(
             if (!form.stores.find((s) => s.store_id === storeId)) {
                 // Initialize with store currencies
                 const store = props.stores.find((s) => s.id === storeId);
-                const storePrices = (store?.store_currencies ?? []).map((sc) => ({
-                    currency_id: sc.currency_id,
-                    cost_price: null,
-                    unit_price: null,
-                }));
+                const storePrices = (store?.store_currencies ?? []).map(
+                    (sc) => ({
+                        currency_id: sc.currency_id,
+                        cost_price: null,
+                        unit_price: null,
+                    }),
+                );
                 form.stores.push({
                     store_id: storeId,
                     quantity: 0,
@@ -259,7 +278,10 @@ function cancel() {
             <div class="mx-auto w-full max-w-4xl">
                 <Card>
                     <template #content>
-                        <form @submit.prevent="submit" class="flex flex-col gap-6">
+                        <form
+                            @submit.prevent="submit"
+                            class="flex flex-col gap-6"
+                        >
                             <!-- Image for create mode -->
                             <ImageSelect
                                 v-if="!isEditing"
@@ -283,7 +305,7 @@ function cancel() {
                                 alt="Product image"
                                 :circular="false"
                                 :preview-size="96"
-                                @uploaded="(url) => imageUrl = url"
+                                @uploaded="(url) => (imageUrl = url)"
                                 @deleted="imageUrl = null"
                             />
 
@@ -291,42 +313,67 @@ function cancel() {
 
                             <!-- Basic Information -->
                             <div>
-                                <h3 class="mb-4 text-lg font-medium">Basic Information</h3>
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Basic Information
+                                </h3>
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div class="flex flex-col gap-2">
-                                        <label for="product_name" class="font-medium">Product Name *</label>
+                                        <label
+                                            for="product_name"
+                                            class="font-medium"
+                                            >Product Name *</label
+                                        >
                                         <InputText
                                             id="product_name"
                                             v-model="form.product_name"
-                                            :invalid="!!form.errors.product_name"
+                                            :invalid="
+                                                !!form.errors.product_name
+                                            "
                                             placeholder="Product Name"
                                             size="small"
                                             fluid
                                         />
-                                        <small v-if="form.errors.product_name" class="text-red-500">
+                                        <small
+                                            v-if="form.errors.product_name"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.product_name }}
                                         </small>
                                     </div>
 
                                     <div class="flex flex-col gap-2">
-                                        <label for="product_number" class="font-medium">Product Number (SKU) *</label>
+                                        <label
+                                            for="product_number"
+                                            class="font-medium"
+                                            >Product Number (SKU) *</label
+                                        >
                                         <InputText
                                             id="product_number"
                                             v-model="form.product_number"
-                                            :invalid="!!form.errors.product_number"
+                                            :invalid="
+                                                !!form.errors.product_number
+                                            "
                                             placeholder="SKU-001"
                                             size="small"
                                             fluid
                                             class="uppercase"
                                         />
-                                        <small class="text-muted-foreground">Unique identifier, auto-uppercased</small>
-                                        <small v-if="form.errors.product_number" class="text-red-500">
+                                        <small class="text-muted-foreground"
+                                            >Unique identifier,
+                                            auto-uppercased</small
+                                        >
+                                        <small
+                                            v-if="form.errors.product_number"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.product_number }}
                                         </small>
                                     </div>
 
                                     <div class="flex flex-col gap-2">
-                                        <label for="barcode" class="font-medium">Barcode</label>
+                                        <label for="barcode" class="font-medium"
+                                            >Barcode</label
+                                        >
                                         <InputText
                                             id="barcode"
                                             v-model="form.barcode"
@@ -335,22 +382,34 @@ function cancel() {
                                             size="small"
                                             fluid
                                         />
-                                        <small v-if="form.errors.barcode" class="text-red-500">
+                                        <small
+                                            v-if="form.errors.barcode"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.barcode }}
                                         </small>
                                     </div>
 
                                     <div class="flex flex-col gap-2">
-                                        <label for="supplier_number" class="font-medium">Supplier Number</label>
+                                        <label
+                                            for="supplier_number"
+                                            class="font-medium"
+                                            >Supplier Number</label
+                                        >
                                         <InputText
                                             id="supplier_number"
                                             v-model="form.supplier_number"
-                                            :invalid="!!form.errors.supplier_number"
+                                            :invalid="
+                                                !!form.errors.supplier_number
+                                            "
                                             placeholder="Supplier's product code"
                                             size="small"
                                             fluid
                                         />
-                                        <small v-if="form.errors.supplier_number" class="text-red-500">
+                                        <small
+                                            v-if="form.errors.supplier_number"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.supplier_number }}
                                         </small>
                                     </div>
@@ -361,10 +420,16 @@ function cancel() {
 
                             <!-- Classification -->
                             <div>
-                                <h3 class="mb-4 text-lg font-medium">Classification</h3>
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Classification
+                                </h3>
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div class="flex flex-col gap-2">
-                                        <label for="brand_id" class="font-medium">Brand *</label>
+                                        <label
+                                            for="brand_id"
+                                            class="font-medium"
+                                            >Brand *</label
+                                        >
                                         <Select
                                             id="brand_id"
                                             v-model="form.brand_id"
@@ -377,13 +442,20 @@ function cancel() {
                                             size="small"
                                             fluid
                                         />
-                                        <small v-if="form.errors.brand_id" class="text-red-500">
+                                        <small
+                                            v-if="form.errors.brand_id"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.brand_id }}
                                         </small>
                                     </div>
 
                                     <div class="flex flex-col gap-2">
-                                        <label for="supplier_id" class="font-medium">Supplier *</label>
+                                        <label
+                                            for="supplier_id"
+                                            class="font-medium"
+                                            >Supplier *</label
+                                        >
                                         <Select
                                             id="supplier_id"
                                             v-model="form.supplier_id"
@@ -396,13 +468,20 @@ function cancel() {
                                             size="small"
                                             fluid
                                         />
-                                        <small v-if="form.errors.supplier_id" class="text-red-500">
+                                        <small
+                                            v-if="form.errors.supplier_id"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.supplier_id }}
                                         </small>
                                     </div>
 
                                     <div class="flex flex-col gap-2">
-                                        <label for="category_id" class="font-medium">Category *</label>
+                                        <label
+                                            for="category_id"
+                                            class="font-medium"
+                                            >Category *</label
+                                        >
                                         <Select
                                             id="category_id"
                                             v-model="form.category_id"
@@ -415,30 +494,45 @@ function cancel() {
                                             size="small"
                                             fluid
                                         />
-                                        <small v-if="form.errors.category_id" class="text-red-500">
+                                        <small
+                                            v-if="form.errors.category_id"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.category_id }}
                                         </small>
                                     </div>
 
                                     <div class="flex flex-col gap-2">
-                                        <label for="subcategory_id" class="font-medium">Subcategory *</label>
+                                        <label
+                                            for="subcategory_id"
+                                            class="font-medium"
+                                            >Subcategory *</label
+                                        >
                                         <Select
                                             id="subcategory_id"
                                             v-model="form.subcategory_id"
                                             :options="subcategoryOptions"
                                             option-label="label"
                                             option-value="value"
-                                            :invalid="!!form.errors.subcategory_id"
+                                            :invalid="
+                                                !!form.errors.subcategory_id
+                                            "
                                             placeholder="Select subcategory"
                                             :disabled="!form.category_id"
                                             filter
                                             size="small"
                                             fluid
                                         />
-                                        <small v-if="!form.category_id" class="text-muted-foreground">
+                                        <small
+                                            v-if="!form.category_id"
+                                            class="text-muted-foreground"
+                                        >
                                             Select a category first
                                         </small>
-                                        <small v-if="form.errors.subcategory_id" class="text-red-500">
+                                        <small
+                                            v-if="form.errors.subcategory_id"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.subcategory_id }}
                                         </small>
                                     </div>
@@ -449,13 +543,19 @@ function cancel() {
 
                             <!-- Base Prices -->
                             <div>
-                                <h3 class="mb-4 text-lg font-medium">Base Prices</h3>
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Base Prices
+                                </h3>
                                 <p class="mb-4 text-sm text-muted-foreground">
-                                    Set base prices for currencies. These are the default prices used across all stores unless overridden.
+                                    Set base prices for currencies. These are
+                                    the default prices used across all stores
+                                    unless overridden.
                                 </p>
 
                                 <div class="mb-4 flex flex-col gap-2">
-                                    <label class="font-medium">Select Currencies</label>
+                                    <label class="font-medium"
+                                        >Select Currencies</label
+                                    >
                                     <MultiSelect
                                         v-model="selectedCurrencyIds"
                                         :options="currencyOptions"
@@ -469,40 +569,76 @@ function cancel() {
                                     />
                                 </div>
 
-                                <div v-if="form.prices.length > 0" class="flex flex-col gap-4">
+                                <div
+                                    v-if="form.prices.length > 0"
+                                    class="flex flex-col gap-4"
+                                >
                                     <div
                                         v-for="(price, index) in form.prices"
                                         :key="price.currency_id"
                                         class="rounded-lg border border-border p-4"
                                     >
-                                        <div class="mb-3 flex items-center gap-2">
+                                        <div
+                                            class="mb-3 flex items-center gap-2"
+                                        >
                                             <span class="font-medium">
-                                                {{ getCurrencyById(price.currency_id)?.code }}
+                                                {{
+                                                    getCurrencyById(
+                                                        price.currency_id,
+                                                    )?.code
+                                                }}
                                             </span>
-                                            <span class="text-sm text-muted-foreground">
-                                                ({{ getCurrencyById(price.currency_id)?.name }})
+                                            <span
+                                                class="text-sm text-muted-foreground"
+                                            >
+                                                ({{
+                                                    getCurrencyById(
+                                                        price.currency_id,
+                                                    )?.name
+                                                }})
                                             </span>
                                         </div>
                                         <div class="grid gap-4 sm:grid-cols-2">
-                                            <div v-if="canViewCostPrice" class="flex flex-col gap-2">
-                                                <label class="text-sm">Cost Price</label>
+                                            <div
+                                                v-if="canViewCostPrice"
+                                                class="flex flex-col gap-2"
+                                            >
+                                                <label class="text-sm"
+                                                    >Cost Price</label
+                                                >
                                                 <InputNumber
-                                                    v-model="form.prices[index].cost_price"
+                                                    v-model="
+                                                        form.prices[index]
+                                                            .cost_price
+                                                    "
                                                     :min-fraction-digits="2"
                                                     :max-fraction-digits="4"
-                                                    :prefix="getCurrencyById(price.currency_id)?.symbol + ' '"
+                                                    :prefix="
+                                                        getCurrencyById(
+                                                            price.currency_id,
+                                                        )?.symbol + ' '
+                                                    "
                                                     placeholder="0.00"
                                                     size="small"
                                                     fluid
                                                 />
                                             </div>
                                             <div class="flex flex-col gap-2">
-                                                <label class="text-sm">Unit Price</label>
+                                                <label class="text-sm"
+                                                    >Unit Price</label
+                                                >
                                                 <InputNumber
-                                                    v-model="form.prices[index].unit_price"
+                                                    v-model="
+                                                        form.prices[index]
+                                                            .unit_price
+                                                    "
                                                     :min-fraction-digits="2"
                                                     :max-fraction-digits="4"
-                                                    :prefix="getCurrencyById(price.currency_id)?.symbol + ' '"
+                                                    :prefix="
+                                                        getCurrencyById(
+                                                            price.currency_id,
+                                                        )?.symbol + ' '
+                                                    "
                                                     placeholder="0.00"
                                                     size="small"
                                                     fluid
@@ -512,7 +648,8 @@ function cancel() {
                                     </div>
                                 </div>
                                 <p v-else class="text-sm text-muted-foreground">
-                                    No currencies selected. Select currencies above to set base prices.
+                                    No currencies selected. Select currencies
+                                    above to set base prices.
                                 </p>
                             </div>
 
@@ -520,13 +657,19 @@ function cancel() {
 
                             <!-- Store Assignments -->
                             <div>
-                                <h3 class="mb-4 text-lg font-medium">Store Assignments</h3>
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Store Assignments
+                                </h3>
                                 <p class="mb-4 text-sm text-muted-foreground">
-                                    Assign this product to stores. You can set store-specific prices that override the base prices.
+                                    Assign this product to stores. You can set
+                                    store-specific prices that override the base
+                                    prices.
                                 </p>
 
                                 <div class="mb-4 flex flex-col gap-2">
-                                    <label class="font-medium">Select Stores</label>
+                                    <label class="font-medium"
+                                        >Select Stores</label
+                                    >
                                     <MultiSelect
                                         v-model="selectedStoreIds"
                                         :options="storeOptions"
@@ -540,33 +683,77 @@ function cancel() {
                                     />
                                 </div>
 
-                                <div v-if="form.stores.length > 0" class="flex flex-col gap-4">
+                                <div
+                                    v-if="form.stores.length > 0"
+                                    class="flex flex-col gap-4"
+                                >
                                     <div
-                                        v-for="(storeAssignment, storeIndex) in form.stores"
+                                        v-for="(
+                                            storeAssignment, storeIndex
+                                        ) in form.stores"
                                         :key="storeAssignment.store_id"
                                         class="rounded-lg border border-border p-4"
                                     >
-                                        <div class="mb-4 flex items-center justify-between">
-                                            <div class="flex items-center gap-2">
+                                        <div
+                                            class="mb-4 flex items-center justify-between"
+                                        >
+                                            <div
+                                                class="flex items-center gap-2"
+                                            >
                                                 <span class="font-medium">
-                                                    {{ getStoreById(storeAssignment.store_id)?.store_name }}
+                                                    {{
+                                                        getStoreById(
+                                                            storeAssignment.store_id,
+                                                        )?.store_name
+                                                    }}
                                                 </span>
-                                                <span class="text-sm text-muted-foreground">
-                                                    ({{ getStoreById(storeAssignment.store_id)?.store_code }})
+                                                <span
+                                                    class="text-sm text-muted-foreground"
+                                                >
+                                                    ({{
+                                                        getStoreById(
+                                                            storeAssignment.store_id,
+                                                        )?.store_code
+                                                    }})
                                                 </span>
                                             </div>
-                                            <div class="flex items-center gap-2">
-                                                <ToggleSwitch v-model="form.stores[storeIndex].is_active" />
-                                                <span class="text-sm" :class="form.stores[storeIndex].is_active ? 'text-green-600' : 'text-red-600'">
-                                                    {{ form.stores[storeIndex].is_active ? 'Active' : 'Inactive' }}
+                                            <div
+                                                class="flex items-center gap-2"
+                                            >
+                                                <ToggleSwitch
+                                                    v-model="
+                                                        form.stores[storeIndex]
+                                                            .is_active
+                                                    "
+                                                />
+                                                <span
+                                                    class="text-sm"
+                                                    :class="
+                                                        form.stores[storeIndex]
+                                                            .is_active
+                                                            ? 'text-green-600'
+                                                            : 'text-red-600'
+                                                    "
+                                                >
+                                                    {{
+                                                        form.stores[storeIndex]
+                                                            .is_active
+                                                            ? 'Active'
+                                                            : 'Inactive'
+                                                    }}
                                                 </span>
                                             </div>
                                         </div>
 
                                         <div class="mb-4 flex flex-col gap-2">
-                                            <label class="text-sm font-medium">Initial Quantity</label>
+                                            <label class="text-sm font-medium"
+                                                >Initial Quantity</label
+                                            >
                                             <InputNumber
-                                                v-model="form.stores[storeIndex].quantity"
+                                                v-model="
+                                                    form.stores[storeIndex]
+                                                        .quantity
+                                                "
                                                 :min="0"
                                                 placeholder="0"
                                                 size="small"
@@ -575,40 +762,113 @@ function cancel() {
                                         </div>
 
                                         <!-- Store-specific prices -->
-                                        <div v-if="storeAssignment.prices && storeAssignment.prices.length > 0">
-                                            <h4 class="mb-3 text-sm font-medium">Store-Specific Prices (Optional)</h4>
-                                            <p class="mb-3 text-xs text-muted-foreground">
-                                                Leave blank to use base prices. Set values to override for this store.
+                                        <div
+                                            v-if="
+                                                storeAssignment.prices &&
+                                                storeAssignment.prices.length >
+                                                    0
+                                            "
+                                        >
+                                            <h4
+                                                class="mb-3 text-sm font-medium"
+                                            >
+                                                Store-Specific Prices (Optional)
+                                            </h4>
+                                            <p
+                                                class="mb-3 text-xs text-muted-foreground"
+                                            >
+                                                Leave blank to use base prices.
+                                                Set values to override for this
+                                                store.
                                             </p>
-                                            <div class="grid gap-4 sm:grid-cols-2">
+                                            <div
+                                                class="grid gap-4 sm:grid-cols-2"
+                                            >
                                                 <div
-                                                    v-for="(storePrice, priceIndex) in storeAssignment.prices"
-                                                    :key="storePrice.currency_id"
+                                                    v-for="(
+                                                        storePrice, priceIndex
+                                                    ) in storeAssignment.prices"
+                                                    :key="
+                                                        storePrice.currency_id
+                                                    "
                                                     class="rounded border border-border/50 bg-muted/20 p-3"
                                                 >
-                                                    <div class="mb-2 text-sm font-medium">
-                                                        {{ getCurrencyById(storePrice.currency_id)?.code }}
+                                                    <div
+                                                        class="mb-2 text-sm font-medium"
+                                                    >
+                                                        {{
+                                                            getCurrencyById(
+                                                                storePrice.currency_id,
+                                                            )?.code
+                                                        }}
                                                     </div>
-                                                    <div class="flex flex-col gap-2">
-                                                        <div v-if="canViewCostPrice" class="flex flex-col gap-1">
-                                                            <label class="text-xs text-muted-foreground">Cost Price</label>
+                                                    <div
+                                                        class="flex flex-col gap-2"
+                                                    >
+                                                        <div
+                                                            v-if="
+                                                                canViewCostPrice
+                                                            "
+                                                            class="flex flex-col gap-1"
+                                                        >
+                                                            <label
+                                                                class="text-xs text-muted-foreground"
+                                                                >Cost
+                                                                Price</label
+                                                            >
                                                             <InputNumber
-                                                                v-model="form.stores[storeIndex].prices[priceIndex].cost_price"
-                                                                :min-fraction-digits="2"
-                                                                :max-fraction-digits="4"
-                                                                :prefix="getCurrencyById(storePrice.currency_id)?.symbol + ' '"
+                                                                v-model="
+                                                                    form.stores[
+                                                                        storeIndex
+                                                                    ].prices[
+                                                                        priceIndex
+                                                                    ].cost_price
+                                                                "
+                                                                :min-fraction-digits="
+                                                                    2
+                                                                "
+                                                                :max-fraction-digits="
+                                                                    4
+                                                                "
+                                                                :prefix="
+                                                                    getCurrencyById(
+                                                                        storePrice.currency_id,
+                                                                    )?.symbol +
+                                                                    ' '
+                                                                "
                                                                 placeholder="Use base"
                                                                 size="small"
                                                                 fluid
                                                             />
                                                         </div>
-                                                        <div class="flex flex-col gap-1">
-                                                            <label class="text-xs text-muted-foreground">Unit Price</label>
+                                                        <div
+                                                            class="flex flex-col gap-1"
+                                                        >
+                                                            <label
+                                                                class="text-xs text-muted-foreground"
+                                                                >Unit
+                                                                Price</label
+                                                            >
                                                             <InputNumber
-                                                                v-model="form.stores[storeIndex].prices[priceIndex].unit_price"
-                                                                :min-fraction-digits="2"
-                                                                :max-fraction-digits="4"
-                                                                :prefix="getCurrencyById(storePrice.currency_id)?.symbol + ' '"
+                                                                v-model="
+                                                                    form.stores[
+                                                                        storeIndex
+                                                                    ].prices[
+                                                                        priceIndex
+                                                                    ].unit_price
+                                                                "
+                                                                :min-fraction-digits="
+                                                                    2
+                                                                "
+                                                                :max-fraction-digits="
+                                                                    4
+                                                                "
+                                                                :prefix="
+                                                                    getCurrencyById(
+                                                                        storePrice.currency_id,
+                                                                    )?.symbol +
+                                                                    ' '
+                                                                "
                                                                 placeholder="Use base"
                                                                 size="small"
                                                                 fluid
@@ -618,13 +878,18 @@ function cancel() {
                                                 </div>
                                             </div>
                                         </div>
-                                        <p v-else class="text-sm text-muted-foreground">
-                                            This store has no currencies configured.
+                                        <p
+                                            v-else
+                                            class="text-sm text-muted-foreground"
+                                        >
+                                            This store has no currencies
+                                            configured.
                                         </p>
                                     </div>
                                 </div>
                                 <p v-else class="text-sm text-muted-foreground">
-                                    No stores selected. Select stores above to assign this product.
+                                    No stores selected. Select stores above to
+                                    assign this product.
                                 </p>
                             </div>
 
@@ -632,10 +897,14 @@ function cancel() {
 
                             <!-- Physical Attributes -->
                             <div>
-                                <h3 class="mb-4 text-lg font-medium">Physical Attributes</h3>
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Physical Attributes
+                                </h3>
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div class="flex flex-col gap-2">
-                                        <label for="weight" class="font-medium">Weight</label>
+                                        <label for="weight" class="font-medium"
+                                            >Weight</label
+                                        >
                                         <InputNumber
                                             id="weight"
                                             v-model="form.weight"
@@ -646,13 +915,20 @@ function cancel() {
                                             size="small"
                                             fluid
                                         />
-                                        <small v-if="form.errors.weight" class="text-red-500">
+                                        <small
+                                            v-if="form.errors.weight"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.weight }}
                                         </small>
                                     </div>
 
                                     <div class="flex flex-col gap-2">
-                                        <label for="weight_unit" class="font-medium">Weight Unit</label>
+                                        <label
+                                            for="weight_unit"
+                                            class="font-medium"
+                                            >Weight Unit</label
+                                        >
                                         <Select
                                             id="weight_unit"
                                             v-model="form.weight_unit"
@@ -664,7 +940,10 @@ function cancel() {
                                             size="small"
                                             fluid
                                         />
-                                        <small v-if="form.errors.weight_unit" class="text-red-500">
+                                        <small
+                                            v-if="form.errors.weight_unit"
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.weight_unit }}
                                         </small>
                                     </div>
@@ -677,7 +956,9 @@ function cancel() {
                             <div>
                                 <h3 class="mb-4 text-lg font-medium">Tags</h3>
                                 <div class="flex flex-col gap-2">
-                                    <label for="tags" class="font-medium">Product Tags</label>
+                                    <label for="tags" class="font-medium"
+                                        >Product Tags</label
+                                    >
                                     <Chips
                                         id="tags"
                                         v-model="form.tags"
@@ -689,7 +970,8 @@ function cancel() {
                                         }"
                                     />
                                     <small class="text-muted-foreground">
-                                        Tags help with filtering and categorization
+                                        Tags help with filtering and
+                                        categorization
                                     </small>
                                 </div>
                             </div>
@@ -698,36 +980,74 @@ function cancel() {
 
                             <!-- Description -->
                             <div>
-                                <h3 class="mb-4 text-lg font-medium">Description</h3>
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Description
+                                </h3>
                                 <div class="flex flex-col gap-2">
                                     <Editor
                                         v-model="form.description"
                                         editor-style="height: 200px"
                                         :pt="{
                                             root: { class: 'border-border' },
-                                            toolbar: { class: 'border-border bg-muted/50' },
+                                            toolbar: {
+                                                class: 'border-border bg-muted/50',
+                                            },
                                             content: { class: 'border-border' },
                                         }"
                                     >
                                         <template #toolbar>
                                             <span class="ql-formats">
-                                                <button class="ql-bold" v-tooltip.bottom="'Bold'"></button>
-                                                <button class="ql-italic" v-tooltip.bottom="'Italic'"></button>
-                                                <button class="ql-underline" v-tooltip.bottom="'Underline'"></button>
+                                                <button
+                                                    class="ql-bold"
+                                                    v-tooltip.bottom="'Bold'"
+                                                ></button>
+                                                <button
+                                                    class="ql-italic"
+                                                    v-tooltip.bottom="'Italic'"
+                                                ></button>
+                                                <button
+                                                    class="ql-underline"
+                                                    v-tooltip.bottom="
+                                                        'Underline'
+                                                    "
+                                                ></button>
                                             </span>
                                             <span class="ql-formats">
-                                                <button class="ql-list" value="ordered" v-tooltip.bottom="'Ordered List'"></button>
-                                                <button class="ql-list" value="bullet" v-tooltip.bottom="'Bullet List'"></button>
+                                                <button
+                                                    class="ql-list"
+                                                    value="ordered"
+                                                    v-tooltip.bottom="
+                                                        'Ordered List'
+                                                    "
+                                                ></button>
+                                                <button
+                                                    class="ql-list"
+                                                    value="bullet"
+                                                    v-tooltip.bottom="
+                                                        'Bullet List'
+                                                    "
+                                                ></button>
                                             </span>
                                             <span class="ql-formats">
-                                                <button class="ql-link" v-tooltip.bottom="'Link'"></button>
+                                                <button
+                                                    class="ql-link"
+                                                    v-tooltip.bottom="'Link'"
+                                                ></button>
                                             </span>
                                             <span class="ql-formats">
-                                                <button class="ql-clean" v-tooltip.bottom="'Clear Formatting'"></button>
+                                                <button
+                                                    class="ql-clean"
+                                                    v-tooltip.bottom="
+                                                        'Clear Formatting'
+                                                    "
+                                                ></button>
                                             </span>
                                         </template>
                                     </Editor>
-                                    <small v-if="form.errors.description" class="text-red-500">
+                                    <small
+                                        v-if="form.errors.description"
+                                        class="text-red-500"
+                                    >
                                         {{ form.errors.description }}
                                     </small>
                                 </div>
@@ -737,18 +1057,31 @@ function cancel() {
                             <template v-if="canViewCostPrice">
                                 <Divider />
                                 <div>
-                                    <h3 class="mb-4 text-lg font-medium">Cost Price Notes</h3>
+                                    <h3 class="mb-4 text-lg font-medium">
+                                        Cost Price Notes
+                                    </h3>
                                     <div class="flex flex-col gap-2">
-                                        <label for="cost_price_remarks" class="font-medium">Remarks</label>
+                                        <label
+                                            for="cost_price_remarks"
+                                            class="font-medium"
+                                            >Remarks</label
+                                        >
                                         <InputText
                                             id="cost_price_remarks"
                                             v-model="form.cost_price_remarks"
-                                            :invalid="!!form.errors.cost_price_remarks"
+                                            :invalid="
+                                                !!form.errors.cost_price_remarks
+                                            "
                                             placeholder="Notes about cost price..."
                                             size="small"
                                             fluid
                                         />
-                                        <small v-if="form.errors.cost_price_remarks" class="text-red-500">
+                                        <small
+                                            v-if="
+                                                form.errors.cost_price_remarks
+                                            "
+                                            class="text-red-500"
+                                        >
                                             {{ form.errors.cost_price_remarks }}
                                         </small>
                                     </div>
@@ -762,13 +1095,25 @@ function cancel() {
                                 <h3 class="mb-4 text-lg font-medium">Status</h3>
                                 <div class="flex items-center gap-3">
                                     <ToggleSwitch v-model="form.is_active" />
-                                    <span :class="form.is_active ? 'text-green-600' : 'text-red-600'">
-                                        {{ form.is_active ? 'Active' : 'Inactive' }}
+                                    <span
+                                        :class="
+                                            form.is_active
+                                                ? 'text-green-600'
+                                                : 'text-red-600'
+                                        "
+                                    >
+                                        {{
+                                            form.is_active
+                                                ? 'Active'
+                                                : 'Inactive'
+                                        }}
                                     </span>
                                 </div>
                             </div>
 
-                            <div class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                            <div
+                                class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"
+                            >
                                 <Button
                                     type="button"
                                     label="Cancel"
@@ -779,7 +1124,11 @@ function cancel() {
                                 />
                                 <Button
                                     type="submit"
-                                    :label="isEditing ? 'Save Changes' : 'Create Product'"
+                                    :label="
+                                        isEditing
+                                            ? 'Save Changes'
+                                            : 'Create Product'
+                                    "
                                     size="small"
                                     :loading="form.processing"
                                 />

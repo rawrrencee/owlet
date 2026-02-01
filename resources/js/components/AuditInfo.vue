@@ -20,7 +20,9 @@ function formatDateTime(dateString: string | null | undefined): string {
 
 <template>
     <div>
-        <h3 class="mb-3 text-sm font-medium text-muted-foreground">Audit Information</h3>
+        <h3 class="mb-3 text-sm font-medium text-muted-foreground">
+            Audit Information
+        </h3>
         <div class="grid gap-1 text-sm sm:grid-cols-2">
             <div>
                 <span class="text-muted-foreground">Created by:</span>
@@ -40,12 +42,18 @@ function formatDateTime(dateString: string | null | undefined): string {
             </div>
             <template v-if="previousUpdatedBy">
                 <div>
-                    <span class="text-muted-foreground">Previously updated by:</span>
+                    <span class="text-muted-foreground"
+                        >Previously updated by:</span
+                    >
                     <span class="ml-1">{{ previousUpdatedBy.name }}</span>
                 </div>
                 <div v-if="previousUpdatedAt">
-                    <span class="text-muted-foreground">Previously updated at:</span>
-                    <span class="ml-1">{{ formatDateTime(previousUpdatedAt) }}</span>
+                    <span class="text-muted-foreground"
+                        >Previously updated at:</span
+                    >
+                    <span class="ml-1">{{
+                        formatDateTime(previousUpdatedAt)
+                    }}</span>
                 </div>
             </template>
         </div>

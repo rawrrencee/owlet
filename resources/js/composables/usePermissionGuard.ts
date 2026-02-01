@@ -73,7 +73,10 @@ export function usePermissionGuard() {
         // Check admin-only routes
         if (isAdminOnlyRoute(pathname)) {
             if (user.role !== 'admin') {
-                showError("You're not allowed to access this page", 'Access Denied');
+                showError(
+                    "You're not allowed to access this page",
+                    'Access Denied',
+                );
                 return false;
             }
             return true;
@@ -83,7 +86,10 @@ export function usePermissionGuard() {
         const requiredPermission = getRequiredPermission(pathname);
         if (requiredPermission) {
             if (!hasPagePermission(requiredPermission)) {
-                showError("You don't have permission to access this page", 'Access Denied');
+                showError(
+                    "You don't have permission to access this page",
+                    'Access Denied',
+                );
                 return false;
             }
         }

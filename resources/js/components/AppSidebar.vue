@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { usePage } from '@inertiajs/vue3';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import {
     BadgeCheck,
     Building2,
@@ -69,7 +68,6 @@ const navSections = computed<NavSection[]>(() => {
         })),
     }));
 });
-
 </script>
 
 <template>

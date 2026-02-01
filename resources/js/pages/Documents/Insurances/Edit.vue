@@ -11,7 +11,10 @@ import Tag from 'primevue/tag';
 import { useConfirm } from 'primevue/useconfirm';
 import { ref } from 'vue';
 import BackButton from '@/components/BackButton.vue';
-import { clearSkipPageInHistory, skipCurrentPageInHistory } from '@/composables/useSmartBack';
+import {
+    clearSkipPageInHistory,
+    skipCurrentPageInHistory,
+} from '@/composables/useSmartBack';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type EmployeeInsurance } from '@/types';
 
@@ -41,8 +44,12 @@ const form = useForm({
     title: props.insurance.title,
     insurer_name: props.insurance.insurer_name,
     policy_number: props.insurance.policy_number,
-    start_date: props.insurance.start_date ? new Date(props.insurance.start_date) : null,
-    end_date: props.insurance.end_date ? new Date(props.insurance.end_date) : null,
+    start_date: props.insurance.start_date
+        ? new Date(props.insurance.start_date)
+        : null,
+    end_date: props.insurance.end_date
+        ? new Date(props.insurance.end_date)
+        : null,
     external_document_url: props.insurance.external_document_url || '',
     comments: props.insurance.comments || '',
 });
@@ -107,19 +114,23 @@ function uploadDocument() {
     const formData = new FormData();
     formData.append('document', selectedFile.value);
 
-    router.post(`/documents/insurances/${props.insurance.id}/document`, formData, {
-        preserveScroll: true,
-        forceFormData: true,
-        onSuccess: () => {
-            selectedFile.value = null;
-            if (fileInput.value) {
-                fileInput.value.value = '';
-            }
+    router.post(
+        `/documents/insurances/${props.insurance.id}/document`,
+        formData,
+        {
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => {
+                selectedFile.value = null;
+                if (fileInput.value) {
+                    fileInput.value.value = '';
+                }
+            },
+            onFinish: () => {
+                uploadingDocument.value = false;
+            },
         },
-        onFinish: () => {
-            uploadingDocument.value = false;
-        },
-    });
+    );
 }
 
 function confirmDeleteDocument() {
@@ -138,9 +149,12 @@ function confirmDeleteDocument() {
             size: 'small',
         },
         accept: () => {
-            router.delete(`/documents/insurances/${props.insurance.id}/document`, {
-                preserveScroll: true,
-            });
+            router.delete(
+                `/documents/insurances/${props.insurance.id}/document`,
+                {
+                    preserveScroll: true,
+                },
+            );
         },
     });
 }
@@ -173,9 +187,13 @@ function clearSelectedFile() {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <div class="flex items-center gap-4">
-                    <BackButton :fallback-url="`/documents/insurances/${insurance.id}`" />
+                    <BackButton
+                        :fallback-url="`/documents/insurances/${insurance.id}`"
+                    />
                     <h1 class="heading-lg">Edit Insurance</h1>
                 </div>
             </div>
@@ -183,21 +201,39 @@ function clearSelectedFile() {
             <div class="mx-auto w-full max-w-2xl">
                 <Card>
                     <template #content>
-                        <form @submit.prevent="submitForm" class="flex flex-col gap-4">
+                        <form
+                            @submit.prevent="submitForm"
+                            class="flex flex-col gap-4"
+                        >
                             <!-- Employee (Read Only) -->
                             <div class="flex flex-col gap-2">
                                 <label class="font-medium">Employee</label>
-                                <div class="flex items-center gap-2 rounded-lg border border-border bg-surface-100 px-3 py-2 dark:bg-surface-800">
-                                    <span :class="{ 'text-muted-foreground line-through': isEmployeeDeleted() }">
+                                <div
+                                    class="bg-surface-100 dark:bg-surface-800 flex items-center gap-2 rounded-lg border border-border px-3 py-2"
+                                >
+                                    <span
+                                        :class="{
+                                            'text-muted-foreground line-through':
+                                                isEmployeeDeleted(),
+                                        }"
+                                    >
                                         {{ getEmployeeName() }}
                                     </span>
-                                    <Tag v-if="isEmployeeDeleted()" value="Deleted" severity="danger" />
+                                    <Tag
+                                        v-if="isEmployeeDeleted()"
+                                        value="Deleted"
+                                        severity="danger"
+                                    />
                                 </div>
-                                <small class="text-muted-foreground">Employee cannot be changed</small>
+                                <small class="text-muted-foreground"
+                                    >Employee cannot be changed</small
+                                >
                             </div>
 
                             <div class="flex flex-col gap-2">
-                                <label for="title" class="font-medium">Title *</label>
+                                <label for="title" class="font-medium"
+                                    >Title *</label
+                                >
                                 <InputText
                                     id="title"
                                     v-model="form.title"
@@ -206,14 +242,21 @@ function clearSelectedFile() {
                                     size="small"
                                     fluid
                                 />
-                                <small v-if="form.errors.title" class="text-red-500">
+                                <small
+                                    v-if="form.errors.title"
+                                    class="text-red-500"
+                                >
                                     {{ form.errors.title }}
                                 </small>
                             </div>
 
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <div class="flex flex-col gap-2">
-                                    <label for="insurer_name" class="font-medium">Insurer Name *</label>
+                                    <label
+                                        for="insurer_name"
+                                        class="font-medium"
+                                        >Insurer Name *</label
+                                    >
                                     <InputText
                                         id="insurer_name"
                                         v-model="form.insurer_name"
@@ -222,13 +265,20 @@ function clearSelectedFile() {
                                         size="small"
                                         fluid
                                     />
-                                    <small v-if="form.errors.insurer_name" class="text-red-500">
+                                    <small
+                                        v-if="form.errors.insurer_name"
+                                        class="text-red-500"
+                                    >
                                         {{ form.errors.insurer_name }}
                                     </small>
                                 </div>
 
                                 <div class="flex flex-col gap-2">
-                                    <label for="policy_number" class="font-medium">Policy Number *</label>
+                                    <label
+                                        for="policy_number"
+                                        class="font-medium"
+                                        >Policy Number *</label
+                                    >
                                     <InputText
                                         id="policy_number"
                                         v-model="form.policy_number"
@@ -237,7 +287,10 @@ function clearSelectedFile() {
                                         size="small"
                                         fluid
                                     />
-                                    <small v-if="form.errors.policy_number" class="text-red-500">
+                                    <small
+                                        v-if="form.errors.policy_number"
+                                        class="text-red-500"
+                                    >
                                         {{ form.errors.policy_number }}
                                     </small>
                                 </div>
@@ -245,7 +298,9 @@ function clearSelectedFile() {
 
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <div class="flex flex-col gap-2">
-                                    <label for="start_date" class="font-medium">Start Date *</label>
+                                    <label for="start_date" class="font-medium"
+                                        >Start Date *</label
+                                    >
                                     <DatePicker
                                         id="start_date"
                                         v-model="form.start_date"
@@ -255,13 +310,18 @@ function clearSelectedFile() {
                                         size="small"
                                         fluid
                                     />
-                                    <small v-if="form.errors.start_date" class="text-red-500">
+                                    <small
+                                        v-if="form.errors.start_date"
+                                        class="text-red-500"
+                                    >
                                         {{ form.errors.start_date }}
                                     </small>
                                 </div>
 
                                 <div class="flex flex-col gap-2">
-                                    <label for="end_date" class="font-medium">End Date</label>
+                                    <label for="end_date" class="font-medium"
+                                        >End Date</label
+                                    >
                                     <DatePicker
                                         id="end_date"
                                         v-model="form.end_date"
@@ -272,36 +332,59 @@ function clearSelectedFile() {
                                         size="small"
                                         fluid
                                     />
-                                    <small v-if="form.errors.end_date" class="text-red-500">
+                                    <small
+                                        v-if="form.errors.end_date"
+                                        class="text-red-500"
+                                    >
                                         {{ form.errors.end_date }}
                                     </small>
                                 </div>
                             </div>
 
                             <div class="flex flex-col gap-2">
-                                <label for="external_document_url" class="font-medium">External Document URL</label>
+                                <label
+                                    for="external_document_url"
+                                    class="font-medium"
+                                    >External Document URL</label
+                                >
                                 <InputText
                                     id="external_document_url"
                                     v-model="form.external_document_url"
-                                    :invalid="!!form.errors.external_document_url"
+                                    :invalid="
+                                        !!form.errors.external_document_url
+                                    "
                                     placeholder="https://example.com/document.pdf"
                                     size="small"
                                     fluid
                                 />
-                                <small v-if="form.errors.external_document_url" class="text-red-500">
+                                <small
+                                    v-if="form.errors.external_document_url"
+                                    class="text-red-500"
+                                >
                                     {{ form.errors.external_document_url }}
                                 </small>
                             </div>
 
                             <!-- Document Upload -->
                             <div class="flex flex-col gap-2">
-                                <label class="font-medium">Document Upload</label>
-                                <div class="rounded-lg border border-border p-3 ">
+                                <label class="font-medium"
+                                    >Document Upload</label
+                                >
+                                <div
+                                    class="rounded-lg border border-border p-3"
+                                >
                                     <!-- Show existing document if present -->
-                                    <div v-if="insurance.document_url" class="flex items-center justify-between">
+                                    <div
+                                        v-if="insurance.document_url"
+                                        class="flex items-center justify-between"
+                                    >
                                         <div class="flex items-center gap-2">
-                                            <i class="pi pi-file text-primary"></i>
-                                            <span class="text-sm">{{ insurance.document_filename }}</span>
+                                            <i
+                                                class="pi pi-file text-primary"
+                                            ></i>
+                                            <span class="text-sm">{{
+                                                insurance.document_filename
+                                            }}</span>
                                         </div>
                                         <div class="flex items-center gap-1">
                                             <Button
@@ -337,10 +420,16 @@ function clearSelectedFile() {
                                             />
                                             <label
                                                 for="insurance-file-upload"
-                                                class="cursor-pointer rounded border border-border bg-muted px-3 py-1.5 text-sm hover:bg-surface-100 dark:bg-surface-800 dark:hover:bg-surface-700"
+                                                class="hover:bg-surface-100 dark:bg-surface-800 dark:hover:bg-surface-700 cursor-pointer rounded border border-border bg-muted px-3 py-1.5 text-sm"
                                             >
-                                                <i class="pi pi-upload mr-2"></i>
-                                                {{ selectedFile ? selectedFile.name : 'Choose file' }}
+                                                <i
+                                                    class="pi pi-upload mr-2"
+                                                ></i>
+                                                {{
+                                                    selectedFile
+                                                        ? selectedFile.name
+                                                        : 'Choose file'
+                                                }}
                                             </label>
                                             <Button
                                                 v-if="selectedFile"
@@ -361,37 +450,82 @@ function clearSelectedFile() {
                                                 v-tooltip.top="'Remove'"
                                             />
                                         </div>
-                                        <small class="text-xs text-muted-foreground"> Max 5MB. Supported: PDF, JPG, PNG, GIF, DOC, DOCX </small>
+                                        <small
+                                            class="text-xs text-muted-foreground"
+                                        >
+                                            Max 5MB. Supported: PDF, JPG, PNG,
+                                            GIF, DOC, DOCX
+                                        </small>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="flex flex-col gap-2">
-                                <label for="comments" class="font-medium">Comments</label>
-                                <Editor id="comments" v-model="form.comments" editorStyle="height: 150px">
+                                <label for="comments" class="font-medium"
+                                    >Comments</label
+                                >
+                                <Editor
+                                    id="comments"
+                                    v-model="form.comments"
+                                    editorStyle="height: 150px"
+                                >
                                     <template #toolbar>
                                         <span class="ql-formats">
-                                            <button class="ql-bold" v-tooltip.bottom="'Bold'"></button>
-                                            <button class="ql-italic" v-tooltip.bottom="'Italic'"></button>
-                                            <button class="ql-underline" v-tooltip.bottom="'Underline'"></button>
+                                            <button
+                                                class="ql-bold"
+                                                v-tooltip.bottom="'Bold'"
+                                            ></button>
+                                            <button
+                                                class="ql-italic"
+                                                v-tooltip.bottom="'Italic'"
+                                            ></button>
+                                            <button
+                                                class="ql-underline"
+                                                v-tooltip.bottom="'Underline'"
+                                            ></button>
                                         </span>
                                         <span class="ql-formats">
-                                            <button class="ql-list" value="ordered" v-tooltip.bottom="'Numbered List'"></button>
-                                            <button class="ql-list" value="bullet" v-tooltip.bottom="'Bullet List'"></button>
+                                            <button
+                                                class="ql-list"
+                                                value="ordered"
+                                                v-tooltip.bottom="
+                                                    'Numbered List'
+                                                "
+                                            ></button>
+                                            <button
+                                                class="ql-list"
+                                                value="bullet"
+                                                v-tooltip.bottom="'Bullet List'"
+                                            ></button>
                                         </span>
                                         <span class="ql-formats">
-                                            <button class="ql-clean" v-tooltip.bottom="'Clear Formatting'"></button>
+                                            <button
+                                                class="ql-clean"
+                                                v-tooltip.bottom="
+                                                    'Clear Formatting'
+                                                "
+                                            ></button>
                                         </span>
                                     </template>
                                 </Editor>
-                                <small v-if="form.errors.comments" class="text-red-500">
+                                <small
+                                    v-if="form.errors.comments"
+                                    class="text-red-500"
+                                >
                                     {{ form.errors.comments }}
                                 </small>
                             </div>
 
                             <div class="mt-4 flex justify-end gap-2">
-                                <BackButton :fallback-url="`/documents/insurances/${insurance.id}`" />
-                                <Button type="submit" label="Save Changes" size="small" :loading="form.processing" />
+                                <BackButton
+                                    :fallback-url="`/documents/insurances/${insurance.id}`"
+                                />
+                                <Button
+                                    type="submit"
+                                    label="Save Changes"
+                                    size="small"
+                                    :loading="form.processing"
+                                />
                             </div>
                         </form>
                     </template>
@@ -400,7 +534,12 @@ function clearSelectedFile() {
         </div>
 
         <!-- Document Preview Dialog -->
-        <Dialog v-model:visible="documentPreviewVisible" header="Document Preview" :modal="true" class="w-full max-w-3xl">
+        <Dialog
+            v-model:visible="documentPreviewVisible"
+            header="Document Preview"
+            :modal="true"
+            class="w-full max-w-3xl"
+        >
             <div class="flex items-center justify-center">
                 <img
                     v-if="insurance.document_url"

@@ -105,7 +105,7 @@ function clockOut() {
         {
             preserveScroll: true,
             onFinish: () => emit('stateChanged'),
-        }
+        },
     );
 }
 
@@ -118,7 +118,7 @@ function startBreak() {
         {
             preserveScroll: true,
             onFinish: () => emit('stateChanged'),
-        }
+        },
     );
 }
 
@@ -131,7 +131,7 @@ function endBreak() {
         {
             preserveScroll: true,
             onFinish: () => emit('stateChanged'),
-        }
+        },
     );
 }
 
@@ -153,13 +153,17 @@ onUnmounted(() => {
             <div class="flex flex-col gap-4">
                 <!-- Status Header -->
                 <div class="flex flex-wrap items-start gap-2">
-                    <div class="flex min-w-0 flex-1 basis-48 items-center gap-3">
+                    <div
+                        class="flex min-w-0 flex-1 basis-48 items-center gap-3"
+                    >
                         <div
                             class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
                             :class="{
                                 'bg-muted': !currentTimecard,
-                                'bg-green-100 dark:bg-green-900/30': currentTimecard && !isOnBreak,
-                                'bg-amber-100 dark:bg-amber-900/30': currentTimecard && isOnBreak,
+                                'bg-green-100 dark:bg-green-900/30':
+                                    currentTimecard && !isOnBreak,
+                                'bg-amber-100 dark:bg-amber-900/30':
+                                    currentTimecard && isOnBreak,
                             }"
                         >
                             <Clock
@@ -170,18 +174,40 @@ onUnmounted(() => {
                                 v-else-if="!isOnBreak"
                                 class="h-5 w-5 text-green-600 dark:text-green-400"
                             />
-                            <Coffee v-else class="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                            <Coffee
+                                v-else
+                                class="h-5 w-5 text-amber-600 dark:text-amber-400"
+                            />
                         </div>
                         <div class="min-w-0 flex-1">
-                            <p class="truncate text-sm font-medium">{{ statusText }}</p>
-                            <p v-if="currentTimecard" class="text-xs text-muted-foreground">
-                                Started {{ new Date(currentTimecard.start_date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) }}
+                            <p class="truncate text-sm font-medium">
+                                {{ statusText }}
+                            </p>
+                            <p
+                                v-if="currentTimecard"
+                                class="text-xs text-muted-foreground"
+                            >
+                                Started
+                                {{
+                                    new Date(
+                                        currentTimecard.start_date,
+                                    ).toLocaleTimeString('en-US', {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                    })
+                                }}
                             </p>
                         </div>
                     </div>
                     <Tag
                         :severity="statusSeverity"
-                        :value="currentTimecard ? (isOnBreak ? 'Break' : 'Working') : 'Off'"
+                        :value="
+                            currentTimecard
+                                ? isOnBreak
+                                    ? 'Break'
+                                    : 'Working'
+                                : 'Off'
+                        "
                     />
                 </div>
 
@@ -190,10 +216,14 @@ onUnmounted(() => {
                     v-if="currentTimecard"
                     class="rounded-xl bg-muted/50 py-6 text-center"
                 >
-                    <p class="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    <p
+                        class="text-xs font-medium tracking-wider text-muted-foreground uppercase"
+                    >
                         Time Elapsed
                     </p>
-                    <p class="mt-1 text-3xl font-bold tabular-nums tracking-tight">
+                    <p
+                        class="mt-1 text-3xl font-bold tracking-tight tabular-nums"
+                    >
                         {{ elapsedTime || '—' }}
                     </p>
                 </div>

@@ -28,9 +28,17 @@ interface StoreEmployee {
     store_id: number;
     active: boolean;
     permissions: string[];
-    permissions_with_labels: Array<{ key: string; label: string; group: string }>;
+    permissions_with_labels: Array<{
+        key: string;
+        label: string;
+        group: string;
+    }>;
     access_permissions: string[];
-    access_permissions_with_labels: Array<{ key: string; label: string; group: string }>;
+    access_permissions_with_labels: Array<{
+        key: string;
+        label: string;
+        group: string;
+    }>;
     is_creator: boolean;
     employee?: {
         id: number;
@@ -78,8 +86,12 @@ const employeeOptions = computed(() =>
 
 // Filter out employees that are already assigned when adding new
 const availableEmployeeOptions = computed(() => {
-    const assignedEmployeeIds = storeEmployees.value.map((se) => se.employee_id);
-    return employeeOptions.value.filter((e) => !assignedEmployeeIds.includes(e.value));
+    const assignedEmployeeIds = storeEmployees.value.map(
+        (se) => se.employee_id,
+    );
+    return employeeOptions.value.filter(
+        (e) => !assignedEmployeeIds.includes(e.value),
+    );
 });
 
 async function fetchStoreEmployees() {
@@ -93,7 +105,8 @@ async function fetchStoreEmployees() {
         const data = await response.json();
         storeEmployees.value = data.data;
         availablePermissions.value = data.available_permissions;
-        availableAccessPermissions.value = data.available_access_permissions || {};
+        availableAccessPermissions.value =
+            data.available_access_permissions || {};
     } catch (error) {
         console.error('Failed to fetch store employees:', error);
     } finally {
@@ -225,12 +238,17 @@ function togglePermission(permissionKey: string) {
 }
 
 function toggleGroupPermissions(group: string) {
-    const groupPermissions = availablePermissions.value[group]?.map((p) => p.key) ?? [];
-    const allSelected = groupPermissions.every((p) => form.permissions.includes(p));
+    const groupPermissions =
+        availablePermissions.value[group]?.map((p) => p.key) ?? [];
+    const allSelected = groupPermissions.every((p) =>
+        form.permissions.includes(p),
+    );
 
     if (allSelected) {
         // Remove all permissions in this group
-        form.permissions = form.permissions.filter((p) => !groupPermissions.includes(p));
+        form.permissions = form.permissions.filter(
+            (p) => !groupPermissions.includes(p),
+        );
     } else {
         // Add all permissions in this group
         groupPermissions.forEach((p) => {
@@ -242,13 +260,20 @@ function toggleGroupPermissions(group: string) {
 }
 
 function isGroupFullySelected(group: string): boolean {
-    const groupPermissions = availablePermissions.value[group]?.map((p) => p.key) ?? [];
-    return groupPermissions.length > 0 && groupPermissions.every((p) => form.permissions.includes(p));
+    const groupPermissions =
+        availablePermissions.value[group]?.map((p) => p.key) ?? [];
+    return (
+        groupPermissions.length > 0 &&
+        groupPermissions.every((p) => form.permissions.includes(p))
+    );
 }
 
 function isGroupPartiallySelected(group: string): boolean {
-    const groupPermissions = availablePermissions.value[group]?.map((p) => p.key) ?? [];
-    const selectedCount = groupPermissions.filter((p) => form.permissions.includes(p)).length;
+    const groupPermissions =
+        availablePermissions.value[group]?.map((p) => p.key) ?? [];
+    const selectedCount = groupPermissions.filter((p) =>
+        form.permissions.includes(p),
+    ).length;
     return selectedCount > 0 && selectedCount < groupPermissions.length;
 }
 
@@ -258,7 +283,10 @@ function getEmployeeName(employeeId: number): string {
 }
 
 function getEmployeeNumber(employeeId: number): string | null {
-    return props.employees.find((e) => e.id === employeeId)?.employee_number ?? null;
+    return (
+        props.employees.find((e) => e.id === employeeId)?.employee_number ??
+        null
+    );
 }
 
 function getProfilePictureUrl(se: StoreEmployee): string | null {
@@ -284,11 +312,16 @@ function toggleAccessPermission(permissionKey: string) {
 }
 
 function toggleAccessGroupPermissions(group: string) {
-    const groupPermissions = availableAccessPermissions.value[group]?.map((p) => p.key) ?? [];
-    const allSelected = groupPermissions.every((p) => form.access_permissions.includes(p));
+    const groupPermissions =
+        availableAccessPermissions.value[group]?.map((p) => p.key) ?? [];
+    const allSelected = groupPermissions.every((p) =>
+        form.access_permissions.includes(p),
+    );
 
     if (allSelected) {
-        form.access_permissions = form.access_permissions.filter((p) => !groupPermissions.includes(p));
+        form.access_permissions = form.access_permissions.filter(
+            (p) => !groupPermissions.includes(p),
+        );
     } else {
         groupPermissions.forEach((p) => {
             if (!form.access_permissions.includes(p)) {
@@ -299,13 +332,20 @@ function toggleAccessGroupPermissions(group: string) {
 }
 
 function isAccessGroupFullySelected(group: string): boolean {
-    const groupPermissions = availableAccessPermissions.value[group]?.map((p) => p.key) ?? [];
-    return groupPermissions.length > 0 && groupPermissions.every((p) => form.access_permissions.includes(p));
+    const groupPermissions =
+        availableAccessPermissions.value[group]?.map((p) => p.key) ?? [];
+    return (
+        groupPermissions.length > 0 &&
+        groupPermissions.every((p) => form.access_permissions.includes(p))
+    );
 }
 
 function isAccessGroupPartiallySelected(group: string): boolean {
-    const groupPermissions = availableAccessPermissions.value[group]?.map((p) => p.key) ?? [];
-    const selectedCount = groupPermissions.filter((p) => form.access_permissions.includes(p)).length;
+    const groupPermissions =
+        availableAccessPermissions.value[group]?.map((p) => p.key) ?? [];
+    const selectedCount = groupPermissions.filter((p) =>
+        form.access_permissions.includes(p),
+    ).length;
     return selectedCount > 0 && selectedCount < groupPermissions.length;
 }
 
@@ -336,7 +376,8 @@ const expandedRows = ref({});
         >
             <template #empty>
                 <div class="p-4 text-center text-muted-foreground">
-                    No employees assigned to this store. Click "Add Employee" to assign an employee.
+                    No employees assigned to this store. Click "Add Employee" to
+                    assign an employee.
                 </div>
             </template>
             <Column expander style="width: 3rem" class="!pr-0 md:hidden" />
@@ -348,7 +389,12 @@ const expandedRows = ref({});
                             :src="getProfilePictureUrl(data) ?? undefined"
                             :alt="getEmployeeName(data.employee_id)"
                             image-class="!h-8 !w-8 rounded-full object-cover cursor-pointer"
-                            :pt="{ root: { class: 'rounded-full overflow-hidden shrink-0' }, previewMask: { class: 'rounded-full' } }"
+                            :pt="{
+                                root: {
+                                    class: 'rounded-full overflow-hidden shrink-0',
+                                },
+                                previewMask: { class: 'rounded-full' },
+                            }"
                             preview
                         />
                         <Avatar
@@ -358,23 +404,39 @@ const expandedRows = ref({});
                             class="!h-8 !w-8 shrink-0 bg-primary/10 text-primary"
                         />
                         <div class="flex flex-col gap-0.5">
-                            <span class="font-medium">{{ getEmployeeName(data.employee_id) }}</span>
+                            <span class="font-medium">{{
+                                getEmployeeName(data.employee_id)
+                            }}</span>
                             <div class="flex flex-wrap items-center gap-1">
-                                <span v-if="getEmployeeNumber(data.employee_id)" class="text-xs text-muted-foreground">
+                                <span
+                                    v-if="getEmployeeNumber(data.employee_id)"
+                                    class="text-xs text-muted-foreground"
+                                >
                                     {{ getEmployeeNumber(data.employee_id) }}
                                 </span>
-                                <Tag v-if="data.is_creator" value="Creator" severity="info" class="!text-xs" />
+                                <Tag
+                                    v-if="data.is_creator"
+                                    value="Creator"
+                                    severity="info"
+                                    class="!text-xs"
+                                />
                             </div>
                         </div>
                     </div>
                 </template>
             </Column>
-            <Column field="permissions" header="Permissions" class="hidden md:table-cell">
+            <Column
+                field="permissions"
+                header="Permissions"
+                class="hidden md:table-cell"
+            >
                 <template #body="{ data }">
                     <div class="flex flex-wrap gap-1">
                         <!-- Store Access permissions (primary color) -->
                         <Tag
-                            v-for="perm in (data.access_permissions_with_labels || []).slice(0, 2)"
+                            v-for="perm in (
+                                data.access_permissions_with_labels || []
+                            ).slice(0, 2)"
                             :key="`access-${perm.key}`"
                             :value="perm.label"
                             severity="info"
@@ -382,7 +444,9 @@ const expandedRows = ref({});
                         />
                         <!-- Store Operations permissions (secondary color) -->
                         <Tag
-                            v-for="perm in (data.permissions_with_labels || []).slice(0, 2)"
+                            v-for="perm in (
+                                data.permissions_with_labels || []
+                            ).slice(0, 2)"
                             :key="`ops-${perm.key}`"
                             :value="perm.label"
                             severity="secondary"
@@ -390,17 +454,36 @@ const expandedRows = ref({});
                         />
                         <!-- Overflow indicator -->
                         <Tag
-                            v-if="(data.access_permissions_with_labels || []).length + (data.permissions_with_labels || []).length > 4"
+                            v-if="
+                                (data.access_permissions_with_labels || [])
+                                    .length +
+                                    (data.permissions_with_labels || [])
+                                        .length >
+                                4
+                            "
                             :value="`+${(data.access_permissions_with_labels || []).length + (data.permissions_with_labels || []).length - 4}`"
                             severity="contrast"
                             class="!text-xs"
-                            v-tooltip.top="[
-                                ...(data.access_permissions_with_labels || []).slice(2),
-                                ...(data.permissions_with_labels || []).slice(2)
-                            ].map((p: any) => p.label).join(', ')"
+                            v-tooltip.top="
+                                [
+                                    ...(
+                                        data.access_permissions_with_labels ||
+                                        []
+                                    ).slice(2),
+                                    ...(
+                                        data.permissions_with_labels || []
+                                    ).slice(2),
+                                ]
+                                    .map((p: any) => p.label)
+                                    .join(', ')
+                            "
                         />
                         <span
-                            v-if="!(data.access_permissions_with_labels || []).length && !(data.permissions_with_labels || []).length"
+                            v-if="
+                                !(data.access_permissions_with_labels || [])
+                                    .length &&
+                                !(data.permissions_with_labels || []).length
+                            "
                             class="text-sm text-muted-foreground"
                         >
                             No permissions
@@ -410,7 +493,10 @@ const expandedRows = ref({});
             </Column>
             <Column header="Status">
                 <template #body="{ data }">
-                    <Tag :value="data.active ? 'Active' : 'Inactive'" :severity="data.active ? 'success' : 'secondary'" />
+                    <Tag
+                        :value="data.active ? 'Active' : 'Inactive'"
+                        :severity="data.active ? 'success' : 'secondary'"
+                    />
                 </template>
             </Column>
             <Column header="" class="hidden w-32 !pr-4 md:table-cell">
@@ -452,32 +538,49 @@ const expandedRows = ref({});
                 <div class="grid gap-3 p-3 text-sm md:hidden">
                     <!-- Store Access Permissions -->
                     <div class="flex flex-col gap-2">
-                        <span class="shrink-0 text-muted-foreground">Store Access</span>
+                        <span class="shrink-0 text-muted-foreground"
+                            >Store Access</span
+                        >
                         <div class="flex flex-wrap gap-1">
                             <Tag
-                                v-for="perm in (data.access_permissions_with_labels || [])"
+                                v-for="perm in data.access_permissions_with_labels ||
+                                []"
                                 :key="`access-${perm.key}`"
                                 :value="perm.label"
                                 severity="info"
                                 class="!text-xs"
                             />
-                            <span v-if="!(data.access_permissions_with_labels || []).length" class="text-muted-foreground">
+                            <span
+                                v-if="
+                                    !(data.access_permissions_with_labels || [])
+                                        .length
+                                "
+                                class="text-muted-foreground"
+                            >
                                 None
                             </span>
                         </div>
                     </div>
                     <!-- Store Operations Permissions -->
                     <div class="flex flex-col gap-2">
-                        <span class="shrink-0 text-muted-foreground">Store Operations</span>
+                        <span class="shrink-0 text-muted-foreground"
+                            >Store Operations</span
+                        >
                         <div class="flex flex-wrap gap-1">
                             <Tag
-                                v-for="perm in (data.permissions_with_labels || [])"
+                                v-for="perm in data.permissions_with_labels ||
+                                []"
                                 :key="`ops-${perm.key}`"
                                 :value="perm.label"
                                 severity="secondary"
                                 class="!text-xs"
                             />
-                            <span v-if="!(data.permissions_with_labels || []).length" class="text-muted-foreground">
+                            <span
+                                v-if="
+                                    !(data.permissions_with_labels || []).length
+                                "
+                                class="text-muted-foreground"
+                            >
                                 None
                             </span>
                         </div>
@@ -523,7 +626,9 @@ const expandedRows = ref({});
         >
             <form @submit.prevent="saveAssignment" class="flex flex-col gap-4">
                 <div class="flex flex-col gap-2">
-                    <label for="se_employee_id" class="font-medium">Employee *</label>
+                    <label for="se_employee_id" class="font-medium"
+                        >Employee *</label
+                    >
                     <Select
                         v-if="!editingId"
                         id="se_employee_id"
@@ -539,10 +644,15 @@ const expandedRows = ref({});
                     />
                     <div
                         v-else
-                        class="flex items-center gap-2 rounded border border-border bg-surface-50 px-3 py-2 dark:bg-surface-800"
+                        class="bg-surface-50 dark:bg-surface-800 flex items-center gap-2 rounded border border-border px-3 py-2"
                     >
-                        <span class="font-medium">{{ getEmployeeName(form.employee_id!) }}</span>
-                        <span v-if="getEmployeeNumber(form.employee_id!)" class="text-xs text-muted-foreground">
+                        <span class="font-medium">{{
+                            getEmployeeName(form.employee_id!)
+                        }}</span>
+                        <span
+                            v-if="getEmployeeNumber(form.employee_id!)"
+                            class="text-xs text-muted-foreground"
+                        >
                             ({{ getEmployeeNumber(form.employee_id!) }})
                         </span>
                     </div>
@@ -553,37 +663,72 @@ const expandedRows = ref({});
 
                 <div class="flex items-center gap-3">
                     <ToggleSwitch v-model="form.active" />
-                    <span :class="form.active ? 'text-green-600' : 'text-red-600'">
+                    <span
+                        :class="form.active ? 'text-green-600' : 'text-red-600'"
+                    >
                         {{ form.active ? 'Active' : 'Inactive' }}
                     </span>
                 </div>
 
                 <!-- Store Access Permissions -->
-                <div v-if="Object.keys(availableAccessPermissions).length > 0" class="flex flex-col gap-3">
+                <div
+                    v-if="Object.keys(availableAccessPermissions).length > 0"
+                    class="flex flex-col gap-3"
+                >
                     <label class="font-medium">Store Access</label>
-                    <p class="text-sm text-muted-foreground -mt-2">Controls what the employee can do with store settings and management.</p>
+                    <p class="-mt-2 text-sm text-muted-foreground">
+                        Controls what the employee can do with store settings
+                        and management.
+                    </p>
                     <div
-                        v-for="(permissions, group) in availableAccessPermissions"
+                        v-for="(
+                            permissions, group
+                        ) in availableAccessPermissions"
                         :key="`access-${group}`"
                         class="rounded border border-border p-3"
                     >
                         <div class="mb-2 flex items-center gap-2">
                             <Checkbox
-                                :model-value="isAccessGroupFullySelected(group as string)"
-                                :indeterminate="isAccessGroupPartiallySelected(group as string)"
+                                :model-value="
+                                    isAccessGroupFullySelected(group as string)
+                                "
+                                :indeterminate="
+                                    isAccessGroupPartiallySelected(
+                                        group as string,
+                                    )
+                                "
                                 binary
-                                @change="toggleAccessGroupPermissions(group as string)"
+                                @change="
+                                    toggleAccessGroupPermissions(
+                                        group as string,
+                                    )
+                                "
                             />
                             <span class="text-sm font-medium">{{ group }}</span>
                         </div>
                         <div class="ml-6 grid gap-2 sm:grid-cols-2">
-                            <div v-for="perm in permissions" :key="perm.key" class="flex items-center gap-2">
-                                <Checkbox :model-value="form.access_permissions.includes(perm.key)" binary @change="toggleAccessPermission(perm.key)" />
+                            <div
+                                v-for="perm in permissions"
+                                :key="perm.key"
+                                class="flex items-center gap-2"
+                            >
+                                <Checkbox
+                                    :model-value="
+                                        form.access_permissions.includes(
+                                            perm.key,
+                                        )
+                                    "
+                                    binary
+                                    @change="toggleAccessPermission(perm.key)"
+                                />
                                 <span class="text-sm">{{ perm.label }}</span>
                             </div>
                         </div>
                     </div>
-                    <small v-if="formErrors.access_permissions" class="text-red-500">
+                    <small
+                        v-if="formErrors.access_permissions"
+                        class="text-red-500"
+                    >
                         {{ formErrors.access_permissions }}
                     </small>
                 </div>
@@ -591,7 +736,10 @@ const expandedRows = ref({});
                 <!-- Store Operations Permissions -->
                 <div class="flex flex-col gap-3">
                     <label class="font-medium">Store Operations</label>
-                    <p class="text-sm text-muted-foreground -mt-2">Controls what the employee can do within the store (sales, inventory, etc.).</p>
+                    <p class="-mt-2 text-sm text-muted-foreground">
+                        Controls what the employee can do within the store
+                        (sales, inventory, etc.).
+                    </p>
                     <div
                         v-for="(permissions, group) in availablePermissions"
                         :key="group"
@@ -599,16 +747,32 @@ const expandedRows = ref({});
                     >
                         <div class="mb-2 flex items-center gap-2">
                             <Checkbox
-                                :model-value="isGroupFullySelected(group as string)"
-                                :indeterminate="isGroupPartiallySelected(group as string)"
+                                :model-value="
+                                    isGroupFullySelected(group as string)
+                                "
+                                :indeterminate="
+                                    isGroupPartiallySelected(group as string)
+                                "
                                 binary
-                                @change="toggleGroupPermissions(group as string)"
+                                @change="
+                                    toggleGroupPermissions(group as string)
+                                "
                             />
                             <span class="text-sm font-medium">{{ group }}</span>
                         </div>
                         <div class="ml-6 grid gap-2 sm:grid-cols-2">
-                            <div v-for="perm in permissions" :key="perm.key" class="flex items-center gap-2">
-                                <Checkbox :model-value="form.permissions.includes(perm.key)" binary @change="togglePermission(perm.key)" />
+                            <div
+                                v-for="perm in permissions"
+                                :key="perm.key"
+                                class="flex items-center gap-2"
+                            >
+                                <Checkbox
+                                    :model-value="
+                                        form.permissions.includes(perm.key)
+                                    "
+                                    binary
+                                    @change="togglePermission(perm.key)"
+                                />
                                 <span class="text-sm">{{ perm.label }}</span>
                             </div>
                         </div>
@@ -627,7 +791,12 @@ const expandedRows = ref({});
                         @click="dialogVisible = false"
                         :disabled="saving"
                     />
-                    <Button type="submit" :label="editingId ? 'Save Changes' : 'Add Employee'" size="small" :loading="saving" />
+                    <Button
+                        type="submit"
+                        :label="editingId ? 'Save Changes' : 'Add Employee'"
+                        size="small"
+                        :loading="saving"
+                    />
                 </div>
             </form>
         </Dialog>
