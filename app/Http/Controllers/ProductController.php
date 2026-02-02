@@ -12,6 +12,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Currency;
 use App\Models\Product;
+use App\Models\ProductImage;
 use App\Models\ProductPrice;
 use App\Models\ProductStore;
 use App\Models\ProductStorePrice;
@@ -41,6 +42,7 @@ class ProductController extends Controller
         $supplierId = $request->query('supplier_id', '');
         $storeIds = $request->query('store_ids', []);
         $showDeleted = $request->boolean('show_deleted', false);
+        $excludeVariants = $request->boolean('exclude_variants', false);
         $perPage = min(max($request->integer('per_page', 15), 10), 100);
 
         // Normalize store_ids to array of integers
@@ -108,7 +110,12 @@ class ProductController extends Controller
             $query->where('supplier_id', $supplierId);
         }
 
+        if ($excludeVariants) {
+            $query->excludeVariants();
+        }
+
         $products = $query
+            ->withCount('variants')
             ->orderBy('product_name')
             ->paginate($perPage)
             ->withQueryString();
@@ -146,6 +153,7 @@ class ProductController extends Controller
                 'supplier_id' => $supplierId,
                 'store_ids' => $storeIds,
                 'show_deleted' => $showDeleted,
+                'exclude_variants' => $excludeVariants,
                 'per_page' => $perPage,
             ],
         ]);
@@ -155,6 +163,39 @@ class ProductController extends Controller
     {
         return Inertia::render('Products/Form', [
             'product' => null,
+            'parentProduct' => null,
+            'brands' => Brand::active()->orderBy('brand_name')->get(['id', 'brand_name', 'brand_code']),
+            'categories' => Category::where('is_active', true)
+                ->with(['subcategories' => fn ($q) => $q->where('is_active', true)->orderBy('subcategory_name')])
+                ->orderBy('category_name')
+                ->get(['id', 'category_name', 'category_code']),
+            'suppliers' => Supplier::where('active', true)->orderBy('supplier_name')->get(['id', 'supplier_name']),
+            'currencies' => Currency::active()->orderBy('code')->get(['id', 'code', 'name', 'symbol', 'decimal_places']),
+            'stores' => Store::where('active', true)
+                ->with(['storeCurrencies.currency'])
+                ->orderBy('store_name')
+                ->get(['id', 'store_name', 'store_code']),
+            'weightUnits' => WeightUnit::options(),
+        ]);
+    }
+
+    public function createVariant(Product $product): InertiaResponse
+    {
+        // Only non-variants can have variants created from them
+        if ($product->isVariant()) {
+            abort(422, 'Cannot create a variant of a variant.');
+        }
+
+        $product->load([
+            'brand',
+            'category',
+            'subcategory',
+            'supplier',
+        ]);
+
+        return Inertia::render('Products/Form', [
+            'product' => null,
+            'parentProduct' => (new ProductResource($product))->resolve(),
             'brands' => Brand::active()->orderBy('brand_name')->get(['id', 'brand_name', 'brand_code']),
             'categories' => Category::where('is_active', true)
                 ->with(['subcategories' => fn ($q) => $q->where('is_active', true)->orderBy('subcategory_name')])
@@ -267,10 +308,15 @@ class ProductController extends Controller
             'productStores.store',
             'productStores.storePrices.currency',
             'tags:id,name',
+            'images',
+            'parent.brand',
+            'variants' => fn ($q) => $q->with(['brand', 'prices.currency'])->orderBy('variant_name'),
             'createdBy:id,name',
             'updatedBy:id,name',
             'previousUpdatedBy:id,name',
         ]);
+
+        $product->loadCount('variants');
 
         if ($this->wantsJson($request)) {
             return response()->json([
@@ -280,6 +326,19 @@ class ProductController extends Controller
 
         return Inertia::render('Products/View', [
             'product' => (new ProductResource($product))->resolve(),
+        ]);
+    }
+
+    public function variants(Request $request, Product $product): JsonResponse
+    {
+        // Return the variants for this product
+        $variants = $product->variants()
+            ->with(['brand:id,brand_name', 'prices.currency'])
+            ->orderBy('variant_name')
+            ->get();
+
+        return response()->json([
+            'data' => ProductResource::collection($variants)->resolve(),
         ]);
     }
 
@@ -302,6 +361,7 @@ class ProductController extends Controller
             'productStores.store',
             'productStores.storePrices.currency',
             'tags:id,name',
+            'images',
         ]);
 
         return Inertia::render('Products/Form', [
@@ -499,6 +559,147 @@ class ProductController extends Controller
         );
     }
 
+    public function showSupplementaryImage(Product $product, ProductImage $image): StreamedResponse
+    {
+        // Verify the image belongs to this product
+        if ($image->product_id !== $product->id) {
+            abort(404);
+        }
+
+        if (! Storage::disk('private')->exists($image->image_path)) {
+            abort(404);
+        }
+
+        return Storage::disk('private')->response($image->image_path);
+    }
+
+    public function uploadSupplementaryImage(Product $product, Request $request): JsonResponse
+    {
+        $request->validate([
+            'image' => ['required', 'image', 'max:5120'], // 5MB max
+        ]);
+
+        // Get current max sort_order
+        $maxSortOrder = $product->images()->max('sort_order') ?? -1;
+
+        // Store the image
+        $file = $request->file('image');
+        $path = $file->store("product-images/{$product->id}/supplementary", 'private');
+
+        $image = $product->images()->create([
+            'image_path' => $path,
+            'image_filename' => $file->getClientOriginalName(),
+            'image_mime_type' => $file->getMimeType(),
+            'sort_order' => $maxSortOrder + 1,
+        ]);
+
+        return response()->json([
+            'message' => 'Image uploaded successfully.',
+            'image' => [
+                'id' => $image->id,
+                'image_url' => route('products.supplementary-image', [$product->id, $image->id]),
+                'image_filename' => $image->image_filename,
+                'sort_order' => $image->sort_order,
+            ],
+        ]);
+    }
+
+    public function deleteSupplementaryImage(Product $product, ProductImage $image, Request $request): JsonResponse
+    {
+        // Verify the image belongs to this product
+        if ($image->product_id !== $product->id) {
+            abort(404);
+        }
+
+        // Delete the file
+        if (Storage::disk('private')->exists($image->image_path)) {
+            Storage::disk('private')->delete($image->image_path);
+        }
+
+        $image->delete();
+
+        return response()->json([
+            'message' => 'Image deleted successfully.',
+        ]);
+    }
+
+    public function reorderImages(Product $product, Request $request): JsonResponse
+    {
+        $request->validate([
+            'image_ids' => ['required', 'array'],
+            'image_ids.*' => ['required', 'integer', 'exists:product_images,id'],
+        ]);
+
+        $imageIds = $request->input('image_ids');
+
+        // Verify all images belong to this product
+        $productImageIds = $product->images()->pluck('id')->toArray();
+        foreach ($imageIds as $imageId) {
+            if (! in_array($imageId, $productImageIds)) {
+                return response()->json([
+                    'message' => 'Image does not belong to this product.',
+                ], 422);
+            }
+        }
+
+        // Update sort orders
+        foreach ($imageIds as $index => $imageId) {
+            ProductImage::where('id', $imageId)->update(['sort_order' => $index]);
+        }
+
+        return response()->json([
+            'message' => 'Images reordered successfully.',
+        ]);
+    }
+
+    public function promoteToCover(Product $product, ProductImage $image, Request $request): JsonResponse
+    {
+        // Verify the image belongs to this product
+        if ($image->product_id !== $product->id) {
+            abort(404);
+        }
+
+        return DB::transaction(function () use ($product, $image) {
+            // Save current cover image data
+            $oldCoverPath = $product->image_path;
+            $oldCoverFilename = $product->image_filename;
+            $oldCoverMimeType = $product->image_mime_type;
+
+            // Update product with supplementary image's data (becomes new cover)
+            $product->update([
+                'image_path' => $image->image_path,
+                'image_filename' => $image->image_filename,
+                'image_mime_type' => $image->image_mime_type,
+            ]);
+
+            // If old cover existed, update the supplementary image record with old cover data
+            if ($oldCoverPath) {
+                $image->update([
+                    'image_path' => $oldCoverPath,
+                    'image_filename' => $oldCoverFilename,
+                    'image_mime_type' => $oldCoverMimeType,
+                ]);
+            } else {
+                // If no old cover, delete the supplementary image record
+                $image->delete();
+            }
+
+            // Reload images to get updated list
+            $product->load('images');
+
+            return response()->json([
+                'message' => 'Image promoted to cover successfully.',
+                'cover_url' => route('products.image', $product->id),
+                'images' => $product->images->map(fn ($img) => [
+                    'id' => $img->id,
+                    'image_url' => route('products.supplementary-image', [$product->id, $img->id]),
+                    'image_filename' => $img->image_filename,
+                    'sort_order' => $img->sort_order,
+                ])->values()->toArray(),
+            ]);
+        });
+    }
+
     public function search(Request $request): JsonResponse
     {
         $query = $request->query('q', '');
@@ -529,6 +730,90 @@ class ProductController extends Controller
         return response()->json(['data' => $results]);
     }
 
+    /**
+     * Search for products that can be linked as variants.
+     * Excludes products that are already variants and the current product.
+     */
+    public function searchLinkable(Request $request, Product $product): JsonResponse
+    {
+        $query = $request->query('q', '');
+        $limit = min((int) $request->query('limit', 20), 50);
+
+        if (strlen($query) < 2) {
+            return response()->json(['data' => []]);
+        }
+
+        $products = Product::query()
+            ->search($query)
+            ->whereNull('parent_product_id') // Only standalone products
+            ->where('id', '!=', $product->id) // Exclude current product
+            ->doesntHave('variants') // Exclude products that have variants (they are parents)
+            ->orderBy('product_name')
+            ->limit($limit)
+            ->get(['id', 'product_name', 'product_number', 'barcode', 'brand_id', 'image_path']);
+
+        $brandIds = $products->pluck('brand_id')->filter()->unique()->values();
+        $brands = Brand::whereIn('id', $brandIds)->pluck('brand_name', 'id');
+
+        $results = $products->map(fn (Product $p) => [
+            'id' => $p->id,
+            'product_name' => $p->product_name,
+            'product_number' => $p->product_number,
+            'barcode' => $p->barcode,
+            'brand_name' => $brands[$p->brand_id] ?? null,
+            'image_url' => $p->image_path ? route('products.image', $p->id) : null,
+        ]);
+
+        return response()->json(['data' => $results]);
+    }
+
+    /**
+     * Link an existing product as a variant of this product.
+     */
+    public function linkAsVariant(Request $request, Product $product): JsonResponse
+    {
+        // Parent cannot be a variant itself
+        if ($product->isVariant()) {
+            return response()->json(['message' => 'Cannot add variants to a variant product.'], 422);
+        }
+
+        $validated = $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'variant_name' => 'required|string|max:255',
+        ]);
+
+        $child = Product::findOrFail($validated['product_id']);
+
+        // Child cannot already be a variant
+        if ($child->isVariant()) {
+            return response()->json(['message' => 'This product is already a variant.'], 422);
+        }
+
+        // Child cannot have variants (would become orphaned)
+        if ($child->hasVariants()) {
+            return response()->json(['message' => 'Cannot link a product that has variants.'], 422);
+        }
+
+        // Cannot link to itself
+        if ($child->id === $product->id) {
+            return response()->json(['message' => 'Cannot link a product to itself.'], 422);
+        }
+
+        $child->parent_product_id = $product->id;
+        $child->variant_name = $validated['variant_name'];
+        $child->save();
+
+        return response()->json([
+            'message' => 'Product linked as variant successfully.',
+            'variant' => [
+                'id' => $child->id,
+                'variant_name' => $child->variant_name,
+                'product_number' => $child->product_number,
+                'is_active' => $child->is_active,
+            ],
+        ]);
+    }
+
     public function preview(Request $request, Product $product): JsonResponse
     {
         $product->load([
@@ -539,6 +824,8 @@ class ProductController extends Controller
             'prices.currency',
             'productStores.store:id,store_name,store_code',
             'tags:id,name',
+            'parent:id,product_name,product_number',
+            'variants' => fn ($q) => $q->orderBy('variant_name'),
         ]);
 
         return response()->json([

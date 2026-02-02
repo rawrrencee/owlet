@@ -1,5 +1,12 @@
 import type { Currency } from './currency';
 
+export interface ProductImage {
+    id: number;
+    image_url: string;
+    image_filename: string;
+    sort_order: number;
+}
+
 export interface ProductPrice {
     id: number;
     product_id: number;
@@ -42,6 +49,15 @@ export interface ProductStore {
 
 export interface Product {
     id: number;
+    // Variant fields
+    parent_product_id: number | null;
+    variant_name: string | null;
+    parent?: Product | null;
+    variants?: Product[];
+    variants_count?: number;
+    is_variant?: boolean;
+    has_variants?: boolean;
+    // Basic fields
     product_name: string;
     product_number: string;
     barcode: string | null;
@@ -80,6 +96,7 @@ export interface Product {
     image_filename: string | null;
     image_mime_type: string | null;
     image_url: string | null;
+    images: ProductImage[];
     weight: string | null;
     weight_unit: 'kg' | 'g' | 'lb' | 'oz';
     weight_display: string | null;

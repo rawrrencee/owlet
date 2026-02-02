@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import AuditInfo from '@/components/AuditInfo.vue';
 import BackButton from '@/components/BackButton.vue';
+import ProductImageGallery from '@/components/products/ProductImageGallery.vue';
+import LinkVariantDialog from '@/components/products/LinkVariantDialog.vue';
 import { usePermissions } from '@/composables/usePermissions';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type HasAuditTrail, type Product } from '@/types';
@@ -9,9 +11,8 @@ import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Divider from 'primevue/divider';
-import Image from 'primevue/image';
 import Tag from 'primevue/tag';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 interface Props {
     product: Product & HasAuditTrail;
@@ -24,6 +25,7 @@ const canViewCostPrice = computed(() =>
     canAccessPage('products.view_cost_price'),
 );
 const canEdit = computed(() => canAccessPage('products.edit'));
+const canCreate = computed(() => canAccessPage('products.create'));
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -41,6 +43,32 @@ function getInitials(): string {
 
 function navigateToEdit() {
     router.get(`/products/${props.product.id}/edit`);
+}
+
+function navigateToParent() {
+    if (props.product.parent_product_id) {
+        router.get(`/products/${props.product.parent_product_id}`);
+    }
+}
+
+function navigateToVariant(variantId: number) {
+    router.get(`/products/${variantId}`);
+}
+
+function createVariant() {
+    router.get(`/products/${props.product.id}/create-variant`);
+}
+
+// Link variant dialog
+const showLinkVariantDialog = ref(false);
+
+function onVariantLinked() {
+    // Close dialog first
+    showLinkVariantDialog.value = false;
+    // Reload page to show the new variant
+    router.visit(`/products/${props.product.id}`, {
+        preserveScroll: true,
+    });
 }
 
 function formatPrice(
@@ -63,19 +91,25 @@ function formatPrice(
             >
                 <div class="flex items-center gap-4">
                     <BackButton fallback-url="/products" />
-                    <h1 class="heading-lg">{{ product.product_name }}</h1>
-                    <Tag
-                        :value="product.is_active ? 'Active' : 'Inactive'"
-                        :severity="product.is_active ? 'success' : 'danger'"
+                    <h1 class="heading-lg">View Product</h1>
+                </div>
+                <div class="flex items-center gap-2">
+                    <Button
+                        v-if="canCreate && !product.is_variant"
+                        label="Create Variant"
+                        icon="pi pi-plus"
+                        size="small"
+                        severity="secondary"
+                        @click="createVariant"
+                    />
+                    <Button
+                        v-if="canEdit"
+                        label="Edit"
+                        icon="pi pi-pencil"
+                        size="small"
+                        @click="navigateToEdit"
                     />
                 </div>
-                <Button
-                    v-if="canEdit"
-                    label="Edit"
-                    icon="pi pi-pencil"
-                    size="small"
-                    @click="navigateToEdit"
-                />
             </div>
 
             <div class="mx-auto w-full max-w-4xl">
@@ -83,54 +117,77 @@ function formatPrice(
                     <template #content>
                         <div class="flex flex-col gap-6">
                             <!-- Product Header -->
-                            <div
-                                class="flex flex-col items-center gap-4 sm:flex-row sm:items-start"
-                            >
-                                <Image
-                                    v-if="product.image_url"
-                                    :src="product.image_url"
-                                    :alt="product.product_name"
-                                    image-class="!h-24 !w-24 rounded-lg object-cover cursor-pointer"
-                                    :pt="{
-                                        root: {
-                                            class: 'rounded-lg overflow-hidden',
-                                        },
-                                        previewMask: { class: 'rounded-lg' },
-                                    }"
-                                    preview
-                                />
-                                <Avatar
-                                    v-else
-                                    :label="getInitials()"
-                                    shape="square"
-                                    class="!h-24 !w-24 rounded-lg bg-primary/10 text-3xl text-primary"
-                                />
+                            <div class="flex flex-col gap-4">
                                 <div
-                                    class="flex flex-col gap-1 text-center sm:text-left"
+                                    class="flex flex-col items-center gap-4 sm:flex-row sm:items-start"
                                 >
-                                    <h2 class="text-xl font-semibold">
-                                        {{ product.product_name }}
-                                    </h2>
+                                    <Avatar
+                                        v-if="
+                                            !product.image_url &&
+                                            (!product.images ||
+                                                product.images.length === 0)
+                                        "
+                                        :label="getInitials()"
+                                        shape="square"
+                                        class="!h-24 !w-24 rounded-lg bg-primary/10 text-3xl text-primary"
+                                    />
                                     <div
-                                        class="flex flex-wrap items-center justify-center gap-2 sm:justify-start"
+                                        class="flex flex-col gap-1 text-center sm:text-left"
                                     >
-                                        <Tag
-                                            :value="product.product_number"
-                                            severity="secondary"
-                                        />
-                                        <Tag
-                                            v-if="product.barcode"
-                                            :value="product.barcode"
-                                            severity="info"
-                                        />
+                                        <h2 class="text-xl font-semibold">
+                                            {{ product.product_name }}
+                                        </h2>
+                                        <div
+                                            class="flex flex-wrap items-center justify-center gap-2 sm:justify-start"
+                                        >
+                                            <Tag
+                                                :value="product.product_number"
+                                                severity="secondary"
+                                            />
+                                            <Tag
+                                                v-if="product.barcode"
+                                                :value="product.barcode"
+                                                severity="info"
+                                            />
+                                            <Tag
+                                                :value="
+                                                    product.is_active
+                                                        ? 'Active'
+                                                        : 'Inactive'
+                                                "
+                                                :severity="
+                                                    product.is_active
+                                                        ? 'success'
+                                                        : 'danger'
+                                                "
+                                            />
+                                            <Tag
+                                                v-if="product.is_variant"
+                                                value="Variant"
+                                                severity="warn"
+                                            />
+                                        </div>
+                                        <p
+                                            v-if="product.brand_name"
+                                            class="text-muted-foreground"
+                                        >
+                                            {{ product.brand_name }}
+                                        </p>
                                     </div>
-                                    <p
-                                        v-if="product.brand_name"
-                                        class="text-muted-foreground"
-                                    >
-                                        {{ product.brand_name }}
-                                    </p>
                                 </div>
+
+                                <!-- Image Gallery -->
+                                <ProductImageGallery
+                                    v-if="
+                                        product.image_url ||
+                                        (product.images &&
+                                            product.images.length > 0)
+                                    "
+                                    :product-id="product.id"
+                                    :cover-image-url="product.image_url"
+                                    :images="product.images ?? []"
+                                    :editable="false"
+                                />
                             </div>
 
                             <Divider />
@@ -191,6 +248,150 @@ function formatPrice(
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Parent Product Link (if this is a variant) -->
+                            <template v-if="product.is_variant && product.parent">
+                                <Divider />
+                                <div>
+                                    <h3 class="mb-4 text-lg font-medium">
+                                        Parent Product
+                                    </h3>
+                                    <div
+                                        class="flex cursor-pointer items-center gap-3 rounded-lg border border-border p-4 transition-colors hover:bg-muted/50"
+                                        @click="navigateToParent"
+                                    >
+                                        <div class="flex flex-col gap-1">
+                                            <span class="font-medium">{{
+                                                product.parent.product_name
+                                            }}</span>
+                                            <span
+                                                class="text-sm text-muted-foreground"
+                                                >{{
+                                                    product.parent.product_number
+                                                }}</span
+                                            >
+                                        </div>
+                                        <i
+                                            class="pi pi-chevron-right ml-auto text-muted-foreground"
+                                        ></i>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- Variants Section (if this product has variants or can have variants) -->
+                            <template v-if="!product.is_variant">
+                                <Divider />
+                                <div>
+                                    <div
+                                        class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+                                    >
+                                        <h3 class="text-lg font-medium">
+                                            Variants
+                                            <span
+                                                v-if="
+                                                    product.variants &&
+                                                    product.variants.length > 0
+                                                "
+                                                >({{
+                                                    product.variants.length
+                                                }})</span
+                                            >
+                                        </h3>
+                                        <div
+                                            v-if="canCreate || canEdit"
+                                            class="flex gap-2"
+                                        >
+                                            <Button
+                                                v-if="canEdit"
+                                                label="Link Existing"
+                                                icon="pi pi-link"
+                                                size="small"
+                                                severity="secondary"
+                                                outlined
+                                                @click="
+                                                    showLinkVariantDialog = true
+                                                "
+                                            />
+                                            <Button
+                                                v-if="canCreate"
+                                                label="Create New"
+                                                icon="pi pi-plus"
+                                                size="small"
+                                                severity="secondary"
+                                                @click="createVariant"
+                                            />
+                                        </div>
+                                    </div>
+                                    <!-- Variants list -->
+                                    <div
+                                        v-if="
+                                            product.variants &&
+                                            product.variants.length > 0
+                                        "
+                                        class="flex flex-col gap-2"
+                                    >
+                                        <div
+                                            v-for="variant in product.variants"
+                                            :key="variant.id"
+                                            class="flex cursor-pointer items-center gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-muted/50"
+                                            @click="navigateToVariant(variant.id)"
+                                        >
+                                            <img
+                                                v-if="variant.image_url"
+                                                :src="variant.image_url"
+                                                :alt="variant.variant_name || variant.product_name"
+                                                class="h-10 w-10 flex-shrink-0 rounded object-cover"
+                                            />
+                                            <Avatar
+                                                v-else
+                                                :label="(variant.variant_name || variant.product_name || 'V').substring(0, 2).toUpperCase()"
+                                                shape="square"
+                                                class="!h-10 !w-10 flex-shrink-0 rounded bg-primary/10 text-sm text-primary"
+                                            />
+                                            <div class="flex flex-1 flex-col">
+                                                <span class="font-medium">{{
+                                                    variant.variant_name
+                                                }}</span>
+                                                <span
+                                                    class="text-xs text-muted-foreground"
+                                                    >{{
+                                                        variant.product_number
+                                                    }}</span
+                                                >
+                                            </div>
+                                            <Tag
+                                                :value="
+                                                    variant.is_active
+                                                        ? 'Active'
+                                                        : 'Inactive'
+                                                "
+                                                :severity="
+                                                    variant.is_active
+                                                        ? 'success'
+                                                        : 'danger'
+                                                "
+                                                class="!text-xs"
+                                            />
+                                            <i
+                                                class="pi pi-chevron-right text-muted-foreground"
+                                            ></i>
+                                        </div>
+                                    </div>
+                                    <!-- Empty state -->
+                                    <div
+                                        v-else
+                                        class="rounded-lg border border-dashed border-border p-6 text-center"
+                                    >
+                                        <i
+                                            class="pi pi-box mb-2 text-2xl text-muted-foreground"
+                                        ></i>
+                                        <p class="text-sm text-muted-foreground">
+                                            No variants yet. Create a new variant
+                                            or link an existing product.
+                                        </p>
+                                    </div>
+                                </div>
+                            </template>
 
                             <!-- Base Prices -->
                             <template
@@ -526,5 +727,11 @@ function formatPrice(
                 </Card>
             </div>
         </div>
+        <!-- Link Variant Dialog -->
+        <LinkVariantDialog
+            v-model:visible="showLinkVariantDialog"
+            :product-id="product.id"
+            @linked="onVariantLinked"
+        />
     </AppLayout>
 </template>

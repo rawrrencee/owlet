@@ -19,6 +19,10 @@ class StoreProductRequest extends FormRequest
     public function rules(): array
     {
         return [
+            // Variant fields
+            'parent_product_id' => ['nullable', 'exists:products,id'],
+            'variant_name' => ['nullable', 'string', 'max:255', 'required_with:parent_product_id'],
+
             // Basic product fields
             'product_name' => ['required', 'string', 'max:255'],
             'product_number' => [
@@ -72,6 +76,7 @@ class StoreProductRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'variant_name.required_with' => 'Variant name is required when creating a variant.',
             'product_number.unique' => 'This product number is already in use.',
             'prices.*.currency_id.required' => 'Currency is required for each price.',
             'prices.*.currency_id.exists' => 'Selected currency is invalid.',

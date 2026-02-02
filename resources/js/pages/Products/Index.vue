@@ -45,6 +45,7 @@ interface Filters {
     supplier_id?: string | number;
     store_ids?: number[];
     show_deleted?: boolean;
+    exclude_variants?: boolean;
     per_page?: number;
 }
 
@@ -82,6 +83,7 @@ const filters = reactive({
     supplier_id: props.filters?.supplier_id ?? '',
     store_ids: props.filters?.store_ids ?? [],
     showDeleted: props.filters?.show_deleted ?? false,
+    excludeVariants: props.filters?.exclude_variants ?? false,
 });
 
 const filterDrawerVisible = ref(false);
@@ -97,6 +99,7 @@ const filtersForPreview = computed(() => ({
     supplier_id: filters.supplier_id,
     store_ids: filters.store_ids.join(','),
     show_deleted: filters.showDeleted,
+    exclude_variants: filters.excludeVariants,
 }));
 
 const {
@@ -153,6 +156,7 @@ const activeFilterCount = computed(() => {
     if (filters.store_ids.length > 0) count++;
     if (filters.status) count++;
     if (filters.showDeleted) count++;
+    if (filters.excludeVariants) count++;
     return count;
 });
 
@@ -199,6 +203,11 @@ watch(
     () => applyFilters(),
 );
 
+watch(
+    () => filters.excludeVariants,
+    () => applyFilters(),
+);
+
 function applyFilters() {
     const params: Record<string, string | number | boolean | number[]> = {};
     if (filters.search) params.search = filters.search;
@@ -208,6 +217,7 @@ function applyFilters() {
     if (filters.supplier_id) params.supplier_id = filters.supplier_id;
     if (filters.store_ids.length > 0) params.store_ids = filters.store_ids;
     if (filters.showDeleted) params.show_deleted = true;
+    if (filters.excludeVariants) params.exclude_variants = true;
     if (perPage.value !== 15) params.per_page = perPage.value;
     router.get('/products', params, { preserveState: true });
 }
@@ -220,6 +230,7 @@ function clearFilters() {
     filters.supplier_id = '';
     filters.store_ids = [];
     filters.showDeleted = false;
+    filters.excludeVariants = false;
     filterDrawerVisible.value = false;
     router.get('/products', {}, { preserveState: true });
 }
@@ -238,7 +249,8 @@ const hasActiveFilters = computed(
         filters.category_id ||
         filters.supplier_id ||
         filters.store_ids.length > 0 ||
-        filters.showDeleted,
+        filters.showDeleted ||
+        filters.excludeVariants,
 );
 const confirm = useConfirm();
 
@@ -611,6 +623,12 @@ function onPage(event: { page: number; rows: number }) {
                         <label class="text-sm font-medium">Show Deleted</label>
                         <ToggleSwitch v-model="filters.showDeleted" />
                     </div>
+                    <div class="flex items-center justify-between">
+                        <label class="text-sm font-medium"
+                            >Hide Variants</label
+                        >
+                        <ToggleSwitch v-model="filters.excludeVariants" />
+                    </div>
                 </div>
                 <template #footer>
                     <div class="flex gap-2">
@@ -700,6 +718,12 @@ function onPage(event: { page: number; rows: number }) {
                         <ToggleSwitch v-model="filters.showDeleted" />
                         <span class="text-sm whitespace-nowrap"
                             >Show Deleted</span
+                        >
+                    </label>
+                    <label class="flex cursor-pointer items-center gap-2">
+                        <ToggleSwitch v-model="filters.excludeVariants" />
+                        <span class="text-sm whitespace-nowrap"
+                            >Hide Variants</span
                         >
                     </label>
                     <Button
@@ -810,10 +834,33 @@ function onPage(event: { page: number; rows: number }) {
                                     severity="danger"
                                     class="!text-xs"
                                 />
+                                <Tag
+                                    v-else-if="data.is_variant"
+                                    value="Variant"
+                                    severity="secondary"
+                                    class="!text-xs"
+                                />
+                                <Tag
+                                    v-else-if="
+                                        data.variants_count &&
+                                        data.variants_count > 0
+                                    "
+                                    :value="`${data.variants_count} variants`"
+                                    severity="info"
+                                    class="!text-xs"
+                                />
                             </div>
-                            <span class="text-xs text-muted-foreground">{{
-                                data.product_number
-                            }}</span>
+                            <div class="flex items-center gap-1">
+                                <span class="text-xs text-muted-foreground">{{
+                                    data.product_number
+                                }}</span>
+                                <span
+                                    v-if="data.variant_name"
+                                    class="text-xs text-muted-foreground"
+                                >
+                                    - {{ data.variant_name }}
+                                </span>
+                            </div>
                         </div>
                     </template>
                 </Column>

@@ -31,6 +31,7 @@ Use these references to understand:
 - **Product Model:** `docs/PRODUCT.md` - Product (inventory item) model specification
 - **Audit Trail:** `docs/AUDIT_TRAIL.md` - Record creation/modification tracking
 - **Currencies:** `docs/CURRENCIES.md` - Currency management and exchange rate API integration
+- **Point of Sales:** `docs/POINT_OF_SALES.md` - POS architecture, product/variant display, and selection flow
 
 ## Frontend Request Guidelines
 

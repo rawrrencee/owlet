@@ -14,6 +14,20 @@ class ProductResource extends JsonResource
 
         return [
             'id' => $this->id,
+            // Variant fields
+            'parent_product_id' => $this->parent_product_id,
+            'variant_name' => $this->variant_name,
+            'parent' => $this->whenLoaded('parent', fn () => [
+                'id' => $this->parent->id,
+                'product_name' => $this->parent->product_name,
+                'product_number' => $this->parent->product_number,
+                'brand_name' => $this->parent->relationLoaded('brand') ? $this->parent->brand?->brand_name : null,
+            ]),
+            'variants' => $this->whenLoaded('variants', fn () => self::collection($this->variants)->resolve()),
+            'variants_count' => $this->whenCounted('variants'),
+            'is_variant' => $this->isVariant(),
+            'has_variants' => $this->whenLoaded('variants', fn () => $this->variants->isNotEmpty(), false),
+            // Basic fields
             'product_name' => $this->product_name,
             'product_number' => $this->product_number,
             'barcode' => $this->barcode,
@@ -52,6 +66,12 @@ class ProductResource extends JsonResource
             'image_filename' => $this->image_filename,
             'image_mime_type' => $this->image_mime_type,
             'image_url' => $this->image_path ? route('products.image', $this->id) : null,
+            'images' => $this->whenLoaded('images', fn () => $this->images->map(fn ($image) => [
+                'id' => $image->id,
+                'image_url' => route('products.supplementary-image', [$this->id, $image->id]),
+                'image_filename' => $image->image_filename,
+                'sort_order' => $image->sort_order,
+            ])->toArray(), []),
             'weight' => $this->weight,
             'weight_unit' => $this->weight_unit?->value,
             'weight_display' => $this->weight ? "{$this->weight} {$this->weight_unit?->value}" : null,

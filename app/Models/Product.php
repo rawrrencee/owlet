@@ -16,11 +16,13 @@ class Product extends Model
     use HasAuditTrail, HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'parent_product_id',
         'brand_id',
         'category_id',
         'subcategory_id',
         'supplier_id',
         'product_name',
+        'variant_name',
         'product_number',
         'barcode',
         'supplier_number',
@@ -76,6 +78,38 @@ class Product extends Model
     }
 
     /**
+     * Get the parent product (if this is a variant).
+     */
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(Product::class, 'parent_product_id');
+    }
+
+    /**
+     * Get the variants of this product.
+     */
+    public function variants(): HasMany
+    {
+        return $this->hasMany(Product::class, 'parent_product_id');
+    }
+
+    /**
+     * Check if this product is a variant (has a parent).
+     */
+    public function isVariant(): bool
+    {
+        return $this->parent_product_id !== null;
+    }
+
+    /**
+     * Check if this product has variants (is a parent).
+     */
+    public function hasVariants(): bool
+    {
+        return $this->variants()->exists();
+    }
+
+    /**
      * Get the base prices for this product (per currency).
      */
     public function prices(): HasMany
@@ -115,6 +149,14 @@ class Product extends Model
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class)->withTimestamps();
+    }
+
+    /**
+     * Get the supplementary images for this product.
+     */
+    public function images(): HasMany
+    {
+        return $this->hasMany(ProductImage::class)->orderBy('sort_order');
     }
 
     /**
@@ -236,5 +278,30 @@ class Product extends Model
         }
 
         return $query;
+    }
+
+    /**
+     * Scope for POS display - only shows top-level products (standalone + parents).
+     * Variants are displayed via their parent.
+     */
+    public function scopeForPosDisplay($query)
+    {
+        return $query->whereNull('parent_product_id');
+    }
+
+    /**
+     * Scope to get only variants (products with a parent).
+     */
+    public function scopeVariantsOnly($query)
+    {
+        return $query->whereNotNull('parent_product_id');
+    }
+
+    /**
+     * Scope to exclude variants from the result.
+     */
+    public function scopeExcludeVariants($query)
+    {
+        return $query->whereNull('parent_product_id');
     }
 }

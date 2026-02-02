@@ -515,6 +515,87 @@ function getTotalStoreQuantity(product: Product): number {
                         </div>
                     </div>
                 </template>
+
+                <!-- Variants -->
+                <template
+                    v-if="product.variants && product.variants.length > 0"
+                >
+                    <Divider class="!my-2" />
+                    <div>
+                        <h3 class="mb-2 text-sm font-medium">
+                            Variants ({{ product.variants.length }})
+                        </h3>
+                        <div class="flex flex-col gap-1.5">
+                            <div
+                                v-for="variant in product.variants"
+                                :key="variant.id"
+                                class="flex items-center gap-2 rounded border border-border p-2"
+                            >
+                                <img
+                                    v-if="variant.image_url"
+                                    :src="variant.image_url"
+                                    :alt="
+                                        variant.variant_name ||
+                                        variant.product_name
+                                    "
+                                    class="h-8 w-8 flex-shrink-0 rounded object-cover"
+                                />
+                                <Avatar
+                                    v-else
+                                    :label="
+                                        getInitials(
+                                            variant.variant_name ||
+                                                variant.product_name
+                                        )
+                                    "
+                                    shape="square"
+                                    class="!h-8 !w-8 flex-shrink-0 rounded bg-primary/10 !text-xs text-primary"
+                                />
+                                <div class="min-w-0 flex-1">
+                                    <div class="truncate text-sm font-medium">
+                                        {{ variant.variant_name }}
+                                    </div>
+                                    <div
+                                        class="truncate text-xs text-muted-foreground"
+                                    >
+                                        {{ variant.product_number }}
+                                    </div>
+                                </div>
+                                <Tag
+                                    :value="
+                                        variant.is_active ? 'Active' : 'Inactive'
+                                    "
+                                    :severity="
+                                        variant.is_active ? 'success' : 'danger'
+                                    "
+                                    class="!text-xs"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Parent Product (if variant) -->
+                <template v-if="product.is_variant && product.parent">
+                    <Divider class="!my-2" />
+                    <div>
+                        <h3 class="mb-2 text-sm font-medium">Parent Product</h3>
+                        <div
+                            class="flex items-center gap-2 rounded border border-border p-2"
+                        >
+                            <div class="min-w-0 flex-1">
+                                <div class="truncate text-sm font-medium">
+                                    {{ product.parent.product_name }}
+                                </div>
+                                <div
+                                    class="truncate text-xs text-muted-foreground"
+                                >
+                                    {{ product.parent.product_number }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
             </div>
 
             <!-- No product state -->

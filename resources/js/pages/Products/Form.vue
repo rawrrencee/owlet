@@ -2,6 +2,8 @@
 import BackButton from '@/components/BackButton.vue';
 import ImageSelect from '@/components/ImageSelect.vue';
 import ImageUpload from '@/components/ImageUpload.vue';
+import ProductImageGallery from '@/components/products/ProductImageGallery.vue';
+import LinkVariantDialog from '@/components/products/LinkVariantDialog.vue';
 import { usePermissions } from '@/composables/usePermissions';
 import {
     clearSkipPageInHistory,
@@ -13,14 +15,18 @@ import {
     type Category,
     type Currency,
     type Product,
+    type ProductImage,
     type Subcategory,
     type WeightUnitOption,
 } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
+import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Chips from 'primevue/chips';
+import ConfirmDialog from 'primevue/confirmdialog';
 import Divider from 'primevue/divider';
+import Tag from 'primevue/tag';
 import Editor from 'primevue/editor';
 import InputNumber from 'primevue/inputnumber';
 import InputText from 'primevue/inputtext';
@@ -43,6 +49,7 @@ interface StoreOption {
 
 interface Props {
     product: Product | null;
+    parentProduct: Product | null;
     brands: Array<{ id: number; brand_name: string; brand_code: string }>;
     categories: Array<Category & { subcategories?: Subcategory[] }>;
     suppliers: Array<{ id: number; supplier_name: string }>;
@@ -57,17 +64,38 @@ const { canAccessPage } = usePermissions();
 const canViewCostPrice = computed(() =>
     canAccessPage('products.view_cost_price'),
 );
+const canCreate = computed(() => canAccessPage('products.create'));
+const canEdit = computed(() => canAccessPage('products.edit'));
+
+// Link variant dialog
+const showLinkVariantDialog = ref(false);
 
 const isEditing = computed(() => !!props.product);
-const pageTitle = computed(() =>
-    isEditing.value ? 'Edit Product' : 'Create Product',
+const isCreatingVariant = computed(
+    () => !isEditing.value && !!props.parentProduct,
 );
+const pageTitle = computed(() => {
+    if (isEditing.value) return 'Edit Product';
+    if (isCreatingVariant.value) return 'Create Variant';
+    return 'Create Product';
+});
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Products', href: '/products' },
-    { title: isEditing.value ? 'Edit' : 'Create' },
-];
+const breadcrumbs = computed<BreadcrumbItem[]>(() => {
+    const items: BreadcrumbItem[] = [
+        { title: 'Dashboard', href: '/dashboard' },
+        { title: 'Products', href: '/products' },
+    ];
+    if (isCreatingVariant.value && props.parentProduct) {
+        items.push({
+            title: props.parentProduct.product_name,
+            href: `/products/${props.parentProduct.id}`,
+        });
+        items.push({ title: 'Create Variant' });
+    } else {
+        items.push({ title: isEditing.value ? 'Edit' : 'Create' });
+    }
+    return items;
+});
 
 const brandOptions = computed(() =>
     props.brands.map((b) => ({ label: b.brand_name, value: b.id })),
@@ -134,14 +162,44 @@ const initialStores = (props.product?.product_stores ?? []).map((ps) => ({
     })),
 }));
 
+// Get initial classification values (from product or parent product for variants)
+const getInitialClassification = () => {
+    if (props.product) {
+        return {
+            brand_id: props.product.brand_id,
+            category_id: props.product.category_id,
+            subcategory_id: props.product.subcategory_id,
+            supplier_id: props.product.supplier_id,
+        };
+    }
+    if (props.parentProduct) {
+        return {
+            brand_id: props.parentProduct.brand_id,
+            category_id: props.parentProduct.category_id,
+            subcategory_id: props.parentProduct.subcategory_id,
+            supplier_id: props.parentProduct.supplier_id,
+        };
+    }
+    return {
+        brand_id: null,
+        category_id: null,
+        subcategory_id: null,
+        supplier_id: null,
+    };
+};
+
+const initialClassification = getInitialClassification();
+
 const form = useForm({
+    parent_product_id: props.product?.parent_product_id ?? props.parentProduct?.id ?? null,
+    variant_name: props.product?.variant_name ?? '',
     product_name: props.product?.product_name ?? '',
     product_number: props.product?.product_number ?? '',
     barcode: props.product?.barcode ?? '',
-    brand_id: props.product?.brand_id ?? null,
-    category_id: props.product?.category_id ?? null,
-    subcategory_id: props.product?.subcategory_id ?? null,
-    supplier_id: props.product?.supplier_id ?? null,
+    brand_id: initialClassification.brand_id,
+    category_id: initialClassification.category_id,
+    subcategory_id: initialClassification.subcategory_id,
+    supplier_id: initialClassification.supplier_id,
     supplier_number: props.product?.supplier_number ?? '',
     description: props.product?.description ?? '',
     tags: props.product?.tags ?? [],
@@ -156,6 +214,7 @@ const form = useForm({
 
 // Image state for edit mode
 const imageUrl = ref<string | null>(props.product?.image_url ?? null);
+const supplementaryImages = ref<ProductImage[]>(props.product?.images ?? []);
 
 // Selected currencies for base prices
 const selectedCurrencyIds = ref<number[]>(
@@ -249,6 +308,10 @@ function submit() {
                 clearSkipPageInHistory();
             },
         });
+    } else if (isCreatingVariant.value && props.parentProduct) {
+        form.post(`/products/${props.parentProduct.id}/create-variant`, {
+            forceFormData: true,
+        });
     } else {
         form.post('/products', {
             forceFormData: true,
@@ -259,8 +322,29 @@ function submit() {
 function cancel() {
     if (isEditing.value) {
         router.visit(`/products/${props.product!.id}`);
+    } else if (isCreatingVariant.value && props.parentProduct) {
+        router.visit(`/products/${props.parentProduct.id}`);
     } else {
         router.visit('/products');
+    }
+}
+
+function navigateToVariant(variantId: number) {
+    router.visit(`/products/${variantId}`);
+}
+
+function createVariant() {
+    if (props.product) {
+        router.visit(`/products/${props.product.id}/create-variant`);
+    }
+}
+
+function onVariantLinked() {
+    showLinkVariantDialog.value = false;
+    if (props.product) {
+        router.visit(`/products/${props.product.id}/edit`, {
+            preserveScroll: true,
+        });
     }
 }
 </script>
@@ -283,31 +367,121 @@ function cancel() {
                             class="flex flex-col gap-6"
                         >
                             <!-- Image for create mode -->
-                            <ImageSelect
-                                v-if="!isEditing"
-                                v-model="form.image"
-                                label="Product Image"
-                                placeholder-icon="pi pi-box"
-                                alt="Product image"
-                                :circular="false"
-                                :preview-size="96"
-                            />
+                            <div v-if="!isEditing">
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Product Image
+                                </h3>
+                                <ImageSelect
+                                    v-model="form.image"
+                                    label="Cover Image"
+                                    placeholder-icon="pi pi-box"
+                                    alt="Product image"
+                                    :circular="false"
+                                    :preview-size="96"
+                                />
+                                <small class="mt-2 block text-muted-foreground">
+                                    Additional images can be added after
+                                    creating the product.
+                                </small>
+                            </div>
 
-                            <!-- Image for edit mode -->
-                            <ImageUpload
-                                v-else-if="product"
-                                :image-url="imageUrl"
-                                :upload-url="`/products/${product.id}/image`"
-                                :delete-url="`/products/${product.id}/image`"
-                                field-name="image"
-                                label="Product Image"
-                                placeholder-icon="pi pi-box"
-                                alt="Product image"
-                                :circular="false"
-                                :preview-size="96"
-                                @uploaded="(url) => (imageUrl = url)"
-                                @deleted="imageUrl = null"
-                            />
+                            <!-- Images for edit mode -->
+                            <div v-else-if="product">
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Product Images
+                                </h3>
+                                <div class="mb-4">
+                                    <ImageUpload
+                                        :image-url="imageUrl"
+                                        :upload-url="`/products/${product.id}/image`"
+                                        :delete-url="`/products/${product.id}/image`"
+                                        field-name="image"
+                                        label="Cover Image"
+                                        placeholder-icon="pi pi-box"
+                                        alt="Product image"
+                                        :circular="false"
+                                        :preview-size="96"
+                                        @uploaded="(url) => (imageUrl = url)"
+                                        @deleted="imageUrl = null"
+                                    />
+                                </div>
+                                <Divider />
+                                <div class="mt-4">
+                                    <label class="mb-2 block font-medium"
+                                        >Supplementary Images</label
+                                    >
+                                    <ProductImageGallery
+                                        :product-id="product.id"
+                                        :cover-image-url="imageUrl"
+                                        :images="supplementaryImages"
+                                        :editable="true"
+                                        @update:cover-image-url="
+                                            imageUrl = $event
+                                        "
+                                        @update:images="
+                                            supplementaryImages = $event
+                                        "
+                                    />
+                                </div>
+                            </div>
+
+                            <!-- Parent Product Info (for variant creation) -->
+                            <template v-if="isCreatingVariant && parentProduct">
+                                <Divider />
+                                <div>
+                                    <h3 class="mb-4 text-lg font-medium">
+                                        Parent Product
+                                    </h3>
+                                    <div
+                                        class="rounded-lg border border-border bg-muted/30 p-4"
+                                    >
+                                        <div class="flex items-center gap-4">
+                                            <div
+                                                v-if="parentProduct.image_url"
+                                                class="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-border"
+                                            >
+                                                <img
+                                                    :src="parentProduct.image_url"
+                                                    :alt="parentProduct.product_name"
+                                                    class="h-full w-full object-cover"
+                                                />
+                                            </div>
+                                            <div
+                                                v-else
+                                                class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-lg border border-border bg-muted"
+                                            >
+                                                <i
+                                                    class="pi pi-box text-2xl text-muted-foreground"
+                                                ></i>
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <div class="font-medium">
+                                                    {{
+                                                        parentProduct.product_name
+                                                    }}
+                                                </div>
+                                                <div
+                                                    class="text-sm text-muted-foreground"
+                                                >
+                                                    {{
+                                                        parentProduct.product_number
+                                                    }}
+                                                </div>
+                                                <div
+                                                    v-if="parentProduct.brand_name"
+                                                    class="text-sm text-muted-foreground"
+                                                >
+                                                    {{ parentProduct.brand_name }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <small class="mt-2 block text-muted-foreground">
+                                        This variant will inherit the
+                                        classification from the parent product.
+                                    </small>
+                                </div>
+                            </template>
 
                             <Divider />
 
@@ -338,6 +512,36 @@ function cancel() {
                                             class="text-red-500"
                                         >
                                             {{ form.errors.product_name }}
+                                        </small>
+                                    </div>
+
+                                    <!-- Variant Name (for variants only) -->
+                                    <div
+                                        v-if="isCreatingVariant || product?.is_variant"
+                                        class="flex flex-col gap-2"
+                                    >
+                                        <label
+                                            for="variant_name"
+                                            class="font-medium"
+                                            >Variant Name *</label
+                                        >
+                                        <InputText
+                                            id="variant_name"
+                                            v-model="form.variant_name"
+                                            :invalid="!!form.errors.variant_name"
+                                            placeholder="e.g., Blue, Large, 500ml"
+                                            size="small"
+                                            fluid
+                                        />
+                                        <small class="text-muted-foreground">
+                                            Identifies this variant (color, size,
+                                            etc.)
+                                        </small>
+                                        <small
+                                            v-if="form.errors.variant_name"
+                                            class="text-red-500"
+                                        >
+                                            {{ form.errors.variant_name }}
                                         </small>
                                     </div>
 
@@ -1111,6 +1315,136 @@ function cancel() {
                                 </div>
                             </div>
 
+                            <!-- Variants Section (only in edit mode for non-variant products) -->
+                            <template
+                                v-if="isEditing && product && !product.is_variant"
+                            >
+                                <Divider />
+                                <div>
+                                    <div
+                                        class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+                                    >
+                                        <h3 class="text-lg font-medium">
+                                            Variants
+                                            <span
+                                                v-if="
+                                                    product.variants &&
+                                                    product.variants.length > 0
+                                                "
+                                                >({{
+                                                    product.variants.length
+                                                }})</span
+                                            >
+                                        </h3>
+                                        <div
+                                            v-if="canCreate || canEdit"
+                                            class="flex gap-2"
+                                        >
+                                            <Button
+                                                v-if="canEdit"
+                                                type="button"
+                                                label="Link Existing"
+                                                icon="pi pi-link"
+                                                size="small"
+                                                severity="secondary"
+                                                outlined
+                                                @click="
+                                                    showLinkVariantDialog = true
+                                                "
+                                            />
+                                            <Button
+                                                v-if="canCreate"
+                                                type="button"
+                                                label="Create New"
+                                                icon="pi pi-plus"
+                                                size="small"
+                                                severity="secondary"
+                                                @click="createVariant"
+                                            />
+                                        </div>
+                                    </div>
+                                    <!-- Variants list -->
+                                    <div
+                                        v-if="
+                                            product.variants &&
+                                            product.variants.length > 0
+                                        "
+                                        class="flex flex-col gap-2"
+                                    >
+                                        <div
+                                            v-for="variant in product.variants"
+                                            :key="variant.id"
+                                            class="flex cursor-pointer items-center gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-muted/50"
+                                            @click="navigateToVariant(variant.id)"
+                                        >
+                                            <img
+                                                v-if="variant.image_url"
+                                                :src="variant.image_url"
+                                                :alt="
+                                                    variant.variant_name ||
+                                                    variant.product_name
+                                                "
+                                                class="h-10 w-10 flex-shrink-0 rounded object-cover"
+                                            />
+                                            <Avatar
+                                                v-else
+                                                :label="
+                                                    (
+                                                        variant.variant_name ||
+                                                        variant.product_name ||
+                                                        'V'
+                                                    )
+                                                        .substring(0, 2)
+                                                        .toUpperCase()
+                                                "
+                                                shape="square"
+                                                class="!h-10 !w-10 flex-shrink-0 rounded bg-primary/10 text-sm text-primary"
+                                            />
+                                            <div class="flex flex-1 flex-col">
+                                                <span class="font-medium">{{
+                                                    variant.variant_name
+                                                }}</span>
+                                                <span
+                                                    class="text-xs text-muted-foreground"
+                                                    >{{
+                                                        variant.product_number
+                                                    }}</span
+                                                >
+                                            </div>
+                                            <Tag
+                                                :value="
+                                                    variant.is_active
+                                                        ? 'Active'
+                                                        : 'Inactive'
+                                                "
+                                                :severity="
+                                                    variant.is_active
+                                                        ? 'success'
+                                                        : 'danger'
+                                                "
+                                                class="!text-xs"
+                                            />
+                                            <i
+                                                class="pi pi-chevron-right text-muted-foreground"
+                                            ></i>
+                                        </div>
+                                    </div>
+                                    <!-- Empty state -->
+                                    <div
+                                        v-else
+                                        class="rounded-lg border border-dashed border-border p-6 text-center"
+                                    >
+                                        <i
+                                            class="pi pi-box mb-2 text-2xl text-muted-foreground"
+                                        ></i>
+                                        <p class="text-sm text-muted-foreground">
+                                            No variants yet. Create a new variant
+                                            or link an existing product.
+                                        </p>
+                                    </div>
+                                </div>
+                            </template>
+
                             <div
                                 class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"
                             >
@@ -1127,7 +1461,9 @@ function cancel() {
                                     :label="
                                         isEditing
                                             ? 'Save Changes'
-                                            : 'Create Product'
+                                            : isCreatingVariant
+                                              ? 'Create Variant'
+                                              : 'Create Product'
                                     "
                                     size="small"
                                     :loading="form.processing"
@@ -1138,5 +1474,15 @@ function cancel() {
                 </Card>
             </div>
         </div>
+
+        <ConfirmDialog />
+
+        <!-- Link Variant Dialog -->
+        <LinkVariantDialog
+            v-if="isEditing && product"
+            v-model:visible="showLinkVariantDialog"
+            :product-id="product.id"
+            @linked="onVariantLinked"
+        />
     </AppLayout>
 </template>

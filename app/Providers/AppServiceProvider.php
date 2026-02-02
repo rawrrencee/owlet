@@ -26,6 +26,17 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->configureWorkOS();
+    }
+
+    /**
+     * Configure WorkOS SDK with API key from Laravel config.
+     */
+    protected function configureWorkOS(): void
+    {
+        if ($apiKey = config('services.workos.secret')) {
+            \WorkOS\WorkOS::setApiKey($apiKey);
+        }
     }
 
     protected function configureDefaults(): void

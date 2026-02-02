@@ -128,6 +128,7 @@ Route::middleware([
     // Create route must be defined before parameterized routes
     Route::middleware('permission:products.create')->group(function () {
         Route::get('products/create', [ProductController::class, 'create'])->name('products.create');
+        Route::get('products/{product}/create-variant', [ProductController::class, 'createVariant'])->name('products.create-variant');
         Route::post('products', [ProductController::class, 'store'])->name('products.store');
     });
     Route::middleware('permission:products.view')->group(function () {
@@ -136,6 +137,9 @@ Route::middleware([
         Route::get('products/search', [ProductController::class, 'search'])->name('products.search');
         Route::get('products/{product}', [ProductController::class, 'show'])->name('products.show');
         Route::get('products/{product}/image', [ProductController::class, 'showImage'])->name('products.image');
+        Route::get('products/{product}/images/{image}', [ProductController::class, 'showSupplementaryImage'])->name('products.supplementary-image');
+        Route::get('products/{product}/variants', [ProductController::class, 'variants'])->name('products.variants');
+        Route::get('products/{product}/search-linkable', [ProductController::class, 'searchLinkable'])->name('products.search-linkable');
         Route::get('products/{product}/preview', [ProductController::class, 'preview'])->name('products.preview');
         Route::get('products/{product}/adjacent', [ProductController::class, 'adjacentIds'])->name('products.adjacent');
     });
@@ -145,6 +149,13 @@ Route::middleware([
         Route::put('products/{product}', [ProductController::class, 'update'])->name('products.update');
         Route::post('products/{product}/image', [ProductController::class, 'uploadImage'])->name('products.upload-image');
         Route::delete('products/{product}/image', [ProductController::class, 'deleteImage'])->name('products.delete-image');
+        // Supplementary images
+        Route::post('products/{product}/images', [ProductController::class, 'uploadSupplementaryImage'])->name('products.upload-supplementary-image');
+        Route::delete('products/{product}/images/{image}', [ProductController::class, 'deleteSupplementaryImage'])->name('products.delete-supplementary-image');
+        Route::post('products/{product}/images/reorder', [ProductController::class, 'reorderImages'])->name('products.reorder-images');
+        Route::post('products/{product}/images/{image}/promote', [ProductController::class, 'promoteToCover'])->name('products.promote-to-cover');
+        // Link existing product as variant
+        Route::post('products/{product}/link-variant', [ProductController::class, 'linkAsVariant'])->name('products.link-variant');
     });
     Route::middleware('permission:products.delete')->group(function () {
         Route::delete('products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');

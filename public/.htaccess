@@ -9,17 +9,14 @@
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-    # Handle X-XSRF-Token Header
-    RewriteCond %{HTTP:x-xsrf-token} .
-    RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
+    # Skip rewriting if already pointing to owlet/public
+    RewriteCond %{REQUEST_URI} ^/owlet/public/
+    RewriteRule ^ - [L]
 
-    # Redirect Trailing Slashes If Not A Folder...
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_URI} (.+)/$
-    RewriteRule ^ %1 [L,R=301]
+    # Serve static files from owlet/public if they exist (JS, CSS, images)
+    RewriteCond %{DOCUMENT_ROOT}/owlet/public%{REQUEST_URI} -f
+    RewriteRule ^(.*)$ owlet/public/$1 [L]
 
-    # Send Requests To Front Controller...
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteRule ^ index.php [L]
+    # Route everything else to Laravel's index.php
+    RewriteRule ^(.*)$ owlet/index.php [L]
 </IfModule>
