@@ -179,28 +179,29 @@ function close() {
                     size="small"
                     fluid
                     :loading="searchLoading"
+                    :overlay-style="{ maxWidth: 'min(27.5rem, calc(100vw - 2.5rem))' }"
                     @complete="onSearch"
                     @item-select="onSelect($event.value)"
                 >
                     <template #option="{ option }">
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 overflow-hidden">
                             <img
                                 v-if="option.image_url"
                                 :src="option.image_url"
                                 :alt="option.product_name"
-                                class="h-8 w-8 rounded object-cover"
+                                class="h-8 w-8 shrink-0 rounded object-cover"
                             />
                             <Avatar
                                 v-else
                                 :label="getInitials(option.product_name)"
                                 shape="square"
-                                class="!h-8 !w-8 rounded bg-primary/10 !text-xs text-primary"
+                                class="!h-8 !w-8 shrink-0 rounded bg-primary/10 !text-xs text-primary"
                             />
                             <div class="flex min-w-0 flex-1 flex-col">
                                 <span class="truncate text-sm font-medium">{{
                                     option.product_name
                                 }}</span>
-                                <span class="text-xs text-muted-foreground">
+                                <span class="truncate text-xs text-muted-foreground">
                                     {{ option.product_number }}
                                     <template v-if="option.brand_name">
                                         &middot; {{ option.brand_name }}

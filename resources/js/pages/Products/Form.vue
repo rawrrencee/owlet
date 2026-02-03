@@ -23,7 +23,7 @@ import { Head, router, useForm } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
-import Chips from 'primevue/chips';
+import AutoComplete from 'primevue/autocomplete';
 import ConfirmDialog from 'primevue/confirmdialog';
 import Divider from 'primevue/divider';
 import Tag from 'primevue/tag';
@@ -48,8 +48,8 @@ interface StoreOption {
 }
 
 interface Props {
-    product: Product | null;
-    parentProduct: Product | null;
+    product?: Product | null;
+    parentProduct?: Product | null;
     brands: Array<{ id: number; brand_name: string; brand_code: string }>;
     categories: Array<Category & { subcategories?: Subcategory[] }>;
     suppliers: Array<{ id: number; supplier_name: string }>;
@@ -1163,14 +1163,15 @@ function onVariantLinked() {
                                     <label for="tags" class="font-medium"
                                         >Product Tags</label
                                     >
-                                    <Chips
+                                    <AutoComplete
                                         id="tags"
                                         v-model="form.tags"
-                                        separator=","
-                                        placeholder="Add tags (press Enter or comma to add)"
+                                        multiple
+                                        :typeahead="false"
+                                        placeholder="Add tags (press Enter to add)"
+                                        fluid
                                         :pt="{
-                                            root: { class: 'border-border' },
-                                            input: { class: 'border-0' },
+                                            pcInputText: { root: { class: 'border-0' } },
                                         }"
                                     />
                                     <small class="text-muted-foreground">

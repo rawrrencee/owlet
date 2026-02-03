@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 interface Props {
     visible: boolean;
@@ -18,7 +18,11 @@ const emit = defineEmits<{
     'update:visible': [value: boolean];
     'select-page': [];
     'select-all': [];
+    cancel: [];
 }>();
+
+// Track if a selection action was taken
+const selectionMade = ref(false);
 
 const dialogVisible = computed({
     get: () => props.visible,
@@ -26,12 +30,23 @@ const dialogVisible = computed({
 });
 
 function handleSelectPage() {
+    selectionMade.value = true;
     emit('select-page');
     dialogVisible.value = false;
 }
 
 function handleSelectAll() {
+    selectionMade.value = true;
     emit('select-all');
+}
+
+function handleDialogHide() {
+    // If dialog is closed without making a selection, emit cancel
+    if (!selectionMade.value) {
+        emit('cancel');
+    }
+    // Reset for next open
+    selectionMade.value = false;
 }
 </script>
 
@@ -46,6 +61,7 @@ function handleSelectAll() {
         :pt="{
             content: { class: 'p-0' },
         }"
+        @hide="handleDialogHide"
     >
         <div class="flex flex-col gap-3 p-4">
             <p class="text-sm text-muted-foreground">

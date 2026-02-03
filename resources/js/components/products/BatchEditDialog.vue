@@ -3,7 +3,7 @@ import type { Category, Currency, Subcategory } from '@/types';
 import { useForm } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Checkbox from 'primevue/checkbox';
-import Chips from 'primevue/chips';
+import AutoComplete from 'primevue/autocomplete';
 import Dialog from 'primevue/dialog';
 import Divider from 'primevue/divider';
 import InputNumber from 'primevue/inputnumber';
@@ -385,13 +385,13 @@ function isMixed(value: unknown): boolean {
                                     class="mb-1 block text-sm text-muted-foreground"
                                     >Add tags</label
                                 >
-                                <Chips
+                                <AutoComplete
                                     v-model="form.tags_to_add"
                                     :disabled="!form.apply_tags"
-                                    separator=","
-                                    add-on-blur
-                                    class="w-full"
-                                    :pt="{ input: { class: 'w-full' } }"
+                                    multiple
+                                    :typeahead="false"
+                                    fluid
+                                    placeholder="Add tags (press Enter)"
                                 />
                             </div>
                             <div v-if="allExistingTags.length > 0">

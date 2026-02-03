@@ -478,16 +478,11 @@ function onPage(event: { page: number; rows: number }) {
                         />
                     </template>
                 </Column>
-                <Column
-                    field="name"
-                    header="Name"
-                    style="width: 25%"
-                    class="!pl-3"
-                >
+                <Column field="name" header="Name" class="!pl-3">
                     <template #body="{ data }">
-                        <div class="flex items-center gap-2">
+                        <div class="flex min-w-0 items-center gap-2">
                             <span
-                                class="block truncate font-medium"
+                                class="truncate font-medium"
                                 :class="{
                                     'text-muted-foreground line-through':
                                         isEmployeeDeleted(data),
@@ -499,7 +494,7 @@ function onPage(event: { page: number; rows: number }) {
                                 v-if="isEmployeeDeleted(data)"
                                 value="Deleted"
                                 severity="danger"
-                                class="!text-xs"
+                                class="shrink-0 !text-xs"
                             />
                         </div>
                     </template>
@@ -507,7 +502,6 @@ function onPage(event: { page: number; rows: number }) {
                 <Column
                     field="companies"
                     header="Companies"
-                    style="width: 25%"
                     class="hidden md:table-cell"
                 >
                     <template #body="{ data }">
@@ -522,8 +516,7 @@ function onPage(event: { page: number; rows: number }) {
                 <Column
                     field="email"
                     header="Email"
-                    style="width: 25%"
-                    class="hidden md:table-cell"
+                    class="hidden lg:table-cell"
                 >
                     <template #body="{ data }">
                         <span class="block truncate">{{
@@ -531,7 +524,7 @@ function onPage(event: { page: number; rows: number }) {
                         }}</span>
                     </template>
                 </Column>
-                <Column field="status" header="Status" style="width: 6rem">
+                <Column field="status" header="Status" class="w-24">
                     <template #body="{ data }">
                         <Tag
                             :value="getEmployeeStatus(data)"
@@ -539,7 +532,7 @@ function onPage(event: { page: number; rows: number }) {
                         />
                     </template>
                 </Column>
-                <Column header="" style="width: 5.5rem" class="!pr-4">
+                <Column header="" class="w-24 !pr-4">
                     <template #body="{ data }">
                         <div
                             v-if="isEmployeeDeleted(data)"
@@ -691,7 +684,9 @@ function onPage(event: { page: number; rows: number }) {
                 </Column>
                 <Column field="name" header="Name" class="!pl-3">
                     <template #body="{ data }">
-                        <span class="font-medium">{{ getFullName(data) }}</span>
+                        <span class="block truncate font-medium">{{
+                            getFullName(data)
+                        }}</span>
                     </template>
                 </Column>
                 <Column
@@ -700,13 +695,15 @@ function onPage(event: { page: number; rows: number }) {
                     class="hidden md:table-cell"
                 >
                     <template #body="{ data }">
-                        {{ data.email ?? '-' }}
+                        <span class="block truncate">{{
+                            data.email ?? '-'
+                        }}</span>
                     </template>
                 </Column>
                 <Column
                     field="phone"
                     header="Phone"
-                    class="hidden md:table-cell"
+                    class="hidden lg:table-cell"
                 >
                     <template #body="{ data }">
                         {{ data.phone ?? '-' }}
@@ -718,7 +715,9 @@ function onPage(event: { page: number; rows: number }) {
                     class="hidden lg:table-cell"
                 >
                     <template #body="{ data }">
-                        {{ data.company_name ?? '-' }}
+                        <span class="block truncate">{{
+                            data.company_name ?? '-'
+                        }}</span>
                     </template>
                 </Column>
                 <Column
@@ -730,7 +729,7 @@ function onPage(event: { page: number; rows: number }) {
                         {{ formatDate(data.customer_since) }}
                     </template>
                 </Column>
-                <Column field="loyalty_points" header="Points">
+                <Column field="loyalty_points" header="Points" class="w-20">
                     <template #body="{ data }">
                         {{ data.loyalty_points?.toLocaleString() ?? 0 }}
                     </template>

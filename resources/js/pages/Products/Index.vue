@@ -331,6 +331,13 @@ function handleSelectPage() {
     selectedProducts.value = [...selectedProducts.value, ...newSelections];
 }
 
+function handleSelectAllCancel() {
+    // Dialog was closed without making a selection
+    // The checkbox state is computed, so no action needed
+    // This handler ensures the "select all" checkbox remains in its
+    // original state (unchecked if no products were previously selected)
+}
+
 async function handleSelectAll() {
     selectAllLoading.value = true;
     try {
@@ -760,24 +767,27 @@ function onPage(event: { page: number; rows: number }) {
                         No products found.
                     </div>
                 </template>
-                <Column expander class="w-12 !pr-0 md:hidden" />
+                <Column expander class="w-10 !pr-0 !pl-2 md:hidden" />
                 <!-- Selection checkbox column (only visible when canEdit) -->
                 <Column
                     v-if="canEdit"
-                    class="w-10 !pr-0 !pl-3"
+                    class="w-10 !pr-0 !pl-1 md:!pl-3"
                     :exportable="false"
                 >
                     <template #header>
-                        <div @click.stop>
+                        <div
+                            class="cursor-pointer"
+                            @click.stop.prevent="toggleSelectAll"
+                            v-tooltip.top="
+                                allSelectableSelected
+                                    ? 'Deselect all'
+                                    : 'Select all'
+                            "
+                        >
                             <Checkbox
                                 :model-value="allSelectableSelected"
                                 :binary="true"
-                                @update:model-value="toggleSelectAll"
-                                v-tooltip.top="
-                                    allSelectableSelected
-                                        ? 'Deselect all'
-                                        : 'Select all'
-                                "
+                                class="pointer-events-none"
                             />
                         </div>
                     </template>
@@ -793,7 +803,7 @@ function onPage(event: { page: number; rows: number }) {
                         </div>
                     </template>
                 </Column>
-                <Column header="" class="w-12 !pr-0 !pl-4">
+                <Column header="" class="w-12 !pr-0 !pl-2">
                     <template #body="{ data }">
                         <div v-if="data.image_url" @click.stop>
                             <Image
@@ -1115,6 +1125,7 @@ function onPage(event: { page: number; rows: number }) {
             :loading="selectAllLoading"
             @select-page="handleSelectPage"
             @select-all="handleSelectAll"
+            @cancel="handleSelectAllCancel"
         />
 
         <!-- Deselect Confirmation Dialog -->
