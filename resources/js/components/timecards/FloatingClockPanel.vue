@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import type { AppPageProps } from '@/types';
+import StocktakeWidget from '@/components/stocktakes/StocktakeWidget.vue';
+import type { AppPageProps, Stocktake } from '@/types';
 import type { Timecard, TimecardStore } from '@/types/timecard';
 import { usePage } from '@inertiajs/vue3';
 import { Clock, Coffee, Play } from 'lucide-vue-next';
 import Button from 'primevue/button';
+import Divider from 'primevue/divider';
 import Drawer from 'primevue/drawer';
 import Tag from 'primevue/tag';
 import { computed, onMounted, ref, watch } from 'vue';
@@ -22,6 +24,12 @@ const currentTimecard = ref<Timecard | null>(null);
 const isOnBreak = ref(false);
 const stores = ref<TimecardStore[]>([]);
 const isLoading = ref(true);
+
+// Stocktake state
+const canStocktake = ref(false);
+const activeStocktake = ref<Stocktake | null>(null);
+const stocktakeStores = ref<{ id: number; store_name: string; store_code: string }[]>([]);
+const stocktakeLoading = ref(true);
 
 const hasEmployee = computed(() => {
     return page.props.auth?.user?.employee_id !== null;
@@ -60,6 +68,29 @@ async function fetchCurrentState() {
     }
 }
 
+async function fetchStocktakeState() {
+    if (!hasEmployee.value) return;
+
+    try {
+        const response = await fetch('/stocktakes/current', {
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        });
+        if (response.ok) {
+            const data = await response.json();
+            canStocktake.value = data.can_stocktake;
+            activeStocktake.value = data.active_stocktake;
+            stocktakeStores.value = data.stores ?? [];
+        }
+    } catch (error) {
+        console.error('Failed to fetch stocktake state:', error);
+    } finally {
+        stocktakeLoading.value = false;
+    }
+}
+
 // Watch for page prop changes (after clock in/out)
 watch(
     () => page.props.currentTimecard,
@@ -93,6 +124,7 @@ watch(
 
 onMounted(() => {
     fetchCurrentState();
+    fetchStocktakeState();
 });
 </script>
 
@@ -143,9 +175,9 @@ onMounted(() => {
                             <Clock class="h-5 w-5 text-primary" />
                         </div>
                         <div>
-                            <h2 class="text-lg font-semibold">Time Clock</h2>
+                            <h2 class="text-lg font-semibold">Quick Panel</h2>
                             <p class="text-xs text-muted-foreground">
-                                Track your work hours
+                                Time clock & stocktake
                             </p>
                         </div>
                     </div>
@@ -153,16 +185,58 @@ onMounted(() => {
             </template>
 
             <div class="flex flex-col gap-4 p-4">
-                <ClockWidget
-                    v-if="!isLoading"
-                    :current-timecard="currentTimecard"
-                    :is-on-break="isOnBreak"
-                    :stores="stores"
-                    @state-changed="fetchCurrentState"
-                />
-                <div v-else class="flex items-center justify-center py-12">
-                    <i class="pi pi-spin pi-spinner text-3xl text-primary"></i>
+                <!-- Time Clock Section -->
+                <div>
+                    <div class="mb-3 flex items-center gap-2">
+                        <i class="pi pi-clock text-primary" />
+                        <span class="text-sm font-semibold">Time Clock</span>
+                        <Tag
+                            v-if="currentTimecard"
+                            :value="isOnBreak ? 'Break' : 'Working'"
+                            :severity="isOnBreak ? 'warn' : 'success'"
+                            class="!text-xs"
+                        />
+                    </div>
+                    <ClockWidget
+                        v-if="!isLoading"
+                        :current-timecard="currentTimecard"
+                        :is-on-break="isOnBreak"
+                        :stores="stores"
+                        show-view-link
+                        @state-changed="fetchCurrentState"
+                        @close="isOpen = false"
+                    />
+                    <div v-else class="flex items-center justify-center py-4">
+                        <i class="pi pi-spin pi-spinner text-xl text-primary"></i>
+                    </div>
                 </div>
+
+                <!-- Stocktake Section -->
+                <template v-if="canStocktake">
+                    <Divider />
+                    <div>
+                        <div class="mb-3 flex items-center gap-2">
+                            <i class="pi pi-clipboard text-primary" />
+                            <span class="text-sm font-semibold">Stocktake</span>
+                            <Tag
+                                v-if="activeStocktake"
+                                value="Active"
+                                severity="warn"
+                                class="!text-xs"
+                            />
+                        </div>
+                        <StocktakeWidget
+                            v-if="!stocktakeLoading"
+                            :active-stocktake="activeStocktake"
+                            :stores="stocktakeStores"
+                            @state-changed="fetchStocktakeState"
+                            @close="isOpen = false"
+                        />
+                        <div v-else class="flex items-center justify-center py-4">
+                            <i class="pi pi-spin pi-spinner text-xl text-primary"></i>
+                        </div>
+                    </div>
+                </template>
             </div>
         </Drawer>
     </div>

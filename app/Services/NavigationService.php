@@ -62,6 +62,9 @@ class NavigationService
         if ($this->permissionService->canAccessPage($user, 'stores.access')) {
             $commerceItems[] = ['title' => 'Stores', 'href' => '/stores', 'icon' => 'Store'];
         }
+        if ($this->permissionService->canAccessPage($user, 'stocktakes.submit')) {
+            $commerceItems[] = ['title' => 'Stocktake', 'href' => '/stocktakes', 'icon' => 'ClipboardCheck'];
+        }
 
         if (! empty($commerceItems)) {
             $sections[] = [
@@ -70,9 +73,15 @@ class NavigationService
             ];
         }
 
-        // Management section - only visible for admins
+        // Management section
         $managementItems = [];
 
+        // Stocktakes management - accessible to admins AND staff with permission
+        if ($user->isAdmin() || $this->permissionService->canAccessPage($user, 'stocktakes.manage')) {
+            $managementItems[] = ['title' => 'Stocktakes', 'href' => '/management/stocktakes', 'icon' => 'ClipboardList'];
+        }
+
+        // Admin-only items
         if ($user->isAdmin()) {
             $managementItems[] = ['title' => 'Users', 'href' => '/users', 'icon' => 'Users'];
             $managementItems[] = ['title' => 'Documents', 'href' => '/documents', 'icon' => 'Folder'];
@@ -81,6 +90,8 @@ class NavigationService
             $managementItems[] = ['title' => 'Currencies', 'href' => '/currencies', 'icon' => 'Coins'];
             $managementItems[] = ['title' => 'Designations', 'href' => '/designations', 'icon' => 'BadgeCheck'];
             $managementItems[] = ['title' => 'Organisation Chart', 'href' => '/organisation-chart', 'icon' => 'Network'];
+            $managementItems[] = ['title' => 'Stocktake Templates', 'href' => '/management/stocktake-templates', 'icon' => 'ListChecks'];
+            $managementItems[] = ['title' => 'Stocktake Notifications', 'href' => '/management/stocktake-notifications', 'icon' => 'BellRing'];
             $managementItems[] = ['title' => 'Data Migration', 'href' => '/admin/data-migration', 'icon' => 'DatabaseZap'];
         }
 

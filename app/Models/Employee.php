@@ -271,6 +271,22 @@ class Employee extends Model
     }
 
     /**
+     * Get all stocktakes for this employee.
+     */
+    public function stocktakes(): HasMany
+    {
+        return $this->hasMany(Stocktake::class);
+    }
+
+    /**
+     * Get all stocktake templates for this employee.
+     */
+    public function stocktakeTemplates(): HasMany
+    {
+        return $this->hasMany(StocktakeTemplate::class);
+    }
+
+    /**
      * Get all timecards for this employee.
      */
     public function timecards(): HasMany

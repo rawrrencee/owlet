@@ -67,6 +67,30 @@ class Store extends Model
     }
 
     /**
+     * Get all stocktakes for this store.
+     */
+    public function stocktakes(): HasMany
+    {
+        return $this->hasMany(Stocktake::class);
+    }
+
+    /**
+     * Get all stocktake templates for this store.
+     */
+    public function stocktakeTemplates(): HasMany
+    {
+        return $this->hasMany(StocktakeTemplate::class);
+    }
+
+    /**
+     * Get notification recipients for this store.
+     */
+    public function stocktakeNotificationRecipients(): HasMany
+    {
+        return $this->hasMany(StocktakeNotificationRecipient::class);
+    }
+
+    /**
      * Get all timecards for this store.
      */
     public function timecards(): HasMany

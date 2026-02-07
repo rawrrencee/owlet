@@ -32,6 +32,8 @@ class StorePermissions
 
     public const STOCK_TRANSFER = 'stock_transfer';
 
+    public const STOCKTAKE = 'stocktake';
+
     /**
      * Get all available permissions with their labels.
      *
@@ -98,6 +100,11 @@ class StorePermissions
             self::STOCK_TRANSFER => [
                 'key' => self::STOCK_TRANSFER,
                 'label' => 'Stock Transfer',
+                'group' => 'Inventory',
+            ],
+            self::STOCKTAKE => [
+                'key' => self::STOCKTAKE,
+                'label' => 'Stocktake',
                 'group' => 'Inventory',
             ],
         ];

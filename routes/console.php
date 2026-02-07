@@ -10,3 +10,6 @@ Artisan::command('inspire', function () {
 
 // Expire old in-progress timecards daily at 00:05
 Schedule::command('timecards:expire')->dailyAt('00:05');
+
+// Expire old in-progress stocktakes daily at 00:10
+Schedule::command('stocktakes:expire')->dailyAt('00:10');

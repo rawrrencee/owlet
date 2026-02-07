@@ -13,6 +13,8 @@ class StoreAccessPermissions
 
     public const STORE_MANAGE_CURRENCIES = 'store.manage_currencies';
 
+    public const STORE_VIEW_STOCKTAKE_DIFFERENCE = 'store.view_stocktake_difference';
+
     /**
      * Get all available permissions with their labels.
      *
@@ -39,6 +41,11 @@ class StoreAccessPermissions
             self::STORE_MANAGE_CURRENCIES => [
                 'key' => self::STORE_MANAGE_CURRENCIES,
                 'label' => 'Manage Currencies',
+                'group' => 'Store Access',
+            ],
+            self::STORE_VIEW_STOCKTAKE_DIFFERENCE => [
+                'key' => self::STORE_VIEW_STOCKTAKE_DIFFERENCE,
+                'label' => 'View Stocktake Count Difference',
                 'group' => 'Store Access',
             ],
         ];

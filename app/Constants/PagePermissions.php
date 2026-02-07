@@ -37,6 +37,13 @@ class PagePermissions
 
     public const STORES_MANAGE = 'stores.manage';
 
+    // Stocktakes
+    public const STOCKTAKES_SUBMIT = 'stocktakes.submit';
+
+    public const STOCKTAKES_MANAGE = 'stocktakes.manage';
+
+    public const STOCKTAKES_LOST_AND_FOUND = 'stocktakes.lost_and_found';
+
     /**
      * Get all available permissions with their labels.
      *
@@ -114,6 +121,21 @@ class PagePermissions
                 'key' => self::STORES_MANAGE,
                 'label' => 'Manage Stores',
                 'group' => 'Stores',
+            ],
+            self::STOCKTAKES_SUBMIT => [
+                'key' => self::STOCKTAKES_SUBMIT,
+                'label' => 'Submit Stocktakes',
+                'group' => 'Stocktakes',
+            ],
+            self::STOCKTAKES_MANAGE => [
+                'key' => self::STOCKTAKES_MANAGE,
+                'label' => 'Manage Stocktakes',
+                'group' => 'Stocktakes',
+            ],
+            self::STOCKTAKES_LOST_AND_FOUND => [
+                'key' => self::STOCKTAKES_LOST_AND_FOUND,
+                'label' => 'Lost and Found Adjustments',
+                'group' => 'Stocktakes',
             ],
         ];
     }

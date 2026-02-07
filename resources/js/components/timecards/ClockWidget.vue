@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import type { Timecard, TimecardStore } from '@/types/timecard';
 import { router, useForm } from '@inertiajs/vue3';
-import { Clock, Coffee, Play } from 'lucide-vue-next';
+import { Coffee, Play } from 'lucide-vue-next';
 import Button from 'primevue/button';
-import Card from 'primevue/card';
 import Select from 'primevue/select';
 import Tag from 'primevue/tag';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
@@ -12,15 +11,16 @@ interface Props {
     currentTimecard: Timecard | null;
     isOnBreak: boolean;
     stores: TimecardStore[];
-    compact?: boolean;
+    showViewLink?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    compact: false,
+    showViewLink: false,
 });
 
 const emit = defineEmits<{
     stateChanged: [];
+    close: [];
 }>();
 
 const selectedStore = ref<number | null>(null);
@@ -86,6 +86,11 @@ function updateElapsedTime() {
     }
 }
 
+function goToTimecards() {
+    emit('close');
+    router.get('/timecards');
+}
+
 function clockIn() {
     if (!selectedStore.value) return;
 
@@ -148,139 +153,118 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <Card class="clock-widget">
-        <template #content>
-            <div class="flex flex-col gap-4">
-                <!-- Status Header -->
-                <div class="flex flex-wrap items-start gap-2">
-                    <div
-                        class="flex min-w-0 flex-1 basis-48 items-center gap-3"
-                    >
-                        <div
-                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
-                            :class="{
-                                'bg-muted': !currentTimecard,
-                                'bg-green-100 dark:bg-green-900/30':
-                                    currentTimecard && !isOnBreak,
-                                'bg-amber-100 dark:bg-amber-900/30':
-                                    currentTimecard && isOnBreak,
-                            }"
-                        >
-                            <Clock
-                                v-if="!currentTimecard"
-                                class="h-5 w-5 text-muted-foreground"
-                            />
-                            <Play
-                                v-else-if="!isOnBreak"
-                                class="h-5 w-5 text-green-600 dark:text-green-400"
-                            />
-                            <Coffee
-                                v-else
-                                class="h-5 w-5 text-amber-600 dark:text-amber-400"
-                            />
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <p class="truncate text-sm font-medium">
-                                {{ statusText }}
-                            </p>
-                            <p
-                                v-if="currentTimecard"
-                                class="text-xs text-muted-foreground"
-                            >
-                                Started
-                                {{
-                                    new Date(
-                                        currentTimecard.start_date,
-                                    ).toLocaleTimeString('en-US', {
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                    })
-                                }}
-                            </p>
-                        </div>
-                    </div>
-                    <Tag
-                        :severity="statusSeverity"
-                        :value="
-                            currentTimecard
-                                ? isOnBreak
-                                    ? 'Break'
-                                    : 'Working'
-                                : 'Off'
-                        "
+    <div class="space-y-3">
+        <!-- Clocked In State -->
+        <div v-if="currentTimecard" class="rounded-lg border border-primary/30 bg-primary/5 p-3">
+            <div class="mb-2 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <component
+                        :is="isOnBreak ? Coffee : Play"
+                        class="h-4 w-4"
+                        :class="isOnBreak ? 'text-amber-600 dark:text-amber-400' : 'text-green-600 dark:text-green-400'"
                     />
+                    <span class="text-sm font-semibold">{{ statusText }}</span>
                 </div>
-
-                <!-- Elapsed Time Display -->
-                <div
-                    v-if="currentTimecard"
-                    class="rounded-xl bg-muted/50 py-6 text-center"
-                >
-                    <p
-                        class="text-xs font-medium tracking-wider text-muted-foreground uppercase"
-                    >
-                        Time Elapsed
-                    </p>
-                    <p
-                        class="mt-1 text-3xl font-bold tracking-tight tabular-nums"
-                    >
-                        {{ elapsedTime || '—' }}
-                    </p>
+                <Tag
+                    :severity="statusSeverity"
+                    :value="isOnBreak ? 'Break' : 'Working'"
+                    class="!text-xs"
+                />
+            </div>
+            <div class="space-y-1 text-sm">
+                <div>
+                    <span class="text-muted-foreground">Started: </span>
+                    <span>
+                        {{
+                            new Date(currentTimecard.start_date).toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                            })
+                        }}
+                    </span>
                 </div>
-
-                <!-- Clock In Form (when not clocked in) -->
-                <div v-if="!currentTimecard" class="flex flex-col gap-3">
-                    <Select
-                        v-model="selectedStore"
-                        :options="stores"
-                        option-label="name"
-                        option-value="id"
-                        placeholder="Select a store"
-                        class="w-full"
-                        :disabled="isProcessing"
-                    />
-                    <Button
-                        label="Clock In"
-                        icon="pi pi-sign-in"
-                        :disabled="!selectedStore || isProcessing"
-                        :loading="isProcessing"
-                        @click="clockIn"
-                        class="w-full"
-                    />
-                </div>
-
-                <!-- Clock Actions (when clocked in) -->
-                <div v-else class="flex gap-2">
-                    <!-- Break Toggle -->
-                    <Button
-                        v-if="!isOnBreak"
-                        label="Break"
-                        icon="pi pi-pause"
-                        severity="warn"
-                        outlined
-                        @click="startBreak"
-                        class="flex-1"
-                    />
-                    <Button
-                        v-else
-                        label="Resume"
-                        icon="pi pi-play"
-                        severity="success"
-                        @click="endBreak"
-                        class="flex-1"
-                    />
-
-                    <!-- Clock Out -->
-                    <Button
-                        label="Clock Out"
-                        icon="pi pi-sign-out"
-                        severity="danger"
-                        outlined
-                        @click="clockOut"
-                        class="flex-1"
-                    />
+                <div>
+                    <span class="text-muted-foreground">Elapsed: </span>
+                    <span class="font-medium tabular-nums">{{ elapsedTime || '—' }}</span>
                 </div>
             </div>
-        </template>
-    </Card>
+            <div class="mt-2 flex gap-2">
+                <Button
+                    v-if="!isOnBreak"
+                    label="Break"
+                    icon="pi pi-pause"
+                    severity="warn"
+                    outlined
+                    size="small"
+                    @click="startBreak"
+                    class="flex-1"
+                />
+                <Button
+                    v-else
+                    label="Resume"
+                    icon="pi pi-play"
+                    severity="success"
+                    size="small"
+                    @click="endBreak"
+                    class="flex-1"
+                />
+                <Button
+                    label="Clock Out"
+                    icon="pi pi-sign-out"
+                    severity="danger"
+                    outlined
+                    size="small"
+                    @click="clockOut"
+                    class="flex-1"
+                />
+            </div>
+        </div>
+
+        <!-- Clock In Form -->
+        <div v-else class="space-y-2">
+            <Select
+                v-model="selectedStore"
+                :options="stores"
+                option-label="name"
+                option-value="id"
+                placeholder="Select a store..."
+                size="small"
+                class="w-full"
+                :disabled="isProcessing"
+                :pt="{ overlay: { style: 'width: 0; overflow: hidden' } }"
+            >
+                <template #value="{ value, placeholder }">
+                    <span v-if="value" class="block truncate">
+                        {{ stores.find((s) => s.id === value)?.name }}
+                        ({{ stores.find((s) => s.id === value)?.code }})
+                    </span>
+                    <span v-else class="text-muted-foreground">{{ placeholder }}</span>
+                </template>
+                <template #option="{ option }">
+                    <div class="truncate">{{ option.name }} ({{ option.code }})</div>
+                </template>
+            </Select>
+            <Button
+                label="Clock In"
+                icon="pi pi-sign-in"
+                size="small"
+                :disabled="!selectedStore || isProcessing"
+                :loading="isProcessing"
+                @click="clockIn"
+                class="w-full"
+            />
+        </div>
+
+        <!-- Link to full page (only in floating panel) -->
+        <Button
+            v-if="showViewLink"
+            label="View Timecards"
+            icon="pi pi-external-link"
+            severity="secondary"
+            text
+            size="small"
+            class="w-full"
+            @click="goToTimecards"
+        />
+    </div>
 </template>

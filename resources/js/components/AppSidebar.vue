@@ -15,8 +15,10 @@ import { type AppPageProps, type NavSection } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import {
     BadgeCheck,
+    BellRing,
     Building2,
     CalendarClock,
+    ClipboardCheck,
     ClipboardList,
     Clock,
     Coins,
@@ -24,6 +26,7 @@ import {
     Folder,
     Layers,
     LayoutGrid,
+    ListChecks,
     Network,
     Package,
     Store,
@@ -38,8 +41,10 @@ import AppLogo from './AppLogo.vue';
 
 const iconMap: Record<string, LucideIcon> = {
     BadgeCheck,
+    BellRing,
     Building2,
     CalendarClock,
+    ClipboardCheck,
     ClipboardList,
     Clock,
     Coins,
@@ -47,6 +52,7 @@ const iconMap: Record<string, LucideIcon> = {
     Folder,
     Layers,
     LayoutGrid,
+    ListChecks,
     Network,
     Package,
     Store,

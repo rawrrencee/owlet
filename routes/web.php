@@ -19,6 +19,10 @@ use App\Http\Controllers\MyTeamTimecardController;
 use App\Http\Controllers\OrganisationChartController;
 use App\Http\Controllers\PagePermissionsController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\StocktakeController;
+use App\Http\Controllers\StocktakeManagementController;
+use App\Http\Controllers\StocktakeNotificationRecipientController;
+use App\Http\Controllers\StocktakeTemplateController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\TimecardController;
@@ -189,6 +193,43 @@ Route::middleware([
         Route::delete('stores/{store}/currencies/{storeCurrency}', [StoreController::class, 'removeCurrency'])->name('stores.currencies.destroy');
     });
 
+    // Stocktake current state (used by floating widget, permission checked internally)
+    Route::get('stocktakes/current', [StocktakeController::class, 'current'])->name('stocktakes.current');
+
+    // Staff stocktake routes
+    Route::middleware('permission:stocktakes.submit')->group(function () {
+        Route::get('stocktakes', [StocktakeController::class, 'index'])->name('stocktakes.index');
+        Route::post('stocktakes', [StocktakeController::class, 'store'])->name('stocktakes.store');
+        Route::get('stocktakes/{stocktake}', [StocktakeController::class, 'show'])->name('stocktakes.show');
+        Route::post('stocktakes/{stocktake}/items', [StocktakeController::class, 'addItem'])->name('stocktakes.items.store');
+        Route::put('stocktakes/{stocktake}/items/{item}', [StocktakeController::class, 'updateItem'])->name('stocktakes.items.update');
+        Route::delete('stocktakes/{stocktake}/items/{item}', [StocktakeController::class, 'removeItem'])->name('stocktakes.items.destroy');
+        Route::post('stocktakes/{stocktake}/submit', [StocktakeController::class, 'submit'])->name('stocktakes.submit');
+        Route::delete('stocktakes/{stocktake}', [StocktakeController::class, 'destroy'])->name('stocktakes.destroy');
+        Route::get('stocktakes/{stocktake}/search-products', [StocktakeController::class, 'searchProducts'])->name('stocktakes.search-products');
+        Route::post('stocktakes/{stocktake}/apply-template', [StocktakeController::class, 'applyTemplate'])->name('stocktakes.apply-template');
+
+        // Staff templates
+        Route::get('stocktake-templates/search-products', [StocktakeTemplateController::class, 'searchProducts'])->name('stocktake-templates.search-products');
+        Route::get('stocktake-templates', [StocktakeTemplateController::class, 'index'])->name('stocktake-templates.index');
+        Route::get('stocktake-templates/create', [StocktakeTemplateController::class, 'create'])->name('stocktake-templates.create');
+        Route::post('stocktake-templates', [StocktakeTemplateController::class, 'store'])->name('stocktake-templates.store');
+        Route::get('stocktake-templates/{stocktakeTemplate}/edit', [StocktakeTemplateController::class, 'edit'])->name('stocktake-templates.edit');
+        Route::put('stocktake-templates/{stocktakeTemplate}', [StocktakeTemplateController::class, 'update'])->name('stocktake-templates.update');
+        Route::delete('stocktake-templates/{stocktakeTemplate}', [StocktakeTemplateController::class, 'destroy'])->name('stocktake-templates.destroy');
+    });
+
+    // Stocktake management routes
+    Route::middleware('permission:stocktakes.manage')->prefix('management')->name('management.')->group(function () {
+        Route::get('stocktakes', [StocktakeManagementController::class, 'index'])->name('stocktakes.index');
+        Route::get('stocktakes/{stocktake}', [StocktakeManagementController::class, 'show'])->name('stocktakes.show');
+    });
+
+    // Lost/Found adjustments
+    Route::middleware('permission:stocktakes.lost_and_found')->prefix('management')->name('management.')->group(function () {
+        Route::post('stocktakes/adjust-quantity', [StocktakeManagementController::class, 'adjustQuantity'])->name('stocktakes.adjust-quantity');
+    });
+
     // Admin-only routes
     Route::middleware('admin')->group(function () {
         // Page Permissions Management
@@ -285,6 +326,21 @@ Route::middleware([
         Route::post('users/{employee}/hierarchy', [OrganisationChartController::class, 'addSubordinate'])->name('users.hierarchy.store');
         Route::delete('users/{employee}/hierarchy/{subordinate}', [OrganisationChartController::class, 'removeSubordinate'])->name('users.hierarchy.destroy');
         Route::put('users/{employee}/hierarchy/visibility', [OrganisationChartController::class, 'updateVisibility'])->name('users.hierarchy.visibility');
+
+        // Management - Stocktake Templates & Notifications (admin only)
+        Route::prefix('management')->name('management.')->group(function () {
+            // Template management
+            Route::get('stocktake-templates', [StocktakeTemplateController::class, 'adminIndex'])->name('stocktake-templates.index');
+            Route::get('stocktake-templates/{template}/edit', [StocktakeTemplateController::class, 'adminEdit'])->name('stocktake-templates.edit');
+            Route::put('stocktake-templates/{template}', [StocktakeTemplateController::class, 'adminUpdate'])->name('stocktake-templates.update');
+            Route::delete('stocktake-templates/{template}', [StocktakeTemplateController::class, 'adminDestroy'])->name('stocktake-templates.destroy');
+
+            // Notification recipient CRUD
+            Route::get('stocktake-notifications', [StocktakeNotificationRecipientController::class, 'index'])->name('stocktake-notifications.index');
+            Route::post('stocktake-notifications', [StocktakeNotificationRecipientController::class, 'store'])->name('stocktake-notifications.store');
+            Route::put('stocktake-notifications/{recipient}', [StocktakeNotificationRecipientController::class, 'update'])->name('stocktake-notifications.update');
+            Route::delete('stocktake-notifications/{recipient}', [StocktakeNotificationRecipientController::class, 'destroy'])->name('stocktake-notifications.destroy');
+        });
 
         // Management - Timecards
         Route::prefix('management')->name('management.')->group(function () {

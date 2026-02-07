@@ -12,6 +12,7 @@ export * from './navigation';
 export * from './pagination';
 export * from './permissions';
 export * from './product';
+export * from './stocktake';
 export * from './store';
 export * from './supplier';
 export * from './tag';
