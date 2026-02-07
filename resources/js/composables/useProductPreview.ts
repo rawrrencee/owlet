@@ -238,6 +238,10 @@ export function useProductPreview(
         loading.value = false;
     }
 
+    async function navigateToRelated(productId: number): Promise<void> {
+        await navigateToProduct(productId, 'search');
+    }
+
     async function searchProducts(query: string): Promise<void> {
         if (searchDebounceTimeout) {
             clearTimeout(searchDebounceTimeout);
@@ -315,6 +319,7 @@ export function useProductPreview(
         openPreviewFromSelection,
         navigatePrev,
         navigateNext,
+        navigateToRelated,
         searchProducts,
         handleSearchSelect,
         goBack,

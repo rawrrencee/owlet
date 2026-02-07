@@ -37,6 +37,7 @@ const emit = defineEmits<{
     (e: 'search', query: string): void;
     (e: 'select', result: ProductSearchResult): void;
     (e: 'close'): void;
+    (e: 'navigate-to-related', productId: number): void;
 }>();
 
 const { canAccessPage } = usePermissions();
@@ -529,7 +530,8 @@ function getTotalStoreQuantity(product: Product): number {
                             <div
                                 v-for="variant in product.variants"
                                 :key="variant.id"
-                                class="flex items-center gap-2 rounded border border-border p-2"
+                                class="flex cursor-pointer items-center gap-2 rounded border border-border p-2 transition-colors hover:bg-muted/50"
+                                @click="emit('navigate-to-related', variant.id)"
                             >
                                 <img
                                     v-if="variant.image_url"
@@ -570,6 +572,7 @@ function getTotalStoreQuantity(product: Product): number {
                                     "
                                     class="!text-xs"
                                 />
+                                <i class="pi pi-chevron-right text-xs text-muted-foreground" />
                             </div>
                         </div>
                     </div>
@@ -581,7 +584,8 @@ function getTotalStoreQuantity(product: Product): number {
                     <div>
                         <h3 class="mb-2 text-sm font-medium">Parent Product</h3>
                         <div
-                            class="flex items-center gap-2 rounded border border-border p-2"
+                            class="flex cursor-pointer items-center gap-2 rounded border border-border p-2 transition-colors hover:bg-muted/50"
+                            @click="emit('navigate-to-related', product.parent!.id)"
                         >
                             <div class="min-w-0 flex-1">
                                 <div class="truncate text-sm font-medium">
@@ -593,6 +597,7 @@ function getTotalStoreQuantity(product: Product): number {
                                     {{ product.parent.product_number }}
                                 </div>
                             </div>
+                            <i class="pi pi-chevron-right text-xs text-muted-foreground" />
                         </div>
                     </div>
                 </template>

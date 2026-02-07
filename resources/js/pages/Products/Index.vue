@@ -117,6 +117,7 @@ const {
     openPreviewFromSelection,
     navigatePrev,
     navigateNext,
+    navigateToRelated,
     searchProducts,
     handleSearchSelect,
     goBack,
@@ -1064,6 +1065,7 @@ function onPage(event: { page: number; rows: number }) {
             @search="searchProducts"
             @select="handleSearchSelect"
             @close="closePreview"
+            @navigate-to-related="navigateToRelated"
         />
 
         <!-- Floating Action Bar for Batch Edit -->
