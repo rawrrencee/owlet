@@ -14,6 +14,7 @@ import { dashboard } from '@/routes';
 import { type AppPageProps, type NavSection } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import {
+    ArrowLeftRight,
     BadgeCheck,
     BellRing,
     Building2,
@@ -30,6 +31,8 @@ import {
     Network,
     Package,
     PackageSearch,
+    ScrollText,
+    ShoppingCart,
     Store,
     Tag,
     Truck,
@@ -41,6 +44,7 @@ import { computed } from 'vue';
 import AppLogo from './AppLogo.vue';
 
 const iconMap: Record<string, LucideIcon> = {
+    ArrowLeftRight,
     BadgeCheck,
     BellRing,
     Building2,
@@ -57,6 +61,8 @@ const iconMap: Record<string, LucideIcon> = {
     Network,
     Package,
     PackageSearch,
+    ScrollText,
+    ShoppingCart,
     Store,
     Tag,
     Truck,

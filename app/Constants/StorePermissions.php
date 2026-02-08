@@ -27,6 +27,9 @@ class StorePermissions
 
     public const APPLY_DISCOUNTS = 'apply_discounts';
 
+    // Purchase order permissions
+    public const ACCEPT_PURCHASE_ORDER = 'accept_purchase_order';
+
     // Inventory permissions
     public const MANAGE_INVENTORY = 'manage_inventory';
 
@@ -106,6 +109,11 @@ class StorePermissions
                 'key' => self::STOCKTAKE,
                 'label' => 'Stocktake',
                 'group' => 'Inventory',
+            ],
+            self::ACCEPT_PURCHASE_ORDER => [
+                'key' => self::ACCEPT_PURCHASE_ORDER,
+                'label' => 'Accept Purchase Order',
+                'group' => 'Purchase Orders',
             ],
         ];
     }

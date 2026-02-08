@@ -464,7 +464,7 @@ function getTotalStoreQuantity(product: Product): number {
                     </div>
                 </template>
 
-                <!-- Store Summary -->
+                <!-- Store Details -->
                 <template
                     v-if="
                         product.product_stores &&
@@ -472,30 +472,52 @@ function getTotalStoreQuantity(product: Product): number {
                     "
                 >
                     <Divider class="!my-2" />
-                    <div
-                        class="flex items-center justify-between rounded-lg border border-border bg-muted/20 p-3"
-                    >
-                        <div class="flex items-center gap-2">
+                    <div>
+                        <div class="mb-2 flex items-center gap-2">
                             <i class="pi pi-shop text-muted-foreground" />
-                            <span class="text-sm">
-                                Assigned to
-                                <strong>{{
-                                    product.product_stores.length
-                                }}</strong>
-                                store{{
-                                    product.product_stores.length === 1
-                                        ? ''
-                                        : 's'
-                                }}
+                            <span class="text-sm font-medium">
+                                Assigned to {{ product.product_stores.length }}
+                                store{{ product.product_stores.length === 1 ? '' : 's' }}
                             </span>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-sm text-muted-foreground"
-                                >Total Qty:</span
-                            >
-                            <span class="font-medium">{{
-                                getTotalStoreQuantity(product)
-                            }}</span>
+                        <div class="rounded-lg border border-border overflow-hidden">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-border bg-muted/30">
+                                        <th class="px-3 py-1.5 text-left font-medium">Store</th>
+                                        <th class="px-3 py-1.5 text-center font-medium">Qty</th>
+                                        <th class="px-3 py-1.5 text-center font-medium">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="ps in product.product_stores"
+                                        :key="ps.id"
+                                        class="border-b border-border last:border-0"
+                                    >
+                                        <td class="px-3 py-1.5">
+                                            {{ ps.store?.store_name }}
+                                            <span class="text-muted-foreground">({{ ps.store?.store_code }})</span>
+                                        </td>
+                                        <td class="px-3 py-1.5 text-center">{{ ps.quantity }}</td>
+                                        <td class="px-3 py-1.5 text-center">
+                                            <span
+                                                :class="ps.is_active ? 'text-green-600' : 'text-red-500'"
+                                                class="text-xs font-medium"
+                                            >
+                                                {{ ps.is_active ? 'Active' : 'Inactive' }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr class="bg-muted/20">
+                                        <td class="px-3 py-1.5 font-medium">Total</td>
+                                        <td class="px-3 py-1.5 text-center font-medium">{{ getTotalStoreQuantity(product) }}</td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
                         </div>
                     </div>
                 </template>

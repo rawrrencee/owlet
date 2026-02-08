@@ -465,6 +465,10 @@ class ProductController extends Controller
 
     public function destroy(Request $request, Product $product): RedirectResponse|JsonResponse
     {
+        if ($product->variants()->exists()) {
+            abort(422, 'Cannot delete a parent product while it has active variants. Delete all variants first.');
+        }
+
         // Delete image if exists
         if ($product->image_path) {
             Storage::disk('private')->delete($product->image_path);
@@ -704,19 +708,32 @@ class ProductController extends Controller
     {
         $query = $request->query('q', '');
         $limit = min((int) $request->query('limit', 20), 50);
+        $storeId = $request->query('store_id');
 
         if (strlen($query) < 2) {
             return response()->json(['data' => []]);
         }
 
-        $products = Product::query()
+        $productsQuery = Product::query()
             ->search($query)
             ->orderBy('product_name')
-            ->limit($limit)
-            ->get(['id', 'product_name', 'product_number', 'barcode', 'brand_id', 'image_path']);
+            ->limit($limit);
+
+        if ($storeId) {
+            $productsQuery->whereHas('productStores', fn ($q) => $q->where('store_id', $storeId));
+        }
+
+        $products = $productsQuery->get(['id', 'product_name', 'product_number', 'barcode', 'brand_id', 'image_path']);
 
         $brandIds = $products->pluck('brand_id')->filter()->unique()->values();
         $brands = Brand::whereIn('id', $brandIds)->pluck('brand_name', 'id');
+
+        // Load store assignments for all found products
+        $productIds = $products->pluck('id');
+        $storeIdsByProduct = \App\Models\ProductStore::whereIn('product_id', $productIds)
+            ->get(['product_id', 'store_id'])
+            ->groupBy('product_id')
+            ->map(fn ($items) => $items->pluck('store_id')->values()->toArray());
 
         $results = $products->map(fn (Product $product) => [
             'id' => $product->id,
@@ -725,6 +742,7 @@ class ProductController extends Controller
             'barcode' => $product->barcode,
             'brand_name' => $brands[$product->brand_id] ?? null,
             'image_url' => $product->image_path ? route('products.image', $product->id) : null,
+            'store_ids' => $storeIdsByProduct[$product->id] ?? [],
         ]);
 
         return response()->json(['data' => $results]);

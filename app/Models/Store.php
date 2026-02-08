@@ -98,6 +98,16 @@ class Store extends Model
         return $this->hasMany(Timecard::class);
     }
 
+    public function deliveryOrdersFrom(): HasMany
+    {
+        return $this->hasMany(DeliveryOrder::class, 'store_id_from');
+    }
+
+    public function deliveryOrdersTo(): HasMany
+    {
+        return $this->hasMany(DeliveryOrder::class, 'store_id_to');
+    }
+
     /**
      * Mutator to ensure store_code is always uppercase.
      */

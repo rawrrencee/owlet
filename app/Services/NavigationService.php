@@ -65,6 +65,17 @@ class NavigationService
         if ($this->permissionService->canAccessPage($user, 'stocktakes.submit')) {
             $commerceItems[] = ['title' => 'Stocktake', 'href' => '/stocktakes', 'icon' => 'ClipboardCheck'];
         }
+        if ($this->permissionService->canAccessPage($user, 'delivery_orders.view')) {
+            $commerceItems[] = ['title' => 'Delivery Orders', 'href' => '/delivery-orders', 'icon' => 'ArrowLeftRight'];
+        }
+        if ($this->permissionService->canAccessPage($user, 'purchase_orders.view')
+            || $this->permissionService->canAccessPage($user, 'purchase_orders.create')
+            || $this->permissionService->canAccessPage($user, 'purchase_orders.accept')) {
+            $commerceItems[] = ['title' => 'Purchase Orders', 'href' => '/purchase-orders', 'icon' => 'ShoppingCart'];
+        }
+        if ($this->permissionService->canAccessPage($user, 'inventory_logs.view')) {
+            $commerceItems[] = ['title' => 'Inventory Logs', 'href' => '/inventory-logs', 'icon' => 'ScrollText'];
+        }
 
         // Stock Check - available to all authenticated users
         $commerceItems[] = ['title' => 'Stock Check', 'href' => '/stock-check', 'icon' => 'PackageSearch'];

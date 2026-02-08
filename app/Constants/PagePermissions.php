@@ -44,6 +44,23 @@ class PagePermissions
 
     public const STOCKTAKES_LOST_AND_FOUND = 'stocktakes.lost_and_found';
 
+    // Delivery Orders
+    public const DELIVERY_ORDERS_VIEW = 'delivery_orders.view';
+
+    public const DELIVERY_ORDERS_SUBMIT = 'delivery_orders.submit';
+
+    public const DELIVERY_ORDERS_MANAGE = 'delivery_orders.manage';
+
+    // Purchase Orders
+    public const PURCHASE_ORDERS_VIEW = 'purchase_orders.view';
+
+    public const PURCHASE_ORDERS_CREATE = 'purchase_orders.create';
+
+    public const PURCHASE_ORDERS_ACCEPT = 'purchase_orders.accept';
+
+    // Inventory
+    public const INVENTORY_LOGS_VIEW = 'inventory_logs.view';
+
     /**
      * Get all available permissions with their labels.
      *
@@ -136,6 +153,41 @@ class PagePermissions
                 'key' => self::STOCKTAKES_LOST_AND_FOUND,
                 'label' => 'Lost and Found Adjustments',
                 'group' => 'Stocktakes',
+            ],
+            self::DELIVERY_ORDERS_VIEW => [
+                'key' => self::DELIVERY_ORDERS_VIEW,
+                'label' => 'View Delivery Orders',
+                'group' => 'Delivery Orders',
+            ],
+            self::DELIVERY_ORDERS_SUBMIT => [
+                'key' => self::DELIVERY_ORDERS_SUBMIT,
+                'label' => 'Submit Delivery Orders',
+                'group' => 'Delivery Orders',
+            ],
+            self::DELIVERY_ORDERS_MANAGE => [
+                'key' => self::DELIVERY_ORDERS_MANAGE,
+                'label' => 'Manage Delivery Orders',
+                'group' => 'Delivery Orders',
+            ],
+            self::PURCHASE_ORDERS_VIEW => [
+                'key' => self::PURCHASE_ORDERS_VIEW,
+                'label' => 'View Purchase Orders',
+                'group' => 'Purchase Orders',
+            ],
+            self::PURCHASE_ORDERS_CREATE => [
+                'key' => self::PURCHASE_ORDERS_CREATE,
+                'label' => 'Create Purchase Orders',
+                'group' => 'Purchase Orders',
+            ],
+            self::PURCHASE_ORDERS_ACCEPT => [
+                'key' => self::PURCHASE_ORDERS_ACCEPT,
+                'label' => 'Accept Purchase Orders',
+                'group' => 'Purchase Orders',
+            ],
+            self::INVENTORY_LOGS_VIEW => [
+                'key' => self::INVENTORY_LOGS_VIEW,
+                'label' => 'View Inventory Logs',
+                'group' => 'Inventory',
             ],
         ];
     }

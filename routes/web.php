@@ -19,6 +19,9 @@ use App\Http\Controllers\MyTeamTimecardController;
 use App\Http\Controllers\OrganisationChartController;
 use App\Http\Controllers\PagePermissionsController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\DeliveryOrderController;
+use App\Http\Controllers\InventoryLogController;
+use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\StockCheckController;
 use App\Http\Controllers\StocktakeController;
 use App\Http\Controllers\StocktakeManagementController;
@@ -192,6 +195,53 @@ Route::middleware([
         Route::get('stores/{store}/currencies', [StoreController::class, 'currencies'])->name('stores.currencies.index');
         Route::post('stores/{store}/currencies', [StoreController::class, 'addCurrency'])->name('stores.currencies.store');
         Route::delete('stores/{store}/currencies/{storeCurrency}', [StoreController::class, 'removeCurrency'])->name('stores.currencies.destroy');
+    });
+
+    // Commerce routes - Delivery Orders (permission-based)
+    Route::middleware('permission:delivery_orders.submit')->group(function () {
+        Route::get('delivery-orders/create', [DeliveryOrderController::class, 'create'])->name('delivery-orders.create');
+        Route::post('delivery-orders', [DeliveryOrderController::class, 'store'])->name('delivery-orders.store');
+    });
+    Route::middleware('permission:delivery_orders.view')->group(function () {
+        Route::get('delivery-orders', [DeliveryOrderController::class, 'index'])->name('delivery-orders.index');
+        Route::get('delivery-orders/{deliveryOrder}', [DeliveryOrderController::class, 'show'])->name('delivery-orders.show');
+        Route::get('delivery-orders/{deliveryOrder}/search-products', [DeliveryOrderController::class, 'searchProducts'])->name('delivery-orders.search-products');
+    });
+    Route::middleware('permission:delivery_orders.submit')->group(function () {
+        Route::get('delivery-orders/{deliveryOrder}/edit', [DeliveryOrderController::class, 'edit'])->name('delivery-orders.edit');
+        Route::put('delivery-orders/{deliveryOrder}', [DeliveryOrderController::class, 'update'])->name('delivery-orders.update');
+        Route::post('delivery-orders/{deliveryOrder}/submit', [DeliveryOrderController::class, 'submit'])->name('delivery-orders.submit');
+        Route::delete('delivery-orders/{deliveryOrder}', [DeliveryOrderController::class, 'destroy'])->name('delivery-orders.destroy');
+    });
+    Route::middleware('permission:delivery_orders.manage')->group(function () {
+        Route::post('delivery-orders/{deliveryOrder}/approve', [DeliveryOrderController::class, 'approve'])->name('delivery-orders.approve');
+        Route::post('delivery-orders/{deliveryOrder}/reject', [DeliveryOrderController::class, 'reject'])->name('delivery-orders.reject');
+        Route::post('delivery-orders/{deliveryOrder}/revert', [DeliveryOrderController::class, 'revert'])->name('delivery-orders.revert');
+    });
+
+    // Commerce routes - Purchase Orders (permission-based)
+    Route::middleware('permission:purchase_orders.create')->group(function () {
+        Route::get('purchase-orders/create', [PurchaseOrderController::class, 'create'])->name('purchase-orders.create');
+        Route::post('purchase-orders', [PurchaseOrderController::class, 'store'])->name('purchase-orders.store');
+        Route::get('purchase-orders/{purchaseOrder}/edit', [PurchaseOrderController::class, 'edit'])->name('purchase-orders.edit');
+        Route::put('purchase-orders/{purchaseOrder}', [PurchaseOrderController::class, 'update'])->name('purchase-orders.update');
+        Route::post('purchase-orders/{purchaseOrder}/submit', [PurchaseOrderController::class, 'submit'])->name('purchase-orders.submit');
+        Route::delete('purchase-orders/{purchaseOrder}', [PurchaseOrderController::class, 'destroy'])->name('purchase-orders.destroy');
+        Route::get('purchase-orders/search-products', [PurchaseOrderController::class, 'searchProducts'])->name('purchase-orders.search-products');
+    });
+    Route::middleware('permission:purchase_orders.view')->group(function () {
+        Route::get('purchase-orders', [PurchaseOrderController::class, 'index'])->name('purchase-orders.index');
+        Route::get('purchase-orders/{purchaseOrder}', [PurchaseOrderController::class, 'show'])->name('purchase-orders.show');
+    });
+    Route::middleware('permission:purchase_orders.accept')->group(function () {
+        Route::post('purchase-orders/{purchaseOrder}/accept', [PurchaseOrderController::class, 'accept'])->name('purchase-orders.accept');
+        Route::post('purchase-orders/{purchaseOrder}/reject', [PurchaseOrderController::class, 'reject'])->name('purchase-orders.reject');
+        Route::post('purchase-orders/{purchaseOrder}/revert', [PurchaseOrderController::class, 'revert'])->name('purchase-orders.revert');
+    });
+
+    // Inventory Logs (permission-based)
+    Route::middleware('permission:inventory_logs.view')->group(function () {
+        Route::get('inventory-logs', [InventoryLogController::class, 'index'])->name('inventory-logs.index');
     });
 
     // Stock Check - available to all authenticated users

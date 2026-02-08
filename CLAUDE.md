@@ -72,6 +72,7 @@ The backend primarily serves the Inertia frontend, with API support as a seconda
   - Use bottom sheets or modals for actions instead of inline controls
   - Prioritize essential content; hide secondary information behind expandable sections
 - **Use Tailwind responsive prefixes** (`sm:`, `md:`, `lg:`, `xl:`) consistently
+- **Always show product cover images** - When displaying products (in tables, search results, dropdowns, or dialogs), always show the product's cover image thumbnail alongside its name. Use PrimeVue `Image` with `preview` for clickable thumbnails in tables, and a plain `<img>` tag in search dropdowns. Use `Avatar` with the product initial as fallback when no image exists.
 
 ## CRUD Page Patterns
 
