@@ -38,7 +38,7 @@ class StocktakeNotificationRecipientController extends Controller
                 ]);
         }
 
-        return Inertia::render('Management/StocktakeNotifications/Index', [
+        return Inertia::render('Management/Notifications/Index', [
             'stores' => $stores,
             'recipients' => $recipients,
             'filters' => [

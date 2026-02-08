@@ -6,7 +6,7 @@ import type {
     StocktakeItem,
     StocktakeManagementFilters,
 } from '@/types';
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
@@ -46,6 +46,7 @@ interface Props {
     };
     canViewDifference: boolean;
     canAdjustQuantity: boolean;
+    isAdmin: boolean;
 }
 
 const props = defineProps<Props>();
@@ -167,7 +168,20 @@ function submitAdjustment() {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
-            <h1 class="heading-lg">Manage Stocktakes</h1>
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <h1 class="heading-lg">Manage Stocktakes</h1>
+                <Link
+                    v-if="isAdmin"
+                    href="/management/stocktake-templates"
+                >
+                    <Button
+                        label="Manage Templates"
+                        icon="pi pi-list-check"
+                        severity="secondary"
+                        size="small"
+                    />
+                </Link>
+            </div>
 
             <!-- Filters -->
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -178,6 +192,7 @@ function submitAdjustment() {
                     optionValue="value"
                     placeholder="Store"
                     size="small"
+                    filter
                     class="w-full sm:w-48"
                 />
                 <DatePicker

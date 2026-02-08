@@ -90,8 +90,7 @@ class NavigationService
             $managementItems[] = ['title' => 'Currencies', 'href' => '/currencies', 'icon' => 'Coins'];
             $managementItems[] = ['title' => 'Designations', 'href' => '/designations', 'icon' => 'BadgeCheck'];
             $managementItems[] = ['title' => 'Organisation Chart', 'href' => '/organisation-chart', 'icon' => 'Network'];
-            $managementItems[] = ['title' => 'Stocktake Templates', 'href' => '/management/stocktake-templates', 'icon' => 'ListChecks'];
-            $managementItems[] = ['title' => 'Stocktake Notifications', 'href' => '/management/stocktake-notifications', 'icon' => 'BellRing'];
+            $managementItems[] = ['title' => 'Notifications', 'href' => '/management/notifications/stocktake', 'icon' => 'BellRing'];
             $managementItems[] = ['title' => 'Data Migration', 'href' => '/admin/data-migration', 'icon' => 'DatabaseZap'];
         }
 

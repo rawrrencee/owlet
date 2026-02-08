@@ -70,6 +70,7 @@ class StocktakeManagementController extends Controller
             'data' => $data,
             'canViewDifference' => $canViewDifference,
             'canAdjustQuantity' => $canAdjustQuantity,
+            'isAdmin' => $user->isAdmin(),
         ]);
     }
 

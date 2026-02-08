@@ -336,10 +336,10 @@ Route::middleware([
             Route::delete('stocktake-templates/{template}', [StocktakeTemplateController::class, 'adminDestroy'])->name('stocktake-templates.destroy');
 
             // Notification recipient CRUD
-            Route::get('stocktake-notifications', [StocktakeNotificationRecipientController::class, 'index'])->name('stocktake-notifications.index');
-            Route::post('stocktake-notifications', [StocktakeNotificationRecipientController::class, 'store'])->name('stocktake-notifications.store');
-            Route::put('stocktake-notifications/{recipient}', [StocktakeNotificationRecipientController::class, 'update'])->name('stocktake-notifications.update');
-            Route::delete('stocktake-notifications/{recipient}', [StocktakeNotificationRecipientController::class, 'destroy'])->name('stocktake-notifications.destroy');
+            Route::get('notifications/stocktake', [StocktakeNotificationRecipientController::class, 'index'])->name('notifications.stocktake.index');
+            Route::post('notifications/stocktake', [StocktakeNotificationRecipientController::class, 'store'])->name('notifications.stocktake.store');
+            Route::put('notifications/stocktake/{recipient}', [StocktakeNotificationRecipientController::class, 'update'])->name('notifications.stocktake.update');
+            Route::delete('notifications/stocktake/{recipient}', [StocktakeNotificationRecipientController::class, 'destroy'])->name('notifications.stocktake.destroy');
         });
 
         // Management - Timecards

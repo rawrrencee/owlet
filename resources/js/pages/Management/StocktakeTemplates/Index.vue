@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
+import { useSmartBack } from '@/composables/useSmartBack';
 import type { BreadcrumbItem, StocktakeTemplate } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import Button from 'primevue/button';
@@ -40,9 +41,11 @@ const props = defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Manage Stocktake Templates' },
+    { title: 'Manage Stocktakes', href: '/management/stocktakes' },
+    { title: 'Templates' },
 ];
 
+const { goBack } = useSmartBack('/management/stocktakes');
 const confirm = useConfirm();
 const expandedRows = ref({});
 
@@ -109,7 +112,17 @@ function confirmDelete(template: StocktakeTemplate) {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
-            <h1 class="heading-lg">Manage Stocktake Templates</h1>
+            <div class="flex items-center gap-3">
+                <Button
+                    icon="pi pi-arrow-left"
+                    severity="secondary"
+                    text
+                    rounded
+                    size="small"
+                    @click="goBack"
+                />
+                <h1 class="heading-lg">Manage Stocktake Templates</h1>
+            </div>
 
             <!-- Filters -->
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center">

@@ -33,11 +33,12 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const { goBack } = useSmartBack('/management/stocktake-templates');
+const { goBack } = useSmartBack('/management/stocktakes');
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Manage Stocktake Templates', href: '/management/stocktake-templates' },
+    { title: 'Manage Stocktakes', href: '/management/stocktakes' },
+    { title: 'Templates', href: '/management/stocktake-templates' },
     { title: `Edit: ${props.template.name}` },
 ];
 
