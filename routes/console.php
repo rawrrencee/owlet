@@ -13,3 +13,6 @@ Schedule::command('timecards:expire')->dailyAt('00:05');
 
 // Expire old in-progress stocktakes daily at 00:10
 Schedule::command('stocktakes:expire')->dailyAt('00:10');
+
+// Update offer statuses (scheduled→active, active→expired) every 15 minutes
+Schedule::command('offers:update-statuses')->everyFifteenMinutes();

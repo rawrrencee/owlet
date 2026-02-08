@@ -11,6 +11,7 @@ export * from './employee';
 export * from './hierarchy';
 export * from './inventory-log';
 export * from './navigation';
+export * from './offer';
 export * from './pagination';
 export * from './permissions';
 export * from './product';

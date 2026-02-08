@@ -58,6 +58,11 @@ class PagePermissions
 
     public const PURCHASE_ORDERS_ACCEPT = 'purchase_orders.accept';
 
+    // Offers
+    public const OFFERS_VIEW = 'offers.view';
+
+    public const OFFERS_MANAGE = 'offers.manage';
+
     // Inventory
     public const INVENTORY_LOGS_VIEW = 'inventory_logs.view';
 
@@ -183,6 +188,16 @@ class PagePermissions
                 'key' => self::PURCHASE_ORDERS_ACCEPT,
                 'label' => 'Accept Purchase Orders',
                 'group' => 'Purchase Orders',
+            ],
+            self::OFFERS_VIEW => [
+                'key' => self::OFFERS_VIEW,
+                'label' => 'View Offers',
+                'group' => 'Offers',
+            ],
+            self::OFFERS_MANAGE => [
+                'key' => self::OFFERS_MANAGE,
+                'label' => 'Manage Offers',
+                'group' => 'Offers',
             ],
             self::INVENTORY_LOGS_VIEW => [
                 'key' => self::INVENTORY_LOGS_VIEW,

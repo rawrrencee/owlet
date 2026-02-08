@@ -22,6 +22,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\DeliveryOrderController;
 use App\Http\Controllers\InventoryLogController;
 use App\Http\Controllers\PurchaseOrderController;
+use App\Http\Controllers\OfferController;
 use App\Http\Controllers\StockCheckController;
 use App\Http\Controllers\StocktakeController;
 use App\Http\Controllers\StocktakeManagementController;
@@ -237,6 +238,24 @@ Route::middleware([
         Route::post('purchase-orders/{purchaseOrder}/accept', [PurchaseOrderController::class, 'accept'])->name('purchase-orders.accept');
         Route::post('purchase-orders/{purchaseOrder}/reject', [PurchaseOrderController::class, 'reject'])->name('purchase-orders.reject');
         Route::post('purchase-orders/{purchaseOrder}/revert', [PurchaseOrderController::class, 'revert'])->name('purchase-orders.revert');
+    });
+
+    // Commerce routes - Offers (permission-based)
+    Route::middleware('permission:offers.manage')->group(function () {
+        Route::get('offers/create', [OfferController::class, 'create'])->name('offers.create');
+        Route::post('offers', [OfferController::class, 'store'])->name('offers.store');
+        Route::get('offers/search-products', [OfferController::class, 'searchProducts'])->name('offers.search-products');
+    });
+    Route::middleware('permission:offers.view')->group(function () {
+        Route::get('offers', [OfferController::class, 'index'])->name('offers.index');
+        Route::get('offers/{offer}', [OfferController::class, 'show'])->name('offers.show');
+    });
+    Route::middleware('permission:offers.manage')->group(function () {
+        Route::get('offers/{offer}/edit', [OfferController::class, 'edit'])->name('offers.edit');
+        Route::put('offers/{offer}', [OfferController::class, 'update'])->name('offers.update');
+        Route::delete('offers/{offer}', [OfferController::class, 'destroy'])->name('offers.destroy');
+        Route::post('offers/{offer}/activate', [OfferController::class, 'activate'])->name('offers.activate');
+        Route::post('offers/{offer}/disable', [OfferController::class, 'disable'])->name('offers.disable');
     });
 
     // Inventory Logs (permission-based)

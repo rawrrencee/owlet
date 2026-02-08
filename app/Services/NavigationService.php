@@ -73,6 +73,9 @@ class NavigationService
             || $this->permissionService->canAccessPage($user, 'purchase_orders.accept')) {
             $commerceItems[] = ['title' => 'Purchase Orders', 'href' => '/purchase-orders', 'icon' => 'ShoppingCart'];
         }
+        if ($this->permissionService->canAccessPage($user, 'offers.view')) {
+            $commerceItems[] = ['title' => 'Offers', 'href' => '/offers', 'icon' => 'Percent'];
+        }
         if ($this->permissionService->canAccessPage($user, 'inventory_logs.view')) {
             $commerceItems[] = ['title' => 'Inventory Logs', 'href' => '/inventory-logs', 'icon' => 'ScrollText'];
         }
