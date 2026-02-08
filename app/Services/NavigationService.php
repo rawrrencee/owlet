@@ -66,6 +66,9 @@ class NavigationService
             $commerceItems[] = ['title' => 'Stocktake', 'href' => '/stocktakes', 'icon' => 'ClipboardCheck'];
         }
 
+        // Stock Check - available to all authenticated users
+        $commerceItems[] = ['title' => 'Stock Check', 'href' => '/stock-check', 'icon' => 'PackageSearch'];
+
         if (! empty($commerceItems)) {
             $sections[] = [
                 'title' => 'Commerce',

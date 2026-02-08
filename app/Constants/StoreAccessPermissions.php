@@ -15,6 +15,8 @@ class StoreAccessPermissions
 
     public const STORE_VIEW_STOCKTAKE_DIFFERENCE = 'store.view_stocktake_difference';
 
+    public const STORE_VIEW_STOCK_COUNT = 'store.view_stock_count';
+
     /**
      * Get all available permissions with their labels.
      *
@@ -46,6 +48,11 @@ class StoreAccessPermissions
             self::STORE_VIEW_STOCKTAKE_DIFFERENCE => [
                 'key' => self::STORE_VIEW_STOCKTAKE_DIFFERENCE,
                 'label' => 'View Stocktake Count Difference',
+                'group' => 'Store Access',
+            ],
+            self::STORE_VIEW_STOCK_COUNT => [
+                'key' => self::STORE_VIEW_STOCK_COUNT,
+                'label' => 'View Stock Count',
                 'group' => 'Store Access',
             ],
         ];

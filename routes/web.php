@@ -19,6 +19,7 @@ use App\Http\Controllers\MyTeamTimecardController;
 use App\Http\Controllers\OrganisationChartController;
 use App\Http\Controllers\PagePermissionsController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\StockCheckController;
 use App\Http\Controllers\StocktakeController;
 use App\Http\Controllers\StocktakeManagementController;
 use App\Http\Controllers\StocktakeNotificationRecipientController;
@@ -192,6 +193,10 @@ Route::middleware([
         Route::post('stores/{store}/currencies', [StoreController::class, 'addCurrency'])->name('stores.currencies.store');
         Route::delete('stores/{store}/currencies/{storeCurrency}', [StoreController::class, 'removeCurrency'])->name('stores.currencies.destroy');
     });
+
+    // Stock Check - available to all authenticated users
+    Route::get('stock-check', [StockCheckController::class, 'index'])->name('stock-check.index');
+    Route::get('stock-check/product-image/{product}', [StockCheckController::class, 'showProductImage'])->name('stock-check.product-image');
 
     // Stocktake current state (used by floating widget, permission checked internally)
     Route::get('stocktakes/current', [StocktakeController::class, 'current'])->name('stocktakes.current');
