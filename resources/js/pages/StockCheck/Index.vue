@@ -363,7 +363,7 @@ function getDisplayStores(product: StockCheckProduct): StockCheckStore[] {
                     :dt="{
                         borderRadius: '0.5rem',
                         header: { borderRadius: '0.5rem 0.5rem 0 0', padding: '0.75rem 1rem' },
-                        content: { padding: '0.75rem', borderRadius: '0 0 0.5rem 0.5rem' },
+                        content: { padding: layout === 'grid' ? '0.75rem' : '0.75rem 0', borderRadius: '0 0 0.5rem 0.5rem' },
                     }"
                     @page="onPage"
                 >
