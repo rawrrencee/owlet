@@ -37,6 +37,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const confirm = useConfirm();
 const scannerActive = ref(false);
+const productSearchBarRef = ref<InstanceType<typeof ProductSearchBar>>();
 const submitDialogVisible = ref(false);
 const expandedRows = ref({});
 
@@ -61,25 +62,7 @@ function onProductSelected(product: StocktakeProductSearchResult) {
 }
 
 function onBarcodeScan(barcode: string) {
-    // Search for product by barcode and add it
-    fetch(
-        `/stocktakes/${props.stocktake.id}/search-products?q=${encodeURIComponent(barcode)}`,
-        {
-            headers: {
-                Accept: 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-        },
-    )
-        .then((res) => res.json())
-        .then((products: StocktakeProductSearchResult[]) => {
-            if (products.length === 1) {
-                onProductSelected(products[0]);
-            } else if (products.length > 1) {
-                // If multiple matches, use the first one
-                onProductSelected(products[0]);
-            }
-        });
+    productSearchBarRef.value?.scanBarcode(barcode);
 }
 
 function updateItemQuantity(itemId: number, quantity: number) {
@@ -259,6 +242,7 @@ const discrepancyCount = computed(
                         >Add Product</label
                     >
                     <ProductSearchBar
+                        ref="productSearchBarRef"
                         :stocktake-id="stocktake.id"
                         @select="onProductSelected"
                     />

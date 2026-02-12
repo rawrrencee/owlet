@@ -125,7 +125,15 @@ function submit() {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <Button
+                    icon="pi pi-arrow-left"
+                    text
+                    size="small"
+                    severity="secondary"
+                    @click="router.visit('/purchase-orders')"
+                    v-tooltip.top="'Back'"
+                />
                 <h1 class="heading-lg">Create Purchase Order</h1>
             </div>
 
