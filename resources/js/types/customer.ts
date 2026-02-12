@@ -14,6 +14,7 @@ export interface Customer {
     nationality_country?: Country;
     company_name: string | null;
     customer_since: string | null;
+    discount_percentage: string | null;
     loyalty_points: number;
     image_url: string | null;
 }

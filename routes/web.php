@@ -23,6 +23,9 @@ use App\Http\Controllers\DeliveryOrderController;
 use App\Http\Controllers\InventoryLogController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\OfferController;
+use App\Http\Controllers\PaymentModeController;
+use App\Http\Controllers\PublicQuotationController;
+use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\StockCheckController;
 use App\Http\Controllers\StocktakeController;
 use App\Http\Controllers\StocktakeManagementController;
@@ -38,6 +41,10 @@ use Laravel\WorkOS\Http\Middleware\ValidateSessionWithWorkOS;
 
 Route::get('/', fn () => Inertia::render('Welcome'));
 
+// Public quotation view (no auth required)
+Route::get('q/{shareToken}', [PublicQuotationController::class, 'show'])->name('quotations.public');
+Route::post('q/{shareToken}', [PublicQuotationController::class, 'verifyPassword'])->name('quotations.public.verify');
+
 Route::middleware([
     'auth',
     ValidateSessionWithWorkOS::class,
@@ -46,6 +53,9 @@ Route::middleware([
 
     // Profile picture serving route (needs auth but not admin)
     Route::get('users/{employee}/profile-picture', [UserController::class, 'showProfilePicture'])->name('users.profile-picture');
+
+    // Company logo serving route (needs auth but not admin, used by quotations)
+    Route::get('companies/{company}/logo', [CompanyController::class, 'showLogo'])->name('companies.logo');
 
     // Contract document viewing route (needs auth but not admin)
     Route::get('users/{employee}/contracts/{contract}/document', [EmployeeContractController::class, 'showDocument'])->name('users.contracts.document');
@@ -258,6 +268,51 @@ Route::middleware([
         Route::post('offers/{offer}/disable', [OfferController::class, 'disable'])->name('offers.disable');
     });
 
+    // Commerce routes - Quotations (permission-based)
+    Route::middleware('permission:quotations.create')->group(function () {
+        Route::get('quotations/create', [QuotationController::class, 'create'])->name('quotations.create');
+        Route::post('quotations', [QuotationController::class, 'store'])->name('quotations.store');
+    });
+    // Utility routes shared by create and manage
+    Route::middleware('permission:quotations.create|quotations.manage')->group(function () {
+        Route::get('quotations/search-products', [QuotationController::class, 'searchProducts'])->name('quotations.search-products');
+        Route::get('quotations/search-customers', [QuotationController::class, 'searchCustomers'])->name('quotations.search-customers');
+        Route::post('quotations/resolve-offer', [QuotationController::class, 'resolveOffer'])->name('quotations.resolve-offer');
+    });
+    Route::middleware('permission:quotations.view')->group(function () {
+        Route::get('quotations', [QuotationController::class, 'index'])->name('quotations.index');
+        Route::get('quotations/{quotation}', [QuotationController::class, 'show'])->name('quotations.show');
+        Route::get('quotations/{quotation}/pdf', [QuotationController::class, 'downloadPdf'])->name('quotations.pdf');
+    });
+    Route::middleware('permission:quotations.manage')->group(function () {
+        Route::get('quotations/{quotation}/edit', [QuotationController::class, 'edit'])->name('quotations.edit');
+        Route::put('quotations/{quotation}', [QuotationController::class, 'update'])->name('quotations.update');
+        Route::delete('quotations/{quotation}', [QuotationController::class, 'destroy'])->name('quotations.destroy');
+        Route::post('quotations/{quotation}/send', [QuotationController::class, 'markAsSent'])->name('quotations.send');
+        Route::post('quotations/{quotation}/revert-draft', [QuotationController::class, 'revertToDraft'])->name('quotations.revert-draft');
+        Route::post('quotations/{quotation}/duplicate', [QuotationController::class, 'duplicate'])->name('quotations.duplicate');
+        Route::post('quotations/{quotation}/share', [QuotationController::class, 'generateShareLink'])->name('quotations.share');
+        Route::post('quotations/{quotation}/share-password', [QuotationController::class, 'updateSharePassword'])->name('quotations.share-password');
+    });
+    Route::middleware('permission:quotations.admin')->group(function () {
+        Route::post('quotations/{quotation}/accept', [QuotationController::class, 'markAsAccepted'])->name('quotations.accept');
+        Route::post('quotations/{quotation}/mark-paid', [QuotationController::class, 'markAsPaid'])->name('quotations.mark-paid');
+    });
+
+    // Payment Modes (admin or permission-based)
+    Route::middleware('permission:payment_modes.manage')->group(function () {
+        Route::get('payment-modes/create', [PaymentModeController::class, 'create'])->name('payment-modes.create');
+        Route::post('payment-modes', [PaymentModeController::class, 'store'])->name('payment-modes.store');
+    });
+    Route::middleware('permission:payment_modes.view')->group(function () {
+        Route::get('payment-modes', [PaymentModeController::class, 'index'])->name('payment-modes.index');
+    });
+    Route::middleware('permission:payment_modes.manage')->group(function () {
+        Route::get('payment-modes/{paymentMode}/edit', [PaymentModeController::class, 'edit'])->name('payment-modes.edit');
+        Route::put('payment-modes/{paymentMode}', [PaymentModeController::class, 'update'])->name('payment-modes.update');
+        Route::delete('payment-modes/{paymentMode}', [PaymentModeController::class, 'destroy'])->name('payment-modes.destroy');
+    });
+
     // Inventory Logs (permission-based)
     Route::middleware('permission:inventory_logs.view')->group(function () {
         Route::get('inventory-logs', [InventoryLogController::class, 'index'])->name('inventory-logs.index');
@@ -336,7 +391,6 @@ Route::middleware([
         // Companies
         Route::resource('companies', CompanyController::class);
         Route::post('companies/{company}/restore', [CompanyController::class, 'restore'])->name('companies.restore')->withTrashed();
-        Route::get('companies/{company}/logo', [CompanyController::class, 'showLogo'])->name('companies.logo');
         Route::post('companies/{company}/logo', [CompanyController::class, 'uploadLogo'])->name('companies.upload-logo');
         Route::delete('companies/{company}/logo', [CompanyController::class, 'deleteLogo'])->name('companies.delete-logo');
 

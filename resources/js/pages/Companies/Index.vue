@@ -373,6 +373,13 @@ function onPage(event: { page: number; rows: number }) {
                 <template #expansion="{ data }">
                     <div class="grid gap-3 p-3 text-sm md:hidden">
                         <div
+                            v-if="data.registration_number"
+                            class="flex justify-between border-b border-border pb-2"
+                        >
+                            <span class="text-muted-foreground">Reg. No.</span>
+                            <span>{{ data.registration_number }}</span>
+                        </div>
+                        <div
                             class="flex justify-between border-b border-border pb-2"
                         >
                             <span class="text-muted-foreground">Email</span>

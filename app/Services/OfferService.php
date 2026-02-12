@@ -122,7 +122,7 @@ class OfferService
      * Find best product-level offer for a product being added.
      * Checks product-specific, category, and brand offers.
      */
-    public function findBestProductOffer(Product $product, int $storeId, int $currencyId, string $unitPrice): ?array
+    public function findBestProductOffer(Product $product, ?int $storeId, int $currencyId, string $unitPrice): ?array
     {
         $offers = Offer::active()
             ->forStore($storeId)
@@ -146,6 +146,7 @@ class OfferService
                     'offer_id' => $offer->id,
                     'offer_name' => $offer->name,
                     'discount_type' => $offer->discount_type->value,
+                    'discount_percentage' => $offer->discount_percentage ? (float) $offer->discount_percentage : null,
                     'discount_amount' => $discount,
                     'is_combinable' => $offer->is_combinable,
                 ];
@@ -160,7 +161,7 @@ class OfferService
      *
      * @param  array  $cartItems  [product_id => ['quantity' => N, 'category_id' => X, 'subcategory_id' => Y]]
      */
-    public function findApplicableBundleOffers(array $cartItems, int $storeId, int $currencyId): array
+    public function findApplicableBundleOffers(array $cartItems, ?int $storeId, int $currencyId): array
     {
         $offers = Offer::active()
             ->forStore($storeId)

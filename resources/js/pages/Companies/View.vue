@@ -13,7 +13,7 @@ import DataTable from 'primevue/datatable';
 import Divider from 'primevue/divider';
 import Image from 'primevue/image';
 import Tag from 'primevue/tag';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 interface EmployeeCompanyWithEmployee extends EmployeeCompany {
     employee?: {
@@ -46,6 +46,36 @@ function getInitials(): string {
     }
     return props.company.company_name.substring(0, 2).toUpperCase();
 }
+
+const registrationLabel = computed(() => {
+    if (props.company.country_code === 'SG') return 'UEN';
+    return 'Registration No.';
+});
+
+const taxRegistrationLabel = computed(() => {
+    if (props.company.country_code === 'SG') return 'GST Reg. No.';
+    if (props.company.country_code === 'MY') return 'SST Reg. No.';
+    return 'Tax Reg. No.';
+});
+
+const hasRegistrationInfo = computed(() => {
+    return props.company.registration_number || props.company.tax_registration_number;
+});
+
+const formattedCityStateLine = computed(() => {
+    const parts = [
+        props.company.city,
+        props.company.state,
+    ].filter(Boolean);
+    const cityState = parts.join(', ');
+    if (cityState && props.company.postal_code) {
+        return `${cityState} ${props.company.postal_code}`;
+    }
+    if (props.company.postal_code) {
+        return props.company.postal_code;
+    }
+    return cityState;
+});
 
 function formatDate(dateString: string | null): string {
     if (!dateString) return '-';
@@ -211,6 +241,31 @@ function navigateToEmployee(employeeId: number) {
                                 </div>
                             </div>
 
+                            <Divider v-if="hasRegistrationInfo" />
+
+                            <!-- Registration -->
+                            <div v-if="hasRegistrationInfo">
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Registration
+                                </h3>
+                                <div class="grid gap-4 sm:grid-cols-2">
+                                    <div v-if="company.registration_number" class="flex flex-col gap-1">
+                                        <span
+                                            class="text-sm text-muted-foreground"
+                                            >{{ registrationLabel }}</span
+                                        >
+                                        <span>{{ company.registration_number }}</span>
+                                    </div>
+                                    <div v-if="company.tax_registration_number" class="flex flex-col gap-1">
+                                        <span
+                                            class="text-sm text-muted-foreground"
+                                            >{{ taxRegistrationLabel }}</span
+                                        >
+                                        <span>{{ company.tax_registration_number }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
                             <Divider />
 
                             <!-- Address -->
@@ -225,6 +280,9 @@ function navigateToEmployee(employeeId: number) {
                                     <span v-if="company.address_2">{{
                                         company.address_2
                                     }}</span>
+                                    <span v-if="formattedCityStateLine">{{
+                                        formattedCityStateLine
+                                    }}</span>
                                     <span v-if="company.country_name">{{
                                         company.country_name
                                     }}</span>
@@ -232,6 +290,9 @@ function navigateToEmployee(employeeId: number) {
                                         v-if="
                                             !company.address_1 &&
                                             !company.address_2 &&
+                                            !company.city &&
+                                            !company.state &&
+                                            !company.postal_code &&
                                             !company.country_name
                                         "
                                         class="text-muted-foreground"

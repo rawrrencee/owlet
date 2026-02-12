@@ -18,8 +18,13 @@ class UpdateCompanyRequest extends FormRequest
     {
         return [
             'company_name' => ['required', 'string', 'max:255'],
+            'registration_number' => ['nullable', 'string', 'max:50'],
+            'tax_registration_number' => ['nullable', 'string', 'max:50'],
             'address_1' => ['nullable', 'string', 'max:255'],
             'address_2' => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'state' => ['nullable', 'string', 'max:255'],
+            'postal_code' => ['nullable', 'string', 'max:20'],
             'country_id' => ['nullable', 'exists:countries,id'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone_number' => ['nullable', 'string', 'max:50'],

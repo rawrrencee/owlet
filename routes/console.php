@@ -16,3 +16,6 @@ Schedule::command('stocktakes:expire')->dailyAt('00:10');
 
 // Update offer statuses (scheduled→active, active→expired) every 15 minutes
 Schedule::command('offers:update-statuses')->everyFifteenMinutes();
+
+// Expire quotations past their validity date daily at 00:15
+Schedule::command('quotations:expire')->dailyAt('00:15');

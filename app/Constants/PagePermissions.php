@@ -63,6 +63,20 @@ class PagePermissions
 
     public const OFFERS_MANAGE = 'offers.manage';
 
+    // Quotations
+    public const QUOTATIONS_VIEW = 'quotations.view';
+
+    public const QUOTATIONS_CREATE = 'quotations.create';
+
+    public const QUOTATIONS_MANAGE = 'quotations.manage';
+
+    public const QUOTATIONS_ADMIN = 'quotations.admin';
+
+    // Payment Modes
+    public const PAYMENT_MODES_VIEW = 'payment_modes.view';
+
+    public const PAYMENT_MODES_MANAGE = 'payment_modes.manage';
+
     // Inventory
     public const INVENTORY_LOGS_VIEW = 'inventory_logs.view';
 
@@ -198,6 +212,36 @@ class PagePermissions
                 'key' => self::OFFERS_MANAGE,
                 'label' => 'Manage Offers',
                 'group' => 'Offers',
+            ],
+            self::QUOTATIONS_VIEW => [
+                'key' => self::QUOTATIONS_VIEW,
+                'label' => 'View Quotations',
+                'group' => 'Quotations',
+            ],
+            self::QUOTATIONS_CREATE => [
+                'key' => self::QUOTATIONS_CREATE,
+                'label' => 'Create Quotations',
+                'group' => 'Quotations',
+            ],
+            self::QUOTATIONS_MANAGE => [
+                'key' => self::QUOTATIONS_MANAGE,
+                'label' => 'Manage Quotations',
+                'group' => 'Quotations',
+            ],
+            self::QUOTATIONS_ADMIN => [
+                'key' => self::QUOTATIONS_ADMIN,
+                'label' => 'Administer Quotations',
+                'group' => 'Quotations',
+            ],
+            self::PAYMENT_MODES_VIEW => [
+                'key' => self::PAYMENT_MODES_VIEW,
+                'label' => 'View Payment Modes',
+                'group' => 'Payment Modes',
+            ],
+            self::PAYMENT_MODES_MANAGE => [
+                'key' => self::PAYMENT_MODES_MANAGE,
+                'label' => 'Manage Payment Modes',
+                'group' => 'Payment Modes',
             ],
             self::INVENTORY_LOGS_VIEW => [
                 'key' => self::INVENTORY_LOGS_VIEW,

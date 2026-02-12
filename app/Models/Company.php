@@ -16,8 +16,13 @@ class Company extends Model
 
     protected $fillable = [
         'company_name',
+        'registration_number',
+        'tax_registration_number',
         'address_1',
         'address_2',
+        'city',
+        'state',
+        'postal_code',
         'country_id',
         'email',
         'phone_number',
@@ -53,6 +58,11 @@ class Company extends Model
     public function activeEmployees(): BelongsToMany
     {
         return $this->employees()->whereNull('employee_companies.left_date');
+    }
+
+    public function stores(): HasMany
+    {
+        return $this->hasMany(Store::class);
     }
 
     public function country(): BelongsTo

@@ -3,10 +3,16 @@ import type { Country } from './country';
 export interface Company {
     id: number;
     company_name: string;
+    registration_number: string | null;
+    tax_registration_number: string | null;
     address_1: string | null;
     address_2: string | null;
+    city: string | null;
+    state: string | null;
+    postal_code: string | null;
     country_id: number | null;
     country_name?: string | null;
+    country_code?: string | null;
     country?: Country;
     email: string | null;
     phone_number: string | null;

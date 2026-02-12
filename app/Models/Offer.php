@@ -99,8 +99,12 @@ class Offer extends Model
         return $query->where('status', OfferStatus::ACTIVE);
     }
 
-    public function scopeForStore(Builder $query, int $storeId): Builder
+    public function scopeForStore(Builder $query, ?int $storeId = null): Builder
     {
+        if ($storeId === null) {
+            return $query->where('apply_to_all_stores', true);
+        }
+
         return $query->where(function ($q) use ($storeId) {
             $q->where('apply_to_all_stores', true)
                 ->orWhereHas('stores', fn ($sq) => $sq->where('store_id', $storeId));

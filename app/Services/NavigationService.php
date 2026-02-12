@@ -76,6 +76,11 @@ class NavigationService
         if ($this->permissionService->canAccessPage($user, 'offers.view')) {
             $commerceItems[] = ['title' => 'Offers', 'href' => '/offers', 'icon' => 'Percent'];
         }
+        if ($this->permissionService->canAccessPage($user, 'quotations.view')
+            || $this->permissionService->canAccessPage($user, 'quotations.create')
+            || $this->permissionService->canAccessPage($user, 'quotations.manage')) {
+            $commerceItems[] = ['title' => 'Quotations', 'href' => '/quotations', 'icon' => 'FileText'];
+        }
         if ($this->permissionService->canAccessPage($user, 'inventory_logs.view')) {
             $commerceItems[] = ['title' => 'Inventory Logs', 'href' => '/inventory-logs', 'icon' => 'ScrollText'];
         }
@@ -96,6 +101,11 @@ class NavigationService
         // Stocktakes management - accessible to admins AND staff with permission
         if ($user->isAdmin() || $this->permissionService->canAccessPage($user, 'stocktakes.manage')) {
             $managementItems[] = ['title' => 'Stocktakes', 'href' => '/management/stocktakes', 'icon' => 'ClipboardList'];
+        }
+
+        // Payment Modes management
+        if ($user->isAdmin() || $this->permissionService->canAccessPage($user, 'payment_modes.manage')) {
+            $managementItems[] = ['title' => 'Payment Modes', 'href' => '/payment-modes', 'icon' => 'CreditCard'];
         }
 
         // Admin-only items

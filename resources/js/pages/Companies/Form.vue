@@ -71,15 +71,37 @@ const countryOptions = computed(() =>
 
 const form = useForm({
     company_name: props.company?.company_name ?? '',
+    registration_number: props.company?.registration_number ?? '',
+    tax_registration_number: props.company?.tax_registration_number ?? '',
     email: props.company?.email ?? '',
     phone_number: props.company?.phone_number ?? '',
     mobile_number: props.company?.mobile_number ?? '',
     address_1: props.company?.address_1 ?? '',
     address_2: props.company?.address_2 ?? '',
+    city: props.company?.city ?? '',
+    state: props.company?.state ?? '',
+    postal_code: props.company?.postal_code ?? '',
     country_id: props.company?.country_id ?? null,
     website: props.company?.website ?? '',
     active: props.company?.active ?? true,
     logo: null as File | null,
+});
+
+const selectedCountryCode = computed(() => {
+    if (!form.country_id) return null;
+    const country = (props.countries ?? []).find((c) => c.id === form.country_id);
+    return country?.code ?? null;
+});
+
+const registrationLabel = computed(() => {
+    if (selectedCountryCode.value === 'SG') return 'UEN';
+    return 'Registration No.';
+});
+
+const taxRegistrationLabel = computed(() => {
+    if (selectedCountryCode.value === 'SG') return 'GST Reg. No.';
+    if (selectedCountryCode.value === 'MY') return 'SST Reg. No.';
+    return 'Tax Reg. No.';
 });
 
 // Logo state for edit mode
@@ -273,6 +295,60 @@ function cancel() {
 
                             <Divider />
 
+                            <!-- Registration -->
+                            <div>
+                                <h3 class="mb-4 text-lg font-medium">
+                                    Registration
+                                </h3>
+                                <div class="grid gap-4 sm:grid-cols-2">
+                                    <div class="flex flex-col gap-2">
+                                        <label
+                                            for="registration_number"
+                                            class="font-medium"
+                                            >{{ registrationLabel }}</label
+                                        >
+                                        <InputText
+                                            id="registration_number"
+                                            v-model="form.registration_number"
+                                            :invalid="!!form.errors.registration_number"
+                                            :placeholder="selectedCountryCode === 'SG' ? '202012345A' : 'Registration number'"
+                                            size="small"
+                                            fluid
+                                        />
+                                        <small
+                                            v-if="form.errors.registration_number"
+                                            class="text-red-500"
+                                        >
+                                            {{ form.errors.registration_number }}
+                                        </small>
+                                    </div>
+
+                                    <div class="flex flex-col gap-2">
+                                        <label
+                                            for="tax_registration_number"
+                                            class="font-medium"
+                                            >{{ taxRegistrationLabel }}</label
+                                        >
+                                        <InputText
+                                            id="tax_registration_number"
+                                            v-model="form.tax_registration_number"
+                                            :invalid="!!form.errors.tax_registration_number"
+                                            :placeholder="selectedCountryCode === 'SG' ? 'M12345678X' : 'Tax registration number'"
+                                            size="small"
+                                            fluid
+                                        />
+                                        <small
+                                            v-if="form.errors.tax_registration_number"
+                                            class="text-red-500"
+                                        >
+                                            {{ form.errors.tax_registration_number }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <Divider />
+
                             <!-- Address -->
                             <div>
                                 <h3 class="mb-4 text-lg font-medium">
@@ -323,31 +399,101 @@ function cancel() {
                                         </small>
                                     </div>
 
-                                    <div class="flex flex-col gap-2">
-                                        <label
-                                            for="country_id"
-                                            class="font-medium"
-                                            >Country</label
-                                        >
-                                        <Select
-                                            id="country_id"
-                                            v-model="form.country_id"
-                                            :options="countryOptions"
-                                            option-label="label"
-                                            option-value="value"
-                                            :invalid="!!form.errors.country_id"
-                                            placeholder="Select country"
-                                            filter
-                                            show-clear
-                                            size="small"
-                                            fluid
-                                        />
-                                        <small
-                                            v-if="form.errors.country_id"
-                                            class="text-red-500"
-                                        >
-                                            {{ form.errors.country_id }}
-                                        </small>
+                                    <div class="grid gap-4 sm:grid-cols-2">
+                                        <div class="flex flex-col gap-2">
+                                            <label
+                                                for="city"
+                                                class="font-medium"
+                                                >City</label
+                                            >
+                                            <InputText
+                                                id="city"
+                                                v-model="form.city"
+                                                :invalid="!!form.errors.city"
+                                                placeholder="Singapore"
+                                                size="small"
+                                                fluid
+                                            />
+                                            <small
+                                                v-if="form.errors.city"
+                                                class="text-red-500"
+                                            >
+                                                {{ form.errors.city }}
+                                            </small>
+                                        </div>
+
+                                        <div class="flex flex-col gap-2">
+                                            <label
+                                                for="state"
+                                                class="font-medium"
+                                                >State</label
+                                            >
+                                            <InputText
+                                                id="state"
+                                                v-model="form.state"
+                                                :invalid="!!form.errors.state"
+                                                placeholder="State / Province"
+                                                size="small"
+                                                fluid
+                                            />
+                                            <small
+                                                v-if="form.errors.state"
+                                                class="text-red-500"
+                                            >
+                                                {{ form.errors.state }}
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid gap-4 sm:grid-cols-2">
+                                        <div class="flex flex-col gap-2">
+                                            <label
+                                                for="postal_code"
+                                                class="font-medium"
+                                                >Postal Code</label
+                                            >
+                                            <InputText
+                                                id="postal_code"
+                                                v-model="form.postal_code"
+                                                :invalid="!!form.errors.postal_code"
+                                                placeholder="123456"
+                                                size="small"
+                                                fluid
+                                            />
+                                            <small
+                                                v-if="form.errors.postal_code"
+                                                class="text-red-500"
+                                            >
+                                                {{ form.errors.postal_code }}
+                                            </small>
+                                        </div>
+
+                                        <div class="flex flex-col gap-2">
+                                            <label
+                                                for="country_id"
+                                                class="font-medium"
+                                                >Country</label
+                                            >
+                                            <Select
+                                                id="country_id"
+                                                v-model="form.country_id"
+                                                :options="countryOptions"
+                                                option-label="label"
+                                                option-value="value"
+                                                :invalid="!!form.errors.country_id"
+                                                placeholder="Select country"
+                                                filter
+                                                show-clear
+                                                size="small"
+                                                fluid
+                                            />
+                                            <small
+                                                v-if="form.errors.country_id"
+                                                class="text-red-500"
+                                            >
+                                                {{ form.errors.country_id }}
+                                            </small>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -622,6 +768,90 @@ function cancel() {
 
                                         <Divider />
 
+                                        <!-- Registration -->
+                                        <div>
+                                            <h3
+                                                class="mb-4 text-lg font-medium"
+                                            >
+                                                Registration
+                                            </h3>
+                                            <div
+                                                class="grid gap-4 sm:grid-cols-2"
+                                            >
+                                                <div
+                                                    class="flex flex-col gap-2"
+                                                >
+                                                    <label
+                                                        for="registration_number_edit"
+                                                        class="font-medium"
+                                                        >{{ registrationLabel }}</label
+                                                    >
+                                                    <InputText
+                                                        id="registration_number_edit"
+                                                        v-model="
+                                                            form.registration_number
+                                                        "
+                                                        :invalid="
+                                                            !!form.errors
+                                                                .registration_number
+                                                        "
+                                                        :placeholder="selectedCountryCode === 'SG' ? '202012345A' : 'Registration number'"
+                                                        size="small"
+                                                        fluid
+                                                    />
+                                                    <small
+                                                        v-if="
+                                                            form.errors
+                                                                .registration_number
+                                                        "
+                                                        class="text-red-500"
+                                                    >
+                                                        {{
+                                                            form.errors
+                                                                .registration_number
+                                                        }}
+                                                    </small>
+                                                </div>
+
+                                                <div
+                                                    class="flex flex-col gap-2"
+                                                >
+                                                    <label
+                                                        for="tax_registration_number_edit"
+                                                        class="font-medium"
+                                                        >{{ taxRegistrationLabel }}</label
+                                                    >
+                                                    <InputText
+                                                        id="tax_registration_number_edit"
+                                                        v-model="
+                                                            form.tax_registration_number
+                                                        "
+                                                        :invalid="
+                                                            !!form.errors
+                                                                .tax_registration_number
+                                                        "
+                                                        :placeholder="selectedCountryCode === 'SG' ? 'M12345678X' : 'Tax registration number'"
+                                                        size="small"
+                                                        fluid
+                                                    />
+                                                    <small
+                                                        v-if="
+                                                            form.errors
+                                                                .tax_registration_number
+                                                        "
+                                                        class="text-red-500"
+                                                    >
+                                                        {{
+                                                            form.errors
+                                                                .tax_registration_number
+                                                        }}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <Divider />
+
                                         <!-- Address -->
                                         <div>
                                             <h3
@@ -697,45 +927,156 @@ function cancel() {
                                                 </div>
 
                                                 <div
-                                                    class="flex flex-col gap-2"
+                                                    class="grid gap-4 sm:grid-cols-2"
                                                 >
-                                                    <label
-                                                        for="edit_country_id"
-                                                        class="font-medium"
-                                                        >Country</label
+                                                    <div
+                                                        class="flex flex-col gap-2"
                                                     >
-                                                    <Select
-                                                        id="edit_country_id"
-                                                        v-model="
-                                                            form.country_id
-                                                        "
-                                                        :options="
-                                                            countryOptions
-                                                        "
-                                                        option-label="label"
-                                                        option-value="value"
-                                                        :invalid="
-                                                            !!form.errors
-                                                                .country_id
-                                                        "
-                                                        placeholder="Select country"
-                                                        filter
-                                                        show-clear
-                                                        size="small"
-                                                        fluid
-                                                    />
-                                                    <small
-                                                        v-if="
-                                                            form.errors
-                                                                .country_id
-                                                        "
-                                                        class="text-red-500"
+                                                        <label
+                                                            for="city_edit"
+                                                            class="font-medium"
+                                                            >City</label
+                                                        >
+                                                        <InputText
+                                                            id="city_edit"
+                                                            v-model="form.city"
+                                                            :invalid="
+                                                                !!form.errors
+                                                                    .city
+                                                            "
+                                                            placeholder="Singapore"
+                                                            size="small"
+                                                            fluid
+                                                        />
+                                                        <small
+                                                            v-if="
+                                                                form.errors
+                                                                    .city
+                                                            "
+                                                            class="text-red-500"
+                                                        >
+                                                            {{
+                                                                form.errors
+                                                                    .city
+                                                            }}
+                                                        </small>
+                                                    </div>
+
+                                                    <div
+                                                        class="flex flex-col gap-2"
                                                     >
-                                                        {{
-                                                            form.errors
-                                                                .country_id
-                                                        }}
-                                                    </small>
+                                                        <label
+                                                            for="state_edit"
+                                                            class="font-medium"
+                                                            >State</label
+                                                        >
+                                                        <InputText
+                                                            id="state_edit"
+                                                            v-model="
+                                                                form.state
+                                                            "
+                                                            :invalid="
+                                                                !!form.errors
+                                                                    .state
+                                                            "
+                                                            placeholder="State / Province"
+                                                            size="small"
+                                                            fluid
+                                                        />
+                                                        <small
+                                                            v-if="
+                                                                form.errors
+                                                                    .state
+                                                            "
+                                                            class="text-red-500"
+                                                        >
+                                                            {{
+                                                                form.errors
+                                                                    .state
+                                                            }}
+                                                        </small>
+                                                    </div>
+                                                </div>
+
+                                                <div
+                                                    class="grid gap-4 sm:grid-cols-2"
+                                                >
+                                                    <div
+                                                        class="flex flex-col gap-2"
+                                                    >
+                                                        <label
+                                                            for="postal_code_edit"
+                                                            class="font-medium"
+                                                            >Postal Code</label
+                                                        >
+                                                        <InputText
+                                                            id="postal_code_edit"
+                                                            v-model="
+                                                                form.postal_code
+                                                            "
+                                                            :invalid="
+                                                                !!form.errors
+                                                                    .postal_code
+                                                            "
+                                                            placeholder="123456"
+                                                            size="small"
+                                                            fluid
+                                                        />
+                                                        <small
+                                                            v-if="
+                                                                form.errors
+                                                                    .postal_code
+                                                            "
+                                                            class="text-red-500"
+                                                        >
+                                                            {{
+                                                                form.errors
+                                                                    .postal_code
+                                                            }}
+                                                        </small>
+                                                    </div>
+
+                                                    <div
+                                                        class="flex flex-col gap-2"
+                                                    >
+                                                        <label
+                                                            for="edit_country_id"
+                                                            class="font-medium"
+                                                            >Country</label
+                                                        >
+                                                        <Select
+                                                            id="edit_country_id"
+                                                            v-model="
+                                                                form.country_id
+                                                            "
+                                                            :options="
+                                                                countryOptions
+                                                            "
+                                                            option-label="label"
+                                                            option-value="value"
+                                                            :invalid="
+                                                                !!form.errors
+                                                                    .country_id
+                                                            "
+                                                            placeholder="Select country"
+                                                            filter
+                                                            show-clear
+                                                            size="small"
+                                                            fluid
+                                                        />
+                                                        <small
+                                                            v-if="
+                                                                form.errors
+                                                                    .country_id
+                                                            "
+                                                            class="text-red-500"
+                                                        >
+                                                            {{
+                                                                form.errors
+                                                                    .country_id
+                                                            }}
+                                                        </small>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

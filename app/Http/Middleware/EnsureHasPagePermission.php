@@ -26,7 +26,17 @@ class EnsureHasPagePermission
             abort(403, 'Unauthorized action.');
         }
 
-        if (! $this->permissionService->canAccessPage($user, $permission)) {
+        // Support OR syntax: "perm1|perm2" means user needs ANY of the listed permissions
+        if (str_contains($permission, '|')) {
+            $permissions = explode('|', $permission);
+            $hasAny = collect($permissions)->contains(
+                fn ($perm) => $this->permissionService->canAccessPage($user, trim($perm))
+            );
+
+            if (! $hasAny) {
+                abort(403, 'You do not have permission to access this page.');
+            }
+        } elseif (! $this->permissionService->canAccessPage($user, $permission)) {
             abort(403, 'You do not have permission to access this page.');
         }
 
