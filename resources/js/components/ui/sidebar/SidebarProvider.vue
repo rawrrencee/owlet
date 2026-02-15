@@ -50,6 +50,26 @@ useEventListener("keydown", (event: KeyboardEvent) => {
   }
 })
 
+// Swipe-to-open sidebar on mobile
+let touchStartX = 0
+let touchLocked = false
+
+useEventListener("touchstart", (event: TouchEvent) => {
+  if (!isMobile.value) return
+  const x = event.touches[0].clientX
+  touchStartX = x
+  touchLocked = x > 70
+}, { passive: true })
+
+useEventListener("touchmove", (event: TouchEvent) => {
+  if (!isMobile.value || touchLocked) return
+  const x = event.touches[0].clientX
+  if (x - touchStartX > 50) {
+    setOpenMobile(true)
+    touchLocked = true
+  }
+}, { passive: true })
+
 // We add a state so that we can do data-state="expanded" or "collapsed".
 // This makes it easier to style the sidebar with Tailwind classes.
 const state = computed(() => open.value ? "expanded" : "collapsed")

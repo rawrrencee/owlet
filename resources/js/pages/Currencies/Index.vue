@@ -265,7 +265,7 @@ function formatLastUpdated(currency: Currency): string {
                         <span class="font-medium">{{ data.name }}</span>
                     </template>
                 </Column>
-                <Column field="symbol" header="Symbol" class="w-20">
+                <Column field="symbol" header="Symbol" class="hidden w-20 sm:table-cell">
                     <template #body="{ data }">
                         <span class="font-mono">{{ data.symbol }}</span>
                     </template>
@@ -296,7 +296,7 @@ function formatLastUpdated(currency: Currency): string {
                         />
                     </template>
                 </Column>
-                <Column header="" class="w-24 !pr-4">
+                <Column header="" class="hidden w-24 !pr-4 md:table-cell">
                     <template #body="{ data }">
                         <div class="flex justify-end gap-1">
                             <Button
@@ -320,6 +320,12 @@ function formatLastUpdated(currency: Currency): string {
                 </Column>
                 <template #expansion="{ data }">
                     <div class="grid gap-3 p-3 text-sm md:hidden">
+                        <div
+                            class="flex justify-between border-b border-border pb-2 sm:hidden"
+                        >
+                            <span class="text-muted-foreground">Symbol</span>
+                            <span class="font-mono">{{ data.symbol }}</span>
+                        </div>
                         <div
                             class="flex justify-between border-b border-border pb-2"
                         >

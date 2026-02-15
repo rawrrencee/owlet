@@ -375,7 +375,7 @@ function onPage(event: { page: number; rows: number }) {
                         />
                     </template>
                 </Column>
-                <Column header="" class="w-24 !pr-4">
+                <Column header="" class="hidden w-24 !pr-4 md:table-cell">
                     <template #body="{ data }">
                         <div
                             v-if="isDeleted(data)"

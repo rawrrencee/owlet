@@ -314,7 +314,7 @@ function onPage(event: { page: number; rows: number }) {
                         </div>
                     </template>
                 </Column>
-                <Column field="category_code" header="Code" class="w-20">
+                <Column field="category_code" header="Code" class="hidden w-20 sm:table-cell">
                     <template #body="{ data }">
                         <Tag :value="data.category_code" severity="secondary" />
                     </template>
@@ -339,7 +339,7 @@ function onPage(event: { page: number; rows: number }) {
                         />
                     </template>
                 </Column>
-                <Column header="" class="w-24 !pr-4">
+                <Column header="" class="hidden w-24 !pr-4 md:table-cell">
                     <template #body="{ data }">
                         <div
                             v-if="isDeleted(data)"
@@ -382,6 +382,12 @@ function onPage(event: { page: number; rows: number }) {
                     <div class="bg-muted/30 p-4">
                         <!-- Mobile-only info -->
                         <div class="mb-4 grid gap-3 text-sm md:hidden">
+                            <div
+                                class="flex justify-between border-b border-border pb-2 sm:hidden"
+                            >
+                                <span class="text-muted-foreground">Code</span>
+                                <Tag :value="data.category_code" severity="secondary" />
+                            </div>
                             <div
                                 class="flex justify-between border-b border-border pb-2"
                             >

@@ -532,7 +532,7 @@ function onPage(event: { page: number; rows: number }) {
                         />
                     </template>
                 </Column>
-                <Column header="" class="w-24 !pr-4">
+                <Column header="" class="hidden w-24 !pr-4 md:table-cell">
                     <template #body="{ data }">
                         <div
                             v-if="isEmployeeDeleted(data)"
@@ -734,7 +734,7 @@ function onPage(event: { page: number; rows: number }) {
                         {{ data.loyalty_points?.toLocaleString() ?? 0 }}
                     </template>
                 </Column>
-                <Column header="" class="w-24 !pr-4">
+                <Column header="" class="hidden w-24 !pr-4 md:table-cell">
                     <template #body="{ data }">
                         <div class="flex justify-end gap-1">
                             <Button

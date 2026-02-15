@@ -290,7 +290,7 @@ function formatDate(dateStr: string | null): string {
                         />
                     </template>
                 </Column>
-                <Column header="In" class="w-16 text-center">
+                <Column header="In" class="hidden w-16 text-center sm:table-cell">
                     <template #body="{ data }">
                         <span v-if="data.quantity_in > 0" class="font-medium text-green-600">
                             +{{ data.quantity_in }}
@@ -298,7 +298,7 @@ function formatDate(dateStr: string | null): string {
                         <span v-else>-</span>
                     </template>
                 </Column>
-                <Column header="Out" class="w-16 text-center">
+                <Column header="Out" class="hidden w-16 text-center sm:table-cell">
                     <template #body="{ data }">
                         <span v-if="data.quantity_out > 0" class="font-medium text-red-600">
                             -{{ data.quantity_out }}
@@ -306,7 +306,7 @@ function formatDate(dateStr: string | null): string {
                         <span v-else>-</span>
                     </template>
                 </Column>
-                <Column header="Balance" class="w-20 text-center">
+                <Column header="Balance" class="hidden w-20 text-center sm:table-cell">
                     <template #body="{ data }">
                         {{ data.current_quantity }}
                     </template>
@@ -331,6 +331,24 @@ function formatDate(dateStr: string | null): string {
                 </Column>
                 <template #expansion="{ data }">
                     <div class="grid gap-3 p-3 text-sm md:hidden">
+                        <div class="flex justify-between border-b border-border pb-2 sm:hidden">
+                            <span class="text-muted-foreground">In</span>
+                            <span>
+                                <span v-if="data.quantity_in > 0" class="font-medium text-green-600">+{{ data.quantity_in }}</span>
+                                <span v-else>-</span>
+                            </span>
+                        </div>
+                        <div class="flex justify-between border-b border-border pb-2 sm:hidden">
+                            <span class="text-muted-foreground">Out</span>
+                            <span>
+                                <span v-if="data.quantity_out > 0" class="font-medium text-red-600">-{{ data.quantity_out }}</span>
+                                <span v-else>-</span>
+                            </span>
+                        </div>
+                        <div class="flex justify-between border-b border-border pb-2 sm:hidden">
+                            <span class="text-muted-foreground">Balance</span>
+                            <span>{{ data.current_quantity }}</span>
+                        </div>
                         <div class="flex justify-between border-b border-border pb-2">
                             <span class="text-muted-foreground">Store</span>
                             <span>{{ data.store?.store_name ?? '-' }}</span>
