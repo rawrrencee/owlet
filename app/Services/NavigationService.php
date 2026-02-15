@@ -43,89 +43,120 @@ class NavigationService
             ];
         }
 
-        // Commerce section - before Management
-        $commerceItems = [];
+        // Catalog section - product data & master data
+        $catalogItems = [];
 
-        // Check permissions for commerce items
         if ($this->permissionService->canAccessPage($user, 'products.view')) {
-            $commerceItems[] = ['title' => 'Products', 'href' => '/products', 'icon' => 'Package'];
+            $catalogItems[] = ['title' => 'Products', 'href' => '/products', 'icon' => 'Package'];
         }
         if ($this->permissionService->canAccessPage($user, 'brands.view')) {
-            $commerceItems[] = ['title' => 'Brands', 'href' => '/brands', 'icon' => 'Tag'];
+            $catalogItems[] = ['title' => 'Brands', 'href' => '/brands', 'icon' => 'Tag'];
         }
         if ($this->permissionService->canAccessPage($user, 'categories.view')) {
-            $commerceItems[] = ['title' => 'Categories', 'href' => '/categories', 'icon' => 'Layers'];
+            $catalogItems[] = ['title' => 'Categories', 'href' => '/categories', 'icon' => 'Layers'];
         }
         if ($this->permissionService->canAccessPage($user, 'suppliers.view')) {
-            $commerceItems[] = ['title' => 'Suppliers', 'href' => '/suppliers', 'icon' => 'Truck'];
+            $catalogItems[] = ['title' => 'Suppliers', 'href' => '/suppliers', 'icon' => 'Truck'];
         }
+
+        if (! empty($catalogItems)) {
+            $sections[] = [
+                'title' => 'Catalog',
+                'items' => $catalogItems,
+            ];
+        }
+
+        // Inventory section - stock operations & logistics
+        $inventoryItems = [];
+
         if ($this->permissionService->canAccessPage($user, 'stores.access')) {
-            $commerceItems[] = ['title' => 'Stores', 'href' => '/stores', 'icon' => 'Store'];
+            $inventoryItems[] = ['title' => 'Stores', 'href' => '/stores', 'icon' => 'Store'];
         }
+
+        // Stock Check - available to all authenticated users
+        $inventoryItems[] = ['title' => 'Stock Check', 'href' => '/stock-check', 'icon' => 'PackageSearch'];
+
         if ($this->permissionService->canAccessPage($user, 'stocktakes.submit')) {
-            $commerceItems[] = ['title' => 'Stocktake', 'href' => '/stocktakes', 'icon' => 'ClipboardCheck'];
+            $inventoryItems[] = ['title' => 'Stocktake', 'href' => '/stocktakes', 'icon' => 'ClipboardCheck'];
         }
         if ($this->permissionService->canAccessPage($user, 'delivery_orders.view')) {
-            $commerceItems[] = ['title' => 'Delivery Orders', 'href' => '/delivery-orders', 'icon' => 'ArrowLeftRight'];
+            $inventoryItems[] = ['title' => 'Delivery Orders', 'href' => '/delivery-orders', 'icon' => 'ArrowLeftRight'];
         }
         if ($this->permissionService->canAccessPage($user, 'purchase_orders.view')
             || $this->permissionService->canAccessPage($user, 'purchase_orders.create')
             || $this->permissionService->canAccessPage($user, 'purchase_orders.accept')) {
-            $commerceItems[] = ['title' => 'Purchase Orders', 'href' => '/purchase-orders', 'icon' => 'ShoppingCart'];
+            $inventoryItems[] = ['title' => 'Purchase Orders', 'href' => '/purchase-orders', 'icon' => 'ShoppingCart'];
         }
+        if ($this->permissionService->canAccessPage($user, 'inventory_logs.view')) {
+            $inventoryItems[] = ['title' => 'Inventory Logs', 'href' => '/inventory-logs', 'icon' => 'ScrollText'];
+        }
+
+        if (! empty($inventoryItems)) {
+            $sections[] = [
+                'title' => 'Inventory',
+                'items' => $inventoryItems,
+            ];
+        }
+
+        // Sales section - customer-facing transactions & payment config
+        $salesItems = [];
+
         if ($this->permissionService->canAccessPage($user, 'offers.view')) {
-            $commerceItems[] = ['title' => 'Offers', 'href' => '/offers', 'icon' => 'Percent'];
+            $salesItems[] = ['title' => 'Offers', 'href' => '/offers', 'icon' => 'Percent'];
         }
         if ($this->permissionService->canAccessPage($user, 'quotations.view')
             || $this->permissionService->canAccessPage($user, 'quotations.create')
             || $this->permissionService->canAccessPage($user, 'quotations.manage')) {
-            $commerceItems[] = ['title' => 'Quotations', 'href' => '/quotations', 'icon' => 'FileText'];
+            $salesItems[] = ['title' => 'Quotations', 'href' => '/quotations', 'icon' => 'FileText'];
         }
-        if ($this->permissionService->canAccessPage($user, 'inventory_logs.view')) {
-            $commerceItems[] = ['title' => 'Inventory Logs', 'href' => '/inventory-logs', 'icon' => 'ScrollText'];
+        if ($user->isAdmin() || $this->permissionService->canAccessPage($user, 'payment_modes.manage')) {
+            $salesItems[] = ['title' => 'Payment Modes', 'href' => '/payment-modes', 'icon' => 'CreditCard'];
         }
 
-        // Stock Check - available to all authenticated users
-        $commerceItems[] = ['title' => 'Stock Check', 'href' => '/stock-check', 'icon' => 'PackageSearch'];
-
-        if (! empty($commerceItems)) {
+        if (! empty($salesItems)) {
             $sections[] = [
-                'title' => 'Commerce',
-                'items' => $commerceItems,
+                'title' => 'Sales',
+                'items' => $salesItems,
             ];
         }
 
-        // Management section
-        $managementItems = [];
+        // Organisation section - HR, company structure, employee records
+        $organisationItems = [];
 
-        // Stocktakes management - accessible to admins AND staff with permission
-        if ($user->isAdmin() || $this->permissionService->canAccessPage($user, 'stocktakes.manage')) {
-            $managementItems[] = ['title' => 'Stocktakes', 'href' => '/management/stocktakes', 'icon' => 'ClipboardList'];
-        }
-
-        // Payment Modes management
-        if ($user->isAdmin() || $this->permissionService->canAccessPage($user, 'payment_modes.manage')) {
-            $managementItems[] = ['title' => 'Payment Modes', 'href' => '/payment-modes', 'icon' => 'CreditCard'];
-        }
-
-        // Admin-only items
         if ($user->isAdmin()) {
-            $managementItems[] = ['title' => 'Users', 'href' => '/users', 'icon' => 'Users'];
-            $managementItems[] = ['title' => 'Documents', 'href' => '/documents', 'icon' => 'Folder'];
-            $managementItems[] = ['title' => 'Timecards', 'href' => '/management/timecards', 'icon' => 'CalendarClock'];
-            $managementItems[] = ['title' => 'Companies', 'href' => '/companies', 'icon' => 'Building2'];
-            $managementItems[] = ['title' => 'Currencies', 'href' => '/currencies', 'icon' => 'Coins'];
-            $managementItems[] = ['title' => 'Designations', 'href' => '/designations', 'icon' => 'BadgeCheck'];
-            $managementItems[] = ['title' => 'Organisation Chart', 'href' => '/organisation-chart', 'icon' => 'Network'];
-            $managementItems[] = ['title' => 'Notifications', 'href' => '/management/notifications/stocktake', 'icon' => 'BellRing'];
-            $managementItems[] = ['title' => 'Data Migration', 'href' => '/admin/data-migration', 'icon' => 'DatabaseZap'];
+            $organisationItems[] = ['title' => 'Users', 'href' => '/users', 'icon' => 'Users'];
+            $organisationItems[] = ['title' => 'Companies', 'href' => '/companies', 'icon' => 'Building2'];
+            $organisationItems[] = ['title' => 'Designations', 'href' => '/designations', 'icon' => 'BadgeCheck'];
+            $organisationItems[] = ['title' => 'Organisation Chart', 'href' => '/organisation-chart', 'icon' => 'Network'];
+            $organisationItems[] = ['title' => 'Documents', 'href' => '/documents', 'icon' => 'Folder'];
+            $organisationItems[] = ['title' => 'Timecards', 'href' => '/management/timecards', 'icon' => 'CalendarClock'];
         }
 
-        // Only add the Management section if there are items
-        if (! empty($managementItems)) {
+        if (! empty($organisationItems)) {
             $sections[] = [
-                'title' => 'Management',
-                'items' => $managementItems,
+                'title' => 'Organisation',
+                'items' => $organisationItems,
+            ];
+        }
+
+        // System section - system config & admin tools
+        $systemItems = [];
+
+        if ($user->isAdmin()) {
+            $systemItems[] = ['title' => 'Currencies', 'href' => '/currencies', 'icon' => 'Coins'];
+        }
+        if ($user->isAdmin() || $this->permissionService->canAccessPage($user, 'stocktakes.manage')) {
+            $systemItems[] = ['title' => 'Stocktakes', 'href' => '/management/stocktakes', 'icon' => 'ClipboardList'];
+        }
+        if ($user->isAdmin()) {
+            $systemItems[] = ['title' => 'Notifications', 'href' => '/management/notifications/stocktake', 'icon' => 'BellRing'];
+            $systemItems[] = ['title' => 'Data Migration', 'href' => '/admin/data-migration', 'icon' => 'DatabaseZap'];
+        }
+
+        if (! empty($systemItems)) {
+            $sections[] = [
+                'title' => 'System',
+                'items' => $systemItems,
             ];
         }
 
