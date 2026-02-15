@@ -260,8 +260,8 @@ function formatDate(dateStr: string | null): string {
                         No inventory logs found.
                     </div>
                 </template>
-                <Column expander class="w-12 !pr-0 md:hidden" />
-                <Column header="Date" class="w-40">
+                <Column expander class="w-[12%] sm:w-12 !pr-0 md:hidden" />
+                <Column header="Date" class="hidden w-40 sm:table-cell">
                     <template #body="{ data }">
                         {{ formatDate(data.created_at) }}
                     </template>
@@ -331,6 +331,10 @@ function formatDate(dateStr: string | null): string {
                 </Column>
                 <template #expansion="{ data }">
                     <div class="grid gap-3 p-3 text-sm md:hidden">
+                        <div class="flex justify-between border-b border-border pb-2 sm:hidden">
+                            <span class="text-muted-foreground">Date</span>
+                            <span>{{ formatDate(data.created_at) }}</span>
+                        </div>
                         <div class="flex justify-between border-b border-border pb-2 sm:hidden">
                             <span class="text-muted-foreground">In</span>
                             <span>

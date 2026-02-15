@@ -167,7 +167,7 @@ function onPage(event: { page: number; rows: number }) {
                         No designations found.
                     </div>
                 </template>
-                <Column expander class="w-12 !pr-0 md:hidden" />
+                <Column expander class="w-[12%] sm:w-12 !pr-0 md:hidden" />
                 <Column field="designation_name" header="Name" class="!pl-4">
                     <template #body="{ data }">
                         <span class="font-medium">{{
@@ -188,7 +188,7 @@ function onPage(event: { page: number; rows: number }) {
                         </code>
                     </template>
                 </Column>
-                <Column header="" class="w-24 !pr-4">
+                <Column header="" class="hidden w-24 !pr-4 md:table-cell">
                     <template #body="{ data }">
                         <div class="flex justify-end gap-1">
                             <Button

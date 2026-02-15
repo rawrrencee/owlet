@@ -145,7 +145,7 @@ function onPage(event: { page: number; rows: number }) {
                         No payment modes found.
                     </div>
                 </template>
-                <Column expander class="w-12 !pr-0 md:hidden" />
+                <Column expander class="w-[12%] sm:w-12 !pr-0 md:hidden" />
                 <Column field="name" header="Name">
                     <template #body="{ data }">
                         <div>
@@ -164,7 +164,7 @@ function onPage(event: { page: number; rows: number }) {
                         {{ data.sort_order }}
                     </template>
                 </Column>
-                <Column header="Status" class="w-24">
+                <Column header="Status" class="w-[25%] sm:w-24">
                     <template #body="{ data }">
                         <Tag
                             :value="data.is_active ? 'Active' : 'Inactive'"

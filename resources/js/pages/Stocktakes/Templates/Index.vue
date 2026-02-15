@@ -84,8 +84,7 @@ function confirmDelete(template: StocktakeTemplate) {
                 </template>
                 <Column
                     expander
-                    style="width: 3rem"
-                    class="!pr-0 sm:hidden"
+                    class="w-[12%] sm:w-12 !pr-0 sm:hidden"
                 />
                 <Column field="name" header="Name">
                     <template #body="{ data }">
@@ -100,12 +99,12 @@ function confirmDelete(template: StocktakeTemplate) {
                         {{ data.store?.store_name }} ({{ data.store?.store_code }})
                     </template>
                 </Column>
-                <Column header="Products" :style="{ width: '6rem' }">
+                <Column header="Products" class="w-[25%] sm:w-24">
                     <template #body="{ data }">
                         {{ data.products_count ?? 0 }}
                     </template>
                 </Column>
-                <Column header="" :style="{ width: '6rem' }">
+                <Column header="" class="hidden w-24 sm:table-cell">
                     <template #body="{ data }">
                         <div class="flex justify-end gap-1">
                             <Button
@@ -132,6 +131,24 @@ function confirmDelete(template: StocktakeTemplate) {
                         <div class="flex justify-between border-b border-border pb-2">
                             <span class="text-muted-foreground">Store</span>
                             <span>{{ data.store?.store_name }} ({{ data.store?.store_code }})</span>
+                        </div>
+                        <div class="flex gap-2 pt-2">
+                            <Button
+                                label="Edit"
+                                icon="pi pi-pencil"
+                                severity="secondary"
+                                size="small"
+                                @click="router.get(`/stocktake-templates/${data.id}/edit`)"
+                                class="flex-1"
+                            />
+                            <Button
+                                label="Delete"
+                                icon="pi pi-trash"
+                                severity="danger"
+                                size="small"
+                                @click="confirmDelete(data)"
+                                class="flex-1"
+                            />
                         </div>
                     </div>
                 </template>

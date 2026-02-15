@@ -299,8 +299,8 @@ function onPage(event: { page: number; rows: number }) {
                         No stores found.
                     </div>
                 </template>
-                <Column expander class="w-12 !pr-0 md:hidden" />
-                <Column header="" class="w-12 !pr-0 !pl-4">
+                <Column expander class="w-[12%] sm:w-12 !pr-0 md:hidden" />
+                <Column header="" class="hidden w-12 !pr-0 !pl-4 sm:table-cell">
                     <template #body="{ data }">
                         <div v-if="data.logo_url" @click.stop>
                             <Image

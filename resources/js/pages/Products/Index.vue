@@ -768,11 +768,11 @@ function onPage(event: { page: number; rows: number }) {
                         No products found.
                     </div>
                 </template>
-                <Column expander class="w-10 !pr-0 !pl-2 md:hidden" />
+                <Column expander class="w-[8%] sm:w-10 !pr-0 !pl-2 md:hidden" />
                 <!-- Selection checkbox column (only visible when canEdit) -->
                 <Column
                     v-if="canEdit"
-                    class="w-10 !pr-0 !pl-1 md:!pl-3"
+                    class="w-[8%] sm:w-10 !pr-0 !pl-1 md:!pl-3"
                     :exportable="false"
                 >
                     <template #header>
@@ -804,7 +804,7 @@ function onPage(event: { page: number; rows: number }) {
                         </div>
                     </template>
                 </Column>
-                <Column header="" class="w-12 !pr-0 !pl-2">
+                <Column header="" class="w-[10%] sm:w-12 !pr-0 !pl-2">
                     <template #body="{ data }">
                         <div v-if="data.image_url" @click.stop>
                             <Image
@@ -906,7 +906,7 @@ function onPage(event: { page: number; rows: number }) {
                         {{ getFirstPrice(data) }}
                     </template>
                 </Column>
-                <Column field="is_active" header="Status" class="w-24">
+                <Column field="is_active" header="Status" class="hidden w-24 sm:table-cell">
                     <template #body="{ data }">
                         <Tag
                             :value="data.is_active ? 'Active' : 'Inactive'"
@@ -964,6 +964,15 @@ function onPage(event: { page: number; rows: number }) {
                 </Column>
                 <template #expansion="{ data }">
                     <div class="grid gap-3 p-3 text-sm md:hidden">
+                        <div
+                            class="flex justify-between border-b border-border pb-2 sm:hidden"
+                        >
+                            <span class="text-muted-foreground">Status</span>
+                            <Tag
+                                :value="data.is_active ? 'Active' : 'Inactive'"
+                                :severity="data.is_active ? 'success' : 'danger'"
+                            />
+                        </div>
                         <div
                             class="flex justify-between border-b border-border pb-2"
                         >

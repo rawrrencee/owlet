@@ -166,7 +166,7 @@ function getStatusLabel(item: ModelStatus): string {
                         {{ data.legacy_count.toLocaleString() }}
                     </template>
                 </Column>
-                <Column header="Progress" class="w-48">
+                <Column header="Progress" class="w-[40%] sm:w-48">
                     <template #body="{ data }">
                         <div class="flex flex-col gap-1">
                             <ProgressBar
@@ -207,7 +207,7 @@ function getStatusLabel(item: ModelStatus): string {
                         {{ data.skipped_count.toLocaleString() }}
                     </template>
                 </Column>
-                <Column header="Status" class="w-28">
+                <Column header="Status" class="w-[28%] sm:w-28">
                     <template #body="{ data }">
                         <Tag
                             :value="getStatusLabel(data)"
@@ -215,7 +215,7 @@ function getStatusLabel(item: ModelStatus): string {
                         />
                     </template>
                 </Column>
-                <Column header="" class="w-12 !pr-4">
+                <Column header="" class="hidden w-12 !pr-4 sm:table-cell">
                     <template #body>
                         <i class="pi pi-chevron-right text-muted-foreground" />
                     </template>

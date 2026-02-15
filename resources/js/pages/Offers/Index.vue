@@ -249,7 +249,7 @@ function onPage(event: { page: number; rows: number }) {
                         No offers found.
                     </div>
                 </template>
-                <Column expander class="w-12 !pr-0 md:hidden" />
+                <Column expander class="w-[12%] sm:w-12 !pr-0 md:hidden" />
                 <Column field="name" header="Name">
                     <template #body="{ data }">
                         <div>

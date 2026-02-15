@@ -344,15 +344,10 @@ function navigateToCreate() {
                         No contracts found.
                     </div>
                 </template>
-                <Column expander style="width: 3rem" class="!pr-0 sm:hidden" />
+                <Column expander class="w-[12%] sm:w-12 !pr-0 sm:hidden" />
                 <Column
                     header=""
-                    :style="{
-                        width: '3.5rem',
-                        minWidth: '3.5rem',
-                        maxWidth: '3.5rem',
-                    }"
-                    class="!pr-0 !pl-4"
+                    class="hidden w-14 !pr-0 !pl-4 sm:table-cell"
                 >
                     <template #body="{ data }">
                         <div v-if="getProfilePictureUrl(data)" @click.stop>
@@ -433,7 +428,7 @@ function navigateToCreate() {
                         {{ formatDate(data.end_date) }}
                     </template>
                 </Column>
-                <Column header="Status" style="width: 6rem">
+                <Column header="Status" class="w-[25%] sm:w-24">
                     <template #body="{ data }">
                         <Tag
                             :value="data.is_active ? 'Active' : 'Expired'"
@@ -443,8 +438,7 @@ function navigateToCreate() {
                 </Column>
                 <Column
                     header="Doc"
-                    style="width: 3rem"
-                    class="hidden sm:table-cell"
+                    class="hidden w-12 sm:table-cell"
                 >
                     <template #body="{ data }">
                         <i
@@ -454,7 +448,7 @@ function navigateToCreate() {
                         />
                     </template>
                 </Column>
-                <Column header="" style="width: 3.5rem" class="!pr-4">
+                <Column header="" class="hidden w-14 !pr-4 sm:table-cell">
                     <template #body="{ data }">
                         <div class="flex justify-end">
                             <Button
@@ -553,15 +547,10 @@ function navigateToCreate() {
                         No insurances found.
                     </div>
                 </template>
-                <Column expander style="width: 3rem" class="!pr-0 sm:hidden" />
+                <Column expander class="w-[12%] sm:w-12 !pr-0 sm:hidden" />
                 <Column
                     header=""
-                    :style="{
-                        width: '3.5rem',
-                        minWidth: '3.5rem',
-                        maxWidth: '3.5rem',
-                    }"
-                    class="!pr-0 !pl-4"
+                    class="hidden w-14 !pr-0 !pl-4 sm:table-cell"
                 >
                     <template #body="{ data }">
                         <div v-if="getProfilePictureUrl(data)" @click.stop>
@@ -652,7 +641,7 @@ function navigateToCreate() {
                         {{ formatDate(data.end_date) }}
                     </template>
                 </Column>
-                <Column header="Status" style="width: 6rem">
+                <Column header="Status" class="w-[25%] sm:w-24">
                     <template #body="{ data }">
                         <Tag
                             :value="data.is_active ? 'Active' : 'Expired'"
@@ -662,8 +651,7 @@ function navigateToCreate() {
                 </Column>
                 <Column
                     header="Doc"
-                    style="width: 3rem"
-                    class="hidden sm:table-cell"
+                    class="hidden w-12 sm:table-cell"
                 >
                     <template #body="{ data }">
                         <i
@@ -673,7 +661,7 @@ function navigateToCreate() {
                         />
                     </template>
                 </Column>
-                <Column header="" style="width: 3.5rem" class="!pr-4">
+                <Column header="" class="hidden w-14 !pr-4 sm:table-cell">
                     <template #body="{ data }">
                         <div class="flex justify-end">
                             <Button

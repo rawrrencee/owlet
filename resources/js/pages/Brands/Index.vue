@@ -299,8 +299,8 @@ function onPage(event: { page: number; rows: number }) {
                         No brands found.
                     </div>
                 </template>
-                <Column expander class="w-12 !pr-0 md:hidden" />
-                <Column header="" class="w-12 !pr-0 !pl-4">
+                <Column expander class="w-[12%] sm:w-12 !pr-0 md:hidden" />
+                <Column header="" class="hidden w-12 !pr-0 !pl-4 sm:table-cell">
                     <template #body="{ data }">
                         <div v-if="data.logo_url" @click.stop>
                             <Image
@@ -345,7 +345,7 @@ function onPage(event: { page: number; rows: number }) {
                         </div>
                     </template>
                 </Column>
-                <Column field="brand_code" header="Code" class="w-20">
+                <Column field="brand_code" header="Code" class="hidden w-20 sm:table-cell">
                     <template #body="{ data }">
                         <Tag :value="data.brand_code" severity="secondary" />
                     </template>
@@ -417,6 +417,12 @@ function onPage(event: { page: number; rows: number }) {
                 </Column>
                 <template #expansion="{ data }">
                     <div class="grid gap-3 p-3 text-sm md:hidden">
+                        <div
+                            class="flex justify-between border-b border-border pb-2 sm:hidden"
+                        >
+                            <span class="text-muted-foreground">Code</span>
+                            <Tag :value="data.brand_code" severity="secondary" />
+                        </div>
                         <div
                             class="flex justify-between border-b border-border pb-2"
                         >

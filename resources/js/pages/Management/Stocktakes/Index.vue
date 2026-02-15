@@ -252,7 +252,7 @@ function submitAdjustment() {
                         No submitted stocktakes found.
                     </div>
                 </template>
-                <Column expander style="width: 3rem" class="!pr-0 md:hidden" />
+                <Column expander class="w-[12%] sm:w-12 !pr-0 md:hidden" />
                 <Column header="Employee">
                     <template #body="{ data: st }">
                         <div class="flex items-center gap-2">
@@ -272,12 +272,12 @@ function submitAdjustment() {
                         {{ st.store?.store_name }}
                     </template>
                 </Column>
-                <Column header="Items" :style="{ width: '5rem' }" class="hidden sm:table-cell">
+                <Column header="Items" class="hidden w-20 sm:table-cell">
                     <template #body="{ data: st }">
                         {{ st.items_count ?? 0 }}
                     </template>
                 </Column>
-                <Column header="Issues" :style="{ width: '5rem' }">
+                <Column header="Issues" class="w-[22%] sm:w-20">
                     <template #body="{ data: st }">
                         <Tag
                             :value="st.has_issues ? 'Yes' : 'No'"
@@ -286,7 +286,7 @@ function submitAdjustment() {
                         />
                     </template>
                 </Column>
-                <Column header="Submitted" class="hidden md:table-cell" :style="{ width: '10rem' }">
+                <Column header="Submitted" class="hidden w-40 md:table-cell">
                     <template #body="{ data: st }">
                         {{ formatDateTime(st.submitted_at) }}
                     </template>
@@ -330,7 +330,7 @@ function submitAdjustment() {
                         No stocktake items found.
                     </div>
                 </template>
-                <Column expander style="width: 3rem" class="!pr-0 md:hidden" />
+                <Column expander class="w-[12%] sm:w-12 !pr-0 md:hidden" />
                 <Column header="Product">
                     <template #body="{ data: item }">
                         <div class="min-w-0">
@@ -346,7 +346,7 @@ function submitAdjustment() {
                         </div>
                     </template>
                 </Column>
-                <Column header="Counted" :style="{ width: '5rem' }">
+                <Column header="Counted" class="hidden w-20 sm:table-cell">
                     <template #body="{ data: item }">
                         {{ item.counted_quantity }}
                     </template>
@@ -354,8 +354,7 @@ function submitAdjustment() {
                 <Column
                     v-if="canViewDifference"
                     header="System"
-                    :style="{ width: '5rem' }"
-                    class="hidden sm:table-cell"
+                    class="hidden w-20 sm:table-cell"
                 >
                     <template #body="{ data: item }">
                         {{ item.system_quantity ?? '-' }}
@@ -364,8 +363,7 @@ function submitAdjustment() {
                 <Column
                     v-if="canViewDifference"
                     header="Diff"
-                    :style="{ width: '5rem' }"
-                    class="hidden sm:table-cell"
+                    class="hidden w-20 sm:table-cell"
                 >
                     <template #body="{ data: item }">
                         <span
@@ -379,7 +377,7 @@ function submitAdjustment() {
                         </span>
                     </template>
                 </Column>
-                <Column header="Status" :style="{ width: '6rem' }">
+                <Column header="Status" class="w-[25%] sm:w-24">
                     <template #body="{ data: item }">
                         <Tag
                             :value="item.has_discrepancy ? 'Incorrect' : 'OK'"
@@ -391,7 +389,7 @@ function submitAdjustment() {
                 <Column
                     v-if="canAdjustQuantity"
                     header=""
-                    :style="{ width: '4rem' }"
+                    class="hidden w-16 sm:table-cell"
                 >
                     <template #body="{ data: item }">
                         <Button
@@ -408,6 +406,10 @@ function submitAdjustment() {
                 </Column>
                 <template #expansion="{ data: item }">
                     <div class="grid gap-2 p-3 text-sm md:hidden">
+                        <div class="flex justify-between border-b border-border pb-2 sm:hidden">
+                            <span class="text-muted-foreground">Counted</span>
+                            <span>{{ item.counted_quantity }}</span>
+                        </div>
                         <div v-if="canViewDifference" class="flex justify-between border-b border-border pb-2">
                             <span class="text-muted-foreground">System Qty</span>
                             <span>{{ item.system_quantity ?? '-' }}</span>
@@ -415,6 +417,16 @@ function submitAdjustment() {
                         <div v-if="canViewDifference" class="flex justify-between border-b border-border pb-2">
                             <span class="text-muted-foreground">Difference</span>
                             <span>{{ item.difference !== undefined ? ((item.difference > 0 ? '+' : '') + item.difference) : '-' }}</span>
+                        </div>
+                        <div v-if="canAdjustQuantity && item.has_discrepancy" class="flex gap-2 pt-2 sm:hidden">
+                            <Button
+                                label="Adjust"
+                                icon="pi pi-sliders-h"
+                                severity="warn"
+                                size="small"
+                                @click="openAdjustDialog(item, item.stocktake?.store_id, item.stocktake?.id)"
+                                class="flex-1"
+                            />
                         </div>
                     </div>
                 </template>

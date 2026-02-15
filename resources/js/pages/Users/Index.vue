@@ -445,15 +445,10 @@ function onPage(event: { page: number; rows: number }) {
                         No employees found.
                     </div>
                 </template>
-                <Column expander style="width: 3rem" class="!pr-0 md:hidden" />
+                <Column expander class="w-[12%] sm:w-12 !pr-0 md:hidden" />
                 <Column
                     header=""
-                    :style="{
-                        width: '3.5rem',
-                        minWidth: '3.5rem',
-                        maxWidth: '3.5rem',
-                    }"
-                    class="!pr-0 !pl-4"
+                    class="hidden w-14 !pr-0 !pl-4 sm:table-cell"
                 >
                     <template #body="{ data }">
                         <div v-if="getProfilePictureUrl(data)" @click.stop>
@@ -524,7 +519,7 @@ function onPage(event: { page: number; rows: number }) {
                         }}</span>
                     </template>
                 </Column>
-                <Column field="status" header="Status" class="w-24">
+                <Column field="status" header="Status" class="w-[25%] sm:w-24">
                     <template #body="{ data }">
                         <Tag
                             :value="getEmployeeStatus(data)"
@@ -649,15 +644,10 @@ function onPage(event: { page: number; rows: number }) {
                         No customers found.
                     </div>
                 </template>
-                <Column expander style="width: 3rem" class="!pr-0 md:hidden" />
+                <Column expander class="w-[12%] sm:w-12 !pr-0 md:hidden" />
                 <Column
                     header=""
-                    :style="{
-                        width: '3.5rem',
-                        minWidth: '3.5rem',
-                        maxWidth: '3.5rem',
-                    }"
-                    class="!pr-0 !pl-4"
+                    class="hidden w-14 !pr-0 !pl-4 sm:table-cell"
                 >
                     <template #body="{ data }">
                         <div v-if="getProfilePictureUrl(data)" @click.stop>
@@ -729,7 +719,7 @@ function onPage(event: { page: number; rows: number }) {
                         {{ formatDate(data.customer_since) }}
                     </template>
                 </Column>
-                <Column field="loyalty_points" header="Points" class="w-20">
+                <Column field="loyalty_points" header="Points" class="w-[22%] sm:w-20">
                     <template #body="{ data }">
                         {{ data.loyalty_points?.toLocaleString() ?? 0 }}
                     </template>

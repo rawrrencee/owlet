@@ -254,8 +254,8 @@ function formatLastUpdated(currency: Currency): string {
                         No currencies found.
                     </div>
                 </template>
-                <Column expander class="w-12 !pr-0 md:hidden" />
-                <Column field="code" header="Code" class="w-24">
+                <Column expander class="w-[12%] sm:w-12 !pr-0 md:hidden" />
+                <Column field="code" header="Code" class="hidden w-24 sm:table-cell">
                     <template #body="{ data }">
                         <Tag :value="data.code" severity="secondary" />
                     </template>
@@ -288,7 +288,7 @@ function formatLastUpdated(currency: Currency): string {
                         {{ formatExchangeRate(data) }}
                     </template>
                 </Column>
-                <Column field="active" header="Status" class="w-24">
+                <Column field="active" header="Status" class="w-[25%] sm:w-24">
                     <template #body="{ data }">
                         <Tag
                             :value="data.active ? 'Active' : 'Inactive'"
@@ -320,6 +320,12 @@ function formatLastUpdated(currency: Currency): string {
                 </Column>
                 <template #expansion="{ data }">
                     <div class="grid gap-3 p-3 text-sm md:hidden">
+                        <div
+                            class="flex justify-between border-b border-border pb-2 sm:hidden"
+                        >
+                            <span class="text-muted-foreground">Code</span>
+                            <Tag :value="data.code" severity="secondary" />
+                        </div>
                         <div
                             class="flex justify-between border-b border-border pb-2 sm:hidden"
                         >

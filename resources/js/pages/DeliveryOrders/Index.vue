@@ -212,7 +212,7 @@ function formatDate(dateStr: string | null): string {
                         No delivery orders found.
                     </div>
                 </template>
-                <Column expander class="w-12 !pr-0 md:hidden" />
+                <Column expander class="w-[12%] sm:w-12 !pr-0 md:hidden" />
                 <Column field="order_number" header="Order #">
                     <template #body="{ data }">
                         <span class="font-medium">{{ data.order_number }}</span>
