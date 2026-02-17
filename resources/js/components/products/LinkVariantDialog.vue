@@ -158,7 +158,7 @@ function close() {
         modal
         dismissable-mask
         :style="{ width: '30rem' }"
-        :breakpoints="{ '640px': '100vw' }"
+        :breakpoints="{ '640px': '95vw' }"
         :draggable="false"
         header="Link Existing Product as Variant"
         @update:visible="emit('update:visible', $event)"

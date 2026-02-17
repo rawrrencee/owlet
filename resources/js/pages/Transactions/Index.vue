@@ -56,7 +56,8 @@ function applyFilters() {
     const params: Record<string, string | number> = {};
     if (filters.search) params.search = filters.search;
     if (filters.store_id) params.store_id = filters.store_id;
-    if (filters.status) params.status = filters.status;
+    // Always include status so backend distinguishes explicit "all" from default
+    params.status = filters.status;
     if (perPage.value !== 20) params.per_page = perPage.value;
     router.get('/transactions', params, { preserveState: true });
 }
@@ -65,7 +66,7 @@ function clearFilters() {
     filters.search = '';
     filters.store_id = '';
     filters.status = '';
-    router.get('/transactions', {}, { preserveState: true });
+    router.get('/transactions', { status: '' }, { preserveState: true });
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -75,7 +76,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const expandedRows = ref({});
 const hasActiveFilters = computed(
-    () => filters.search || filters.store_id || filters.status,
+    () => filters.search || filters.store_id || (filters.status !== 'completed' && filters.status !== ''),
 );
 
 function getStatusSeverity(status: string): string {
@@ -133,7 +134,7 @@ function onPage(event: { page: number; rows: number }) {
     const params: Record<string, string | number> = { page: event.page + 1 };
     if (filters.search) params.search = filters.search;
     if (filters.store_id) params.store_id = filters.store_id;
-    if (filters.status) params.status = filters.status;
+    params.status = filters.status;
     if (event.rows !== 20) params.per_page = event.rows;
     router.get('/transactions', params, { preserveState: true });
 }

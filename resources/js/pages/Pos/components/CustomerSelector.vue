@@ -47,6 +47,12 @@ function onSelect(event: any) {
         searchQuery.value = '';
     }
 }
+
+function onBlur() {
+    setTimeout(() => {
+        showSearch.value = false;
+    }, 200);
+}
 </script>
 
 <template>
@@ -57,9 +63,6 @@ function onSelect(event: any) {
                 severity="info"
                 class="!text-xs"
             />
-            <span v-if="customer.discount_percentage" class="text-[10px] text-green-600">
-                {{ customer.discount_percentage }}% off
-            </span>
             <Button icon="pi pi-times" text size="small" severity="secondary" @click="emit('clear')" />
         </template>
         <template v-else>
@@ -73,7 +76,7 @@ function onSelect(event: any) {
                     class="w-40"
                     @complete="searchCustomers"
                     @item-select="onSelect"
-                    @blur="showSearch = false"
+                    @blur="onBlur"
                 />
             </template>
             <Button

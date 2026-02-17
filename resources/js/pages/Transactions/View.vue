@@ -2,9 +2,14 @@
 import AuditInfo from '@/components/AuditInfo.vue';
 import BackButton from '@/components/BackButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { BreadcrumbItem, Transaction } from '@/types';
-import { Head } from '@inertiajs/vue3';
+import ProductSearch from '@/pages/Pos/components/ProductSearch.vue';
+import ProductVariantSelector from '@/pages/Pos/components/ProductVariantSelector.vue';
+import RefundDialog from '@/pages/Pos/components/RefundDialog.vue';
+import type { BreadcrumbItem, Transaction, TransactionItem } from '@/types';
+import { Head, router } from '@inertiajs/vue3';
+import Button from 'primevue/button';
 import Card from 'primevue/card';
+import ConfirmDialog from 'primevue/confirmdialog';
 import Divider from 'primevue/divider';
 import Tab from 'primevue/tab';
 import TabList from 'primevue/tablist';
@@ -12,7 +17,11 @@ import TabPanel from 'primevue/tabpanel';
 import TabPanels from 'primevue/tabpanels';
 import Tabs from 'primevue/tabs';
 import Tag from 'primevue/tag';
+import { useConfirm } from 'primevue/useconfirm';
+import { useToast } from 'primevue/usetoast';
 import { computed, ref } from 'vue';
+import AdjustItemDialog from './components/AdjustItemDialog.vue';
+import AdjustPaymentDialog from './components/AdjustPaymentDialog.vue';
 import ItemsTable from './components/ItemsTable.vue';
 import PaymentsTable from './components/PaymentsTable.vue';
 import TransactionSummary from './components/TransactionSummary.vue';
@@ -21,8 +30,12 @@ import VersionTimeline from './components/VersionTimeline.vue';
 
 const props = defineProps<{
     transaction: Transaction;
+    canVoid: boolean;
+    paymentModes: Array<{ id: number; name: string }>;
 }>();
 
+const confirm = useConfirm();
+const toast = useToast();
 const activeTab = ref('0');
 
 const currencySymbol = computed(() => props.transaction.currency?.symbol ?? '$');
@@ -35,6 +48,156 @@ const sortedVersions = computed(() => {
 const hasRefunds = computed(() => {
     return props.transaction.items?.some((item) => item.is_refunded) ?? false;
 });
+
+const isCompleted = computed(() => props.transaction.status === 'completed');
+const canEdit = computed(() => isCompleted.value && props.canVoid);
+
+// Refund dialog
+const showRefundDialog = ref(false);
+
+function handleRefund(items: Array<{ item_id: number; quantity: number; reason: string }>) {
+    router.post(`/transactions/${props.transaction.id}/refund`, { items }, {
+        preserveScroll: true,
+        onSuccess: () => {
+            showRefundDialog.value = false;
+            toast.add({ severity: 'success', summary: 'Refund processed', life: 3000 });
+        },
+        onError: () => {
+            toast.add({ severity: 'error', summary: 'Failed to process refund', life: 3000 });
+        },
+    });
+}
+
+// Void
+function confirmVoid() {
+    confirm.require({
+        message: `Are you sure you want to void transaction ${props.transaction.transaction_number}? This will restore inventory for all items.`,
+        header: 'Void Transaction',
+        icon: 'pi pi-exclamation-triangle',
+        rejectLabel: 'Cancel',
+        acceptLabel: 'Void',
+        acceptClass: 'p-button-danger',
+        accept: () => {
+            router.post(`/transactions/${props.transaction.id}/void`, {}, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.add({ severity: 'success', summary: 'Transaction voided', life: 3000 });
+                },
+                onError: () => {
+                    toast.add({ severity: 'error', summary: 'Failed to void transaction', life: 3000 });
+                },
+            });
+        },
+    });
+}
+
+// Adjust item dialog
+const showAdjustDialog = ref(false);
+const adjustItem = ref<TransactionItem | null>(null);
+
+function handleEditItem(item: TransactionItem) {
+    adjustItem.value = item;
+    showAdjustDialog.value = true;
+}
+
+function handleSaveItem(data: { item_id: number; quantity: number; unit_price: number }) {
+    router.put(`/transactions/${props.transaction.id}/items/${data.item_id}`, {
+        quantity: data.quantity,
+        unit_price: data.unit_price,
+    }, {
+        preserveScroll: true,
+        onSuccess: () => {
+            toast.add({ severity: 'success', summary: 'Item updated', life: 3000 });
+        },
+        onError: () => {
+            toast.add({ severity: 'error', summary: 'Failed to update item', life: 3000 });
+        },
+    });
+}
+
+// Remove item
+function handleRemoveItem(item: TransactionItem) {
+    confirm.require({
+        message: `Remove "${item.product_name}" from this transaction? This will restore inventory.`,
+        header: 'Remove Item',
+        icon: 'pi pi-exclamation-triangle',
+        rejectLabel: 'Cancel',
+        acceptLabel: 'Remove',
+        acceptClass: 'p-button-danger',
+        accept: () => {
+            router.delete(`/transactions/${props.transaction.id}/items/${item.id}`, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.add({ severity: 'success', summary: 'Item removed', life: 3000 });
+                },
+                onError: () => {
+                    toast.add({ severity: 'error', summary: 'Failed to remove item', life: 3000 });
+                },
+            });
+        },
+    });
+}
+
+// Add item via product search
+const showVariantSelector = ref(false);
+const selectedParentProduct = ref<any>(null);
+
+function handleProductSelect(product: any) {
+    if (product.variants && product.variants.length > 0) {
+        selectedParentProduct.value = product;
+        showVariantSelector.value = true;
+    } else {
+        addItemToTransaction(product.id);
+    }
+}
+
+function handleVariantSelect(productId: number) {
+    showVariantSelector.value = false;
+    selectedParentProduct.value = null;
+    addItemToTransaction(productId);
+}
+
+function addItemToTransaction(productId: number) {
+    router.post(`/transactions/${props.transaction.id}/items`, {
+        product_id: productId,
+        quantity: 1,
+    }, {
+        preserveScroll: true,
+        onSuccess: () => {
+            toast.add({ severity: 'success', summary: 'Item added', life: 3000 });
+        },
+        onError: () => {
+            toast.add({ severity: 'error', summary: 'Failed to add item', life: 3000 });
+        },
+    });
+}
+
+// Payment adjustment dialog
+const showPaymentDialog = ref(false);
+const paymentSuggestedAmount = ref(0);
+
+function openPaymentDialog(suggestedAmount: number) {
+    paymentSuggestedAmount.value = suggestedAmount;
+    showPaymentDialog.value = true;
+}
+
+function handleSavePayment(data: { payment_mode_id: number; amount: number }) {
+    router.post(`/transactions/${props.transaction.id}/payments`, {
+        payment_mode_id: data.payment_mode_id,
+        amount: data.amount,
+    }, {
+        preserveScroll: true,
+        onSuccess: () => {
+            toast.add({ severity: 'success', summary: 'Payment recorded', life: 3000 });
+        },
+        onError: () => {
+            toast.add({ severity: 'error', summary: 'Failed to record payment', life: 3000 });
+        },
+    });
+}
+
+const hasRefundDue = computed(() => isCompleted.value && parseFloat(props.transaction.change_amount || '0') > 0);
+const hasBalanceDue = computed(() => isCompleted.value && parseFloat(props.transaction.balance_due || '0') > 0);
 
 function getStatusSeverity(status: string): string {
     switch (status) {
@@ -76,6 +239,39 @@ const breadcrumbs: BreadcrumbItem[] = [
                     <Tag
                         :value="getStatusLabel(transaction.status)"
                         :severity="getStatusSeverity(transaction.status)"
+                    />
+                </div>
+                <div v-if="canEdit" class="flex flex-wrap items-center gap-2">
+                    <Button
+                        v-if="hasRefundDue"
+                        label="Record Refund"
+                        icon="pi pi-replay"
+                        severity="warn"
+                        size="small"
+                        @click="openPaymentDialog(-parseFloat(transaction.change_amount))"
+                    />
+                    <Button
+                        v-if="hasBalanceDue"
+                        label="Record Payment"
+                        icon="pi pi-wallet"
+                        size="small"
+                        @click="openPaymentDialog(parseFloat(transaction.balance_due))"
+                    />
+                    <Button
+                        label="Refund"
+                        icon="pi pi-replay"
+                        severity="warn"
+                        size="small"
+                        outlined
+                        @click="showRefundDialog = true"
+                    />
+                    <Button
+                        label="Void"
+                        icon="pi pi-times-circle"
+                        severity="danger"
+                        size="small"
+                        outlined
+                        @click="confirmVoid"
                     />
                 </div>
             </div>
@@ -121,9 +317,20 @@ const breadcrumbs: BreadcrumbItem[] = [
                                 <!-- Items Tab -->
                                 <TabPanel value="1">
                                     <div class="py-4">
+                                        <div v-if="canEdit" class="mb-4">
+                                            <label class="block text-sm font-medium mb-1">Add Item</label>
+                                            <ProductSearch
+                                                :store-id="transaction.store_id"
+                                                :currency-id="transaction.currency_id"
+                                                @select="handleProductSelect"
+                                            />
+                                        </div>
                                         <ItemsTable
                                             :items="transaction.items ?? []"
                                             :currency-symbol="currencySymbol"
+                                            :editable="canEdit"
+                                            @edit-item="handleEditItem"
+                                            @remove-item="handleRemoveItem"
                                         />
                                     </div>
                                 </TabPanel>
@@ -192,5 +399,43 @@ const breadcrumbs: BreadcrumbItem[] = [
                 </Card>
             </div>
         </div>
+
+        <!-- Dialogs -->
+        <ConfirmDialog />
+
+        <RefundDialog
+            :visible="showRefundDialog"
+            :transaction="transaction"
+            :currency-symbol="currencySymbol"
+            @update:visible="showRefundDialog = $event"
+            @refund="handleRefund"
+        />
+
+        <AdjustItemDialog
+            :visible="showAdjustDialog"
+            :item="adjustItem"
+            :currency-symbol="currencySymbol"
+            @update:visible="showAdjustDialog = $event"
+            @save="handleSaveItem"
+        />
+
+        <ProductVariantSelector
+            :visible="showVariantSelector"
+            :product="selectedParentProduct"
+            :store-id="transaction.store_id"
+            :currency-id="transaction.currency_id"
+            :currency-symbol="currencySymbol"
+            @update:visible="showVariantSelector = $event"
+            @select="handleVariantSelect"
+        />
+
+        <AdjustPaymentDialog
+            :visible="showPaymentDialog"
+            :payment-modes="paymentModes"
+            :currency-symbol="currencySymbol"
+            :suggested-amount="paymentSuggestedAmount"
+            @update:visible="showPaymentDialog = $event"
+            @save="handleSavePayment"
+        />
     </AppLayout>
 </template>

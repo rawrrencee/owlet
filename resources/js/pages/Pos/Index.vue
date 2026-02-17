@@ -19,6 +19,7 @@ import RefundDialog from './components/RefundDialog.vue';
 import BarcodeScannerDialog from './components/BarcodeScannerDialog.vue';
 import StoreSelector from './components/StoreSelector.vue';
 import SuspendedDrawer from './components/SuspendedDrawer.vue';
+import ManualDiscountDialog from './components/ManualDiscountDialog.vue';
 import TotalsPanel from './components/TotalsPanel.vue';
 
 interface StoreOption {
@@ -66,6 +67,7 @@ const variantProduct = ref<any>(null);
 const showRefundDialog = ref(false);
 const showOfferBrowseDialog = ref(false);
 const showBarcodeScannerDialog = ref(false);
+const showManualDiscountDialog = ref(false);
 const productSearchRef = ref<InstanceType<typeof ProductSearch> | null>(null);
 const mobileView = ref<'products' | 'cart'>('products');
 const favouriteIds = ref<Set<number>>(new Set());
@@ -107,15 +109,31 @@ function onBackToStoreSelection() {
     currentTransaction.value = null;
     localStorage.removeItem('pos_selected_store_id');
     localStorage.removeItem('pos_selected_currency_id');
+    localStorage.removeItem('pos_current_transaction_id');
 }
 
-// Restore saved store on mount
-onMounted(() => {
+// Restore saved store and transaction on mount
+onMounted(async () => {
     const savedStoreId = localStorage.getItem('pos_selected_store_id');
     if (savedStoreId) {
         const store = props.stores.find(s => s.id === parseInt(savedStoreId));
         if (store) {
             onStoreSelected(store);
+
+            // Restore draft transaction if one was active
+            const savedTxnId = localStorage.getItem('pos_current_transaction_id');
+            if (savedTxnId) {
+                try {
+                    const data = await apiCall(`/pos/transactions/${savedTxnId}`);
+                    if (data.status === 'draft' && data.store_id === store.id) {
+                        currentTransaction.value = data;
+                    } else {
+                        localStorage.removeItem('pos_current_transaction_id');
+                    }
+                } catch {
+                    localStorage.removeItem('pos_current_transaction_id');
+                }
+            }
         }
     }
     window.addEventListener('resize', onWindowResize);
@@ -169,6 +187,7 @@ async function createTransaction() {
         }),
     });
     currentTransaction.value = data;
+    localStorage.setItem('pos_current_transaction_id', data.id.toString());
 }
 
 async function ensureTransaction(): Promise<Transaction> {
@@ -263,11 +282,75 @@ async function onRemoveItem(itemId: number) {
 // Customer
 async function onCustomerSelected(customerId: number | null) {
     if (!currentTransaction.value) return;
-    const data = await apiCall(`/pos/transactions/${currentTransaction.value.id}/customer`, {
-        method: 'PUT',
-        body: JSON.stringify({ customer_id: customerId }),
-    });
-    currentTransaction.value = data;
+    try {
+        const data = await apiCall(`/pos/transactions/${currentTransaction.value.id}/customer`, {
+            method: 'PUT',
+            body: JSON.stringify({ customer_id: customerId }),
+        });
+        currentTransaction.value = data;
+    } catch (err: any) {
+        toast.add({
+            severity: 'error',
+            summary: 'Failed to update customer',
+            detail: err.message,
+            life: 4000,
+        });
+    }
+}
+
+async function onToggleCustomerDiscount() {
+    if (!currentTransaction.value) return;
+    try {
+        // If customer discount is currently active, clear it; otherwise restore it
+        const isActive = currentTransaction.value.customer_discount_percentage &&
+            parseFloat(currentTransaction.value.customer_discount_percentage) > 0;
+        const data = await apiCall(`/pos/transactions/${currentTransaction.value.id}/customer-discount`, {
+            method: isActive ? 'DELETE' : 'POST',
+        });
+        currentTransaction.value = data;
+    } catch (err: any) {
+        toast.add({
+            severity: 'error',
+            summary: 'Failed to update discount',
+            detail: err.message,
+            life: 4000,
+        });
+    }
+}
+
+async function onApplyManualDiscount(type: 'percentage' | 'amount', value: string) {
+    if (!currentTransaction.value) return;
+    try {
+        const data = await apiCall(`/pos/transactions/${currentTransaction.value.id}/manual-discount`, {
+            method: 'POST',
+            body: JSON.stringify({ type, value }),
+        });
+        currentTransaction.value = data;
+    } catch (err: any) {
+        toast.add({
+            severity: 'error',
+            summary: 'Failed to apply discount',
+            detail: err.message,
+            life: 4000,
+        });
+    }
+}
+
+async function onClearManualDiscount() {
+    if (!currentTransaction.value) return;
+    try {
+        const data = await apiCall(`/pos/transactions/${currentTransaction.value.id}/manual-discount`, {
+            method: 'DELETE',
+        });
+        currentTransaction.value = data;
+    } catch (err: any) {
+        toast.add({
+            severity: 'error',
+            summary: 'Failed to remove discount',
+            detail: err.message,
+            life: 4000,
+        });
+    }
 }
 
 // Payments
@@ -302,6 +385,7 @@ async function onComplete() {
     showCompletionReceipt.value = true;
     showPaymentDialog.value = false;
     currentTransaction.value = null;
+    localStorage.removeItem('pos_current_transaction_id');
 }
 
 // Suspend & Resume
@@ -311,6 +395,7 @@ async function onSuspend() {
         method: 'POST',
     });
     currentTransaction.value = null;
+    localStorage.removeItem('pos_current_transaction_id');
     mobileView.value = 'products';
 }
 
@@ -325,6 +410,7 @@ async function onResume(transaction: Transaction) {
         method: 'POST',
     });
     currentTransaction.value = data;
+    localStorage.setItem('pos_current_transaction_id', data.id.toString());
     showSuspendedDrawer.value = false;
 }
 
@@ -337,6 +423,7 @@ async function onVoid(reason?: string) {
             body: JSON.stringify({ reason }),
         });
         currentTransaction.value = null;
+        localStorage.removeItem('pos_current_transaction_id');
         mobileView.value = 'products';
     } catch (err: any) {
         toast.add({
@@ -372,6 +459,7 @@ function onNewTransaction() {
     showCompletionReceipt.value = false;
     completedTransaction.value = null;
     currentTransaction.value = null;
+    localStorage.removeItem('pos_current_transaction_id');
     mobileView.value = 'products';
 }
 
@@ -462,7 +550,7 @@ async function onToggleFavourite(productId: number) {
 
                         <!-- Suspended transactions -->
                         <Button
-                            icon="pi pi-pause"
+                            icon="pi pi-inbox"
                             text
                             size="small"
                             v-tooltip.bottom="'Suspended'"
@@ -543,7 +631,6 @@ async function onToggleFavourite(productId: number) {
                                 icon="pi pi-camera"
                                 severity="secondary"
                                 outlined
-                                size="small"
                                 v-tooltip.bottom="'Scan barcode'"
                                 @click="showBarcodeScannerDialog = true"
                             />
@@ -583,6 +670,9 @@ async function onToggleFavourite(productId: number) {
                             <TotalsPanel
                                 :transaction="currentTransaction"
                                 :currency-symbol="selectedCurrency?.symbol ?? '$'"
+                                :can-apply-discounts="selectedStore?.can_apply_discounts ?? false"
+                                @toggle-customer-discount="onToggleCustomerDiscount"
+                                @open-manual-discount="showManualDiscountDialog = true"
                             />
                             <div class="p-3 flex gap-2">
                                 <!-- Back to products on mobile -->
@@ -615,7 +705,7 @@ async function onToggleFavourite(productId: number) {
                         icon="pi pi-shopping-cart"
                         rounded
                         size="large"
-                        class="!relative"
+                        class="!relative !overflow-visible"
                         @click="mobileView = 'cart'"
                     >
                         <template #icon>
@@ -623,7 +713,7 @@ async function onToggleFavourite(productId: number) {
                             <Badge
                                 :value="totalQuantity"
                                 severity="danger"
-                                class="!absolute -top-1 -right-1 !text-[10px]"
+                                class="!absolute -top-2 -right-2 !min-w-5 !h-5 !flex !items-center !justify-center !text-[0.65rem]"
                             />
                         </template>
                     </Button>
@@ -688,6 +778,15 @@ async function onToggleFavourite(productId: number) {
             v-model:visible="showBarcodeScannerDialog"
             @scan="onBarcodeScan"
         />
+
+        <!-- Manual discount dialog -->
+        <ManualDiscountDialog
+            v-model:visible="showManualDiscountDialog"
+            :transaction="currentTransaction"
+            :currency-symbol="selectedCurrency?.symbol ?? '$'"
+            @apply="onApplyManualDiscount"
+            @clear="onClearManualDiscount"
+        />
     </AppLayout>
 </template>
 
@@ -697,5 +796,12 @@ async function onToggleFavourite(productId: number) {
 [data-slot="sidebar-inset"]:has(.pos-page) {
     padding-bottom: 0 !important;
     overflow: hidden;
+}
+
+/* Constrain sidebar wrapper to viewport height so the flex chain works:
+   header stays fixed, product grid scrolls, cart footer stays anchored. */
+[data-slot="sidebar-wrapper"]:has(.pos-page) {
+    height: 100svh;
+    max-height: 100svh;
 }
 </style>

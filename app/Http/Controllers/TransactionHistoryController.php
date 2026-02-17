@@ -2,16 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Constants\StorePermissions;
 use App\Enums\TransactionStatus;
+use App\Models\PaymentMode;
 use App\Models\Store;
 use App\Models\Transaction;
+use App\Services\TransactionService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
 class TransactionHistoryController extends Controller
 {
+    public function __construct(
+        protected TransactionService $transactionService
+    ) {}
+
     /**
      * Transaction list page (Inertia).
      */
@@ -26,9 +34,14 @@ class TransactionHistoryController extends Controller
         if ($request->filled('store_id')) {
             $query->forStore($request->integer('store_id'));
         }
-        if ($request->filled('status')) {
-            $query->ofStatus($request->input('status'));
+
+        // Default to 'completed' when no status param is present.
+        // When user explicitly sends status (even empty string for "All"), respect that.
+        $statusFilter = $request->has('status') ? $request->input('status') : 'completed';
+        if ($statusFilter) {
+            $query->ofStatus($statusFilter);
         }
+
         if ($request->filled('start_date') || $request->filled('end_date')) {
             $query->dateRange($request->input('start_date'), $request->input('end_date'));
         }
@@ -46,14 +59,17 @@ class TransactionHistoryController extends Controller
             'transactions' => $transactions,
             'stores' => $stores,
             'statuses' => $statuses,
-            'filters' => $request->only(['search', 'store_id', 'status', 'start_date', 'end_date', 'sort_field', 'sort_order']),
+            'filters' => array_merge(
+                $request->only(['search', 'store_id', 'start_date', 'end_date', 'sort_field', 'sort_order']),
+                ['status' => $statusFilter],
+            ),
         ]);
     }
 
     /**
      * Transaction detail page (Inertia).
      */
-    public function show(Transaction $transaction): InertiaResponse
+    public function show(Request $request, Transaction $transaction): InertiaResponse
     {
         $transaction->load([
             'store', 'employee', 'customer', 'currency',
@@ -67,9 +83,140 @@ class TransactionHistoryController extends Controller
         $data['created_by_user'] = $transaction->createdBy?->only('id', 'name');
         $data['updated_by_user'] = $transaction->updatedBy?->only('id', 'name');
 
+        $canVoid = $this->canVoidTransaction($request, $transaction);
+        $paymentModes = PaymentMode::where('is_active', true)->orderBy('name')->get(['id', 'name']);
+
         return Inertia::render('Transactions/View', [
             'transaction' => $data,
+            'canVoid' => $canVoid,
+            'paymentModes' => $paymentModes,
         ]);
+    }
+
+    /**
+     * Process a refund on a completed transaction.
+     */
+    public function refund(Request $request, Transaction $transaction): RedirectResponse
+    {
+        $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.item_id' => 'required|integer|exists:transaction_items,id',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.reason' => 'nullable|string|max:500',
+        ]);
+
+        $this->authorizeVoidPermission($request, $transaction);
+
+        $this->transactionService->processRefund(
+            $transaction,
+            $request->input('items'),
+            $request->user()->id
+        );
+
+        return redirect()->back();
+    }
+
+    /**
+     * Void a transaction.
+     */
+    public function voidTransaction(Request $request, Transaction $transaction): RedirectResponse
+    {
+        $request->validate([
+            'reason' => 'nullable|string|max:500',
+        ]);
+
+        $this->authorizeVoidPermission($request, $transaction);
+
+        $this->transactionService->void(
+            $transaction,
+            $request->user()->id,
+            $request->input('reason')
+        );
+
+        return redirect()->back();
+    }
+
+    /**
+     * Update an item on a transaction (quantity/price adjustment).
+     */
+    public function updateItem(Request $request, Transaction $transaction, int $item): RedirectResponse
+    {
+        $request->validate([
+            'quantity' => 'sometimes|integer|min:1',
+            'unit_price' => 'sometimes|numeric|min:0',
+        ]);
+
+        $this->authorizeVoidPermission($request, $transaction);
+
+        $this->transactionService->updateItem(
+            $transaction,
+            $item,
+            $request->only(['quantity', 'unit_price']),
+            $request->user()->id
+        );
+
+        return redirect()->back();
+    }
+
+    /**
+     * Remove an item from a transaction.
+     */
+    public function removeItem(Request $request, Transaction $transaction, int $item): RedirectResponse
+    {
+        $this->authorizeVoidPermission($request, $transaction);
+
+        $this->transactionService->removeItem(
+            $transaction,
+            $item,
+            $request->user()->id
+        );
+
+        return redirect()->back();
+    }
+
+    /**
+     * Add an item to a transaction.
+     */
+    public function addItem(Request $request, Transaction $transaction): RedirectResponse
+    {
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'quantity' => 'required|integer|min:1',
+        ]);
+
+        $this->authorizeVoidPermission($request, $transaction);
+
+        $this->transactionService->addItem(
+            $transaction,
+            $request->integer('product_id'),
+            $request->integer('quantity'),
+            $request->user()->id
+        );
+
+        return redirect()->back();
+    }
+
+    /**
+     * Add a payment to a transaction (e.g. refund or additional payment).
+     */
+    public function addPayment(Request $request, Transaction $transaction): RedirectResponse
+    {
+        $request->validate([
+            'payment_mode_id' => 'required|exists:payment_modes,id',
+            'amount' => 'required|numeric',
+        ]);
+
+        $this->authorizeVoidPermission($request, $transaction);
+
+        $this->transactionService->addPayment(
+            $transaction,
+            $request->integer('payment_mode_id'),
+            (string) $request->input('amount'),
+            null,
+            $request->user()->id
+        );
+
+        return redirect()->back();
     }
 
     /**
@@ -102,5 +249,39 @@ class TransactionHistoryController extends Controller
             'current' => $current,
             'previous' => $previous,
         ]);
+    }
+
+    /**
+     * Check if the current user has void/refund permission for the transaction's store.
+     */
+    private function authorizeVoidPermission(Request $request, Transaction $transaction): void
+    {
+        $employee = $request->user()->employee;
+        $es = $employee?->employeeStores()
+            ->where('store_id', $transaction->store_id)
+            ->where('active', true)
+            ->first();
+
+        if (! $es || ! $es->hasPermission(StorePermissions::VOID_SALES)) {
+            abort(403, 'You do not have permission to perform this action for this store.');
+        }
+    }
+
+    /**
+     * Check if the current user can void/refund for the transaction's store.
+     */
+    private function canVoidTransaction(Request $request, Transaction $transaction): bool
+    {
+        $employee = $request->user()->employee;
+        if (! $employee) {
+            return false;
+        }
+
+        $es = $employee->employeeStores()
+            ->where('store_id', $transaction->store_id)
+            ->where('active', true)
+            ->first();
+
+        return $es && $es->hasPermission(StorePermissions::VOID_SALES);
     }
 }

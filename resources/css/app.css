@@ -488,6 +488,14 @@
 }
 
 /*
+ * Ensure dialogs never touch screen edges on mobile
+ */
+.p-dialog-mask {
+    padding: 1rem !important;
+    box-sizing: border-box;
+}
+
+/*
  * Print styles
  */
 @media print {

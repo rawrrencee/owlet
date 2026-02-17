@@ -111,7 +111,7 @@ function getTotalStoreQuantity(product: Product): number {
         modal
         dismissable-mask
         :style="{ width: '50rem' }"
-        :breakpoints="{ '1280px': '90vw', '640px': '100vw' }"
+        :breakpoints="{ '1280px': '90vw', '640px': '95vw' }"
         :closable="false"
         :draggable="false"
         @update:visible="emit('update:visible', $event)"

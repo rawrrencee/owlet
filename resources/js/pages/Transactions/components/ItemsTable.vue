@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { TransactionItem } from '@/types';
 import Avatar from 'primevue/avatar';
+import Button from 'primevue/button';
 import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
 import Image from 'primevue/image';
@@ -10,6 +11,12 @@ import { ref } from 'vue';
 const props = defineProps<{
     items: TransactionItem[];
     currencySymbol: string;
+    editable?: boolean;
+}>();
+
+const emit = defineEmits<{
+    'edit-item': [item: TransactionItem];
+    'remove-item': [item: TransactionItem];
 }>();
 
 const expandedRows = ref({});
@@ -93,6 +100,30 @@ function productInitial(name: string): string {
                 </div>
             </template>
         </Column>
+        <Column v-if="editable" header="Actions" class="w-24 hidden sm:table-cell">
+            <template #body="{ data }">
+                <div v-if="!data.is_refunded" class="flex items-center gap-1">
+                    <Button
+                        icon="pi pi-pencil"
+                        severity="secondary"
+                        text
+                        rounded
+                        size="small"
+                        v-tooltip.top="'Edit item'"
+                        @click.stop="emit('edit-item', data)"
+                    />
+                    <Button
+                        icon="pi pi-trash"
+                        severity="danger"
+                        text
+                        rounded
+                        size="small"
+                        v-tooltip.top="'Remove item'"
+                        @click.stop="emit('remove-item', data)"
+                    />
+                </div>
+            </template>
+        </Column>
         <template #expansion="{ data }">
             <div class="grid gap-3 p-3 text-sm md:hidden">
                 <div class="flex justify-between border-b border-border pb-2">
@@ -111,7 +142,7 @@ function productInitial(name: string): string {
                     <span class="text-muted-foreground">Offer</span>
                     <span>{{ data.offer_name }}</span>
                 </div>
-                <div class="flex justify-between">
+                <div class="flex justify-between" :class="{ 'border-b border-border pb-2': editable && !data.is_refunded }">
                     <span class="text-muted-foreground">Line Total</span>
                     <div class="flex items-center gap-2">
                         <span class="font-semibold">{{ fmt(data.line_total) }}</span>
@@ -120,6 +151,24 @@ function productInitial(name: string): string {
                 </div>
                 <div v-if="data.is_refunded && data.refund_reason" class="text-xs text-red-600">
                     Reason: {{ data.refund_reason }}
+                </div>
+                <div v-if="editable && !data.is_refunded" class="flex justify-end gap-1">
+                    <Button
+                        icon="pi pi-pencil"
+                        label="Edit"
+                        severity="secondary"
+                        text
+                        size="small"
+                        @click.stop="emit('edit-item', data)"
+                    />
+                    <Button
+                        icon="pi pi-trash"
+                        label="Remove"
+                        severity="danger"
+                        text
+                        size="small"
+                        @click.stop="emit('remove-item', data)"
+                    />
                 </div>
             </div>
         </template>

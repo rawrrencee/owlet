@@ -130,6 +130,8 @@ export interface Transaction {
     minimum_spend_discount: string;
     customer_discount: string;
     manual_discount: string;
+    manual_discount_type: 'percentage' | 'amount' | null;
+    manual_discount_value: string | null;
     tax_percentage: string | null;
     tax_inclusive: boolean;
     tax_amount: string;

@@ -51,7 +51,7 @@ function close() {
         modal
         dismissable-mask
         :style="{ width: '40rem' }"
-        :breakpoints="{ '960px': '75vw', '640px': '100vw' }"
+        :breakpoints="{ '960px': '75vw', '640px': '95vw' }"
         :draggable="false"
         header="Select Variant"
         @update:visible="emit('update:visible', $event)"

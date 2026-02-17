@@ -137,6 +137,14 @@ class TransactionService
             $transaction->refresh();
             $this->recalculateTotals($transaction);
 
+            // If completed transaction, decrement inventory for new item
+            if ($transaction->status === TransactionStatus::COMPLETED) {
+                $newItem = $transaction->items()->where('product_id', $product->id)->first();
+                if ($newItem) {
+                    $this->decrementInventory($transaction, $newItem, $userId);
+                }
+            }
+
             $this->createVersion(
                 $transaction,
                 TransactionChangeType::ITEM_ADDED,
@@ -160,6 +168,7 @@ class TransactionService
             $wasCompleted = $transaction->status === TransactionStatus::COMPLETED;
 
             $oldQuantity = $item->quantity;
+            $oldUnitPrice = (string) $item->unit_price;
             $quantity = $data['quantity'] ?? $item->quantity;
             $unitPrice = $data['unit_price'] ?? (string) $item->unit_price;
 
@@ -225,11 +234,22 @@ class TransactionService
                 $this->adjustInventoryForItemChange($transaction, $item, $oldQuantity, $quantity, $userId);
             }
 
+            $changes = [];
+            if ($quantity !== $oldQuantity) {
+                $changes[] = "qty {$oldQuantity} → {$quantity}";
+            }
+            if (bccomp($unitPrice, $oldUnitPrice, 4) !== 0) {
+                $changes[] = "price {$oldUnitPrice} → {$unitPrice}";
+            }
+            $changeSummary = $changes
+                ? "Modified {$item->product_name}: " . implode(', ', $changes)
+                : "Modified {$item->product_name}";
+
             $this->createVersion(
                 $transaction,
                 TransactionChangeType::ITEM_MODIFIED,
                 $userId,
-                "Modified {$item->product_name}: qty {$oldQuantity} → {$quantity}"
+                $changeSummary
             );
 
             return $transaction->load('items.product', 'payments', 'customer', 'currency', 'store', 'employee');
@@ -296,6 +316,150 @@ class TransactionService
                 TransactionChangeType::CUSTOMER_CHANGED,
                 $userId,
                 "Customer: {$oldCustomerName} → {$newCustomerName}"
+            );
+
+            return $transaction->load('items.product', 'payments', 'customer', 'currency', 'store', 'employee');
+        });
+    }
+
+    /**
+     * Clear the customer discount without removing the customer.
+     */
+    public function clearCustomerDiscount(Transaction $transaction, int $userId): Transaction
+    {
+        $this->assertEditable($transaction);
+
+        return DB::transaction(function () use ($transaction, $userId) {
+            $transaction->update([
+                'customer_discount_percentage' => null,
+            ]);
+
+            $transaction->refresh();
+            $this->recalculateItemDiscounts($transaction);
+            $this->recalculateTotals($transaction);
+
+            $this->createVersion(
+                $transaction,
+                TransactionChangeType::DISCOUNT_APPLIED,
+                $userId,
+                'Customer discount removed'
+            );
+
+            return $transaction->load('items.product', 'payments', 'customer', 'currency', 'store', 'employee');
+        });
+    }
+
+    /**
+     * Restore the customer discount (re-read from the assigned customer).
+     */
+    public function restoreCustomerDiscount(Transaction $transaction, int $userId): Transaction
+    {
+        $this->assertEditable($transaction);
+
+        abort_unless(
+            $transaction->customer_id && $transaction->customer,
+            422,
+            'No customer assigned to this transaction.'
+        );
+
+        return DB::transaction(function () use ($transaction, $userId) {
+            $discountPercentage = $transaction->customer->discount_percentage;
+
+            $transaction->update([
+                'customer_discount_percentage' => $discountPercentage,
+            ]);
+
+            $transaction->refresh();
+            $this->recalculateItemDiscounts($transaction);
+            $this->recalculateTotals($transaction);
+
+            $this->createVersion(
+                $transaction,
+                TransactionChangeType::DISCOUNT_APPLIED,
+                $userId,
+                'Customer discount restored'
+            );
+
+            return $transaction->load('items.product', 'payments', 'customer', 'currency', 'store', 'employee');
+        });
+    }
+
+    /**
+     * Apply a manual discount to the transaction.
+     */
+    public function applyManualDiscount(Transaction $transaction, string $type, string $value, int $userId): Transaction
+    {
+        $this->assertEditable($transaction);
+
+        return DB::transaction(function () use ($transaction, $type, $value, $userId) {
+            $transaction->loadMissing('items');
+
+            // Calculate after-line-discounts subtotal
+            $afterLineDiscounts = '0';
+            foreach ($transaction->items as $item) {
+                if (! $item->is_refunded) {
+                    $afterLineDiscounts = bcadd($afterLineDiscounts, (string) $item->line_total, 4);
+                }
+            }
+
+            if ($type === 'percentage') {
+                $discountAmount = bcmul(
+                    $afterLineDiscounts,
+                    bcdiv($value, '100', 6),
+                    4
+                );
+            } else {
+                $discountAmount = $value;
+            }
+
+            // Clamp so total doesn't go negative
+            if (bccomp($discountAmount, $afterLineDiscounts, 4) > 0) {
+                $discountAmount = $afterLineDiscounts;
+            }
+
+            $transaction->update([
+                'manual_discount' => $discountAmount,
+                'manual_discount_type' => $type,
+                'manual_discount_value' => $value,
+            ]);
+
+            $transaction->refresh();
+            $this->recalculateTotals($transaction);
+
+            $label = $type === 'percentage' ? "{$value}%" : $value;
+            $this->createVersion(
+                $transaction,
+                TransactionChangeType::DISCOUNT_APPLIED,
+                $userId,
+                "Manual discount applied: {$label}"
+            );
+
+            return $transaction->load('items.product', 'payments', 'customer', 'currency', 'store', 'employee');
+        });
+    }
+
+    /**
+     * Clear the manual discount from the transaction.
+     */
+    public function clearManualDiscount(Transaction $transaction, int $userId): Transaction
+    {
+        $this->assertEditable($transaction);
+
+        return DB::transaction(function () use ($transaction, $userId) {
+            $transaction->update([
+                'manual_discount' => '0',
+                'manual_discount_type' => null,
+                'manual_discount_value' => null,
+            ]);
+
+            $transaction->refresh();
+            $this->recalculateTotals($transaction);
+
+            $this->createVersion(
+                $transaction,
+                TransactionChangeType::DISCOUNT_APPLIED,
+                $userId,
+                'Manual discount removed'
             );
 
             return $transaction->load('items.product', 'payments', 'customer', 'currency', 'store', 'employee');

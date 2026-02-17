@@ -230,7 +230,7 @@ watch(
         modal
         :header="`Manage ${pageLabel} Permissions`"
         :style="{ width: '50rem' }"
-        :breakpoints="{ '960px': '90vw', '640px': '100vw' }"
+        :breakpoints="{ '960px': '90vw', '640px': '95vw' }"
         @update:visible="handleClose"
         :closable="true"
     >

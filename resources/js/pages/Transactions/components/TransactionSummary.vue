@@ -147,8 +147,8 @@ function hasDiscount(txn: Transaction): boolean {
                     <span>Balance Due</span>
                     <span>{{ fmt(transaction.balance_due, transaction.currency?.symbol ?? '$') }}</span>
                 </div>
-                <div v-if="parseFloat(transaction.change_amount || '0') > 0" class="flex justify-between text-blue-600 font-semibold">
-                    <span>Change</span>
+                <div v-if="parseFloat(transaction.change_amount || '0') > 0" class="flex justify-between font-semibold" :class="transaction.status === 'completed' ? 'text-orange-600' : 'text-blue-600'">
+                    <span>{{ transaction.status === 'completed' ? 'Refund Due' : 'Change' }}</span>
                     <span>{{ fmt(transaction.change_amount, transaction.currency?.symbol ?? '$') }}</span>
                 </div>
             </div>

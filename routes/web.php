@@ -339,6 +339,10 @@ Route::middleware([
         Route::put('pos/transactions/{transaction}/items/{item}', [TransactionController::class, 'updateItem'])->name('pos.transactions.items.update');
         Route::delete('pos/transactions/{transaction}/items/{item}', [TransactionController::class, 'removeItem'])->name('pos.transactions.items.destroy');
         Route::put('pos/transactions/{transaction}/customer', [TransactionController::class, 'setCustomer'])->name('pos.transactions.customer');
+        Route::delete('pos/transactions/{transaction}/customer-discount', [TransactionController::class, 'clearCustomerDiscount'])->name('pos.transactions.customer-discount.destroy');
+        Route::post('pos/transactions/{transaction}/customer-discount', [TransactionController::class, 'restoreCustomerDiscount'])->name('pos.transactions.customer-discount.restore');
+        Route::post('pos/transactions/{transaction}/manual-discount', [TransactionController::class, 'applyManualDiscount'])->name('pos.transactions.manual-discount.store');
+        Route::delete('pos/transactions/{transaction}/manual-discount', [TransactionController::class, 'clearManualDiscount'])->name('pos.transactions.manual-discount.destroy');
         Route::post('pos/transactions/{transaction}/payments', [TransactionController::class, 'addPayment'])->name('pos.transactions.payments.store');
         Route::delete('pos/transactions/{transaction}/payments/{payment}', [TransactionController::class, 'removePayment'])->name('pos.transactions.payments.destroy');
         Route::post('pos/transactions/{transaction}/complete', [TransactionController::class, 'complete'])->name('pos.transactions.complete');
@@ -354,6 +358,12 @@ Route::middleware([
     Route::middleware('permission:transactions.view')->group(function () {
         Route::get('transactions', [TransactionHistoryController::class, 'index'])->name('transactions.index');
         Route::get('transactions/{transaction}', [TransactionHistoryController::class, 'show'])->name('transactions.show');
+        Route::post('transactions/{transaction}/refund', [TransactionHistoryController::class, 'refund'])->name('transactions.refund');
+        Route::post('transactions/{transaction}/void', [TransactionHistoryController::class, 'voidTransaction'])->name('transactions.void');
+        Route::post('transactions/{transaction}/items', [TransactionHistoryController::class, 'addItem'])->name('transactions.items.store');
+        Route::put('transactions/{transaction}/items/{item}', [TransactionHistoryController::class, 'updateItem'])->name('transactions.items.update');
+        Route::delete('transactions/{transaction}/items/{item}', [TransactionHistoryController::class, 'removeItem'])->name('transactions.items.destroy');
+        Route::post('transactions/{transaction}/payments', [TransactionHistoryController::class, 'addPayment'])->name('transactions.payments.store');
         Route::get('transactions/{transaction}/versions', [TransactionHistoryController::class, 'versions'])->name('transactions.versions');
         Route::get('transactions/{transaction}/versions/{version}/diff', [TransactionHistoryController::class, 'versionDiff'])->name('transactions.versions.diff');
     });

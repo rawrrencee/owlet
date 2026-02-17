@@ -78,7 +78,8 @@ function formatDateTime(dateStr: string | null | undefined): string {
     <div v-if="versions.length === 0" class="text-center text-muted-foreground py-4 text-sm">
         No version history available.
     </div>
-    <Timeline v-else :value="versions" class="w-full">
+    <div v-else class="max-w-xl mx-auto">
+    <Timeline :value="versions" class="w-full">
         <template #marker="{ item }">
             <span
                 class="flex items-center justify-center w-8 h-8 rounded-full border-2 bg-surface-0 dark:bg-surface-900"
@@ -109,4 +110,5 @@ function formatDateTime(dateStr: string | null | undefined): string {
             </div>
         </template>
     </Timeline>
+    </div>
 </template>

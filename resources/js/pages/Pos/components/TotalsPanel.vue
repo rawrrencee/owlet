@@ -1,9 +1,17 @@
 <script setup lang="ts">
 import type { Transaction } from '@/types';
+import ToggleSwitch from 'primevue/toggleswitch';
+import { computed } from 'vue';
 
 const props = defineProps<{
     transaction: Transaction | null;
     currencySymbol: string;
+    canApplyDiscounts?: boolean;
+}>();
+
+const emit = defineEmits<{
+    'toggle-customer-discount': [];
+    'open-manual-discount': [];
 }>();
 
 function fmt(amount: string | number | null | undefined): string {
@@ -22,6 +30,25 @@ function hasDiscount(): boolean {
         parseFloat(props.transaction.manual_discount || '0') > 0
     );
 }
+
+const customerDiscountActive = computed(() => {
+    if (!props.transaction) return false;
+    return !!props.transaction.customer_discount_percentage &&
+        parseFloat(props.transaction.customer_discount_percentage) > 0;
+});
+
+const customerHasDiscount = computed(() => {
+    if (!props.transaction?.customer) return false;
+    return !!props.transaction.customer.discount_percentage &&
+        parseFloat(props.transaction.customer.discount_percentage) > 0;
+});
+
+const isDraft = computed(() => props.transaction?.status === 'draft');
+
+const hasManualDiscount = computed(() => {
+    if (!props.transaction) return false;
+    return parseFloat(props.transaction.manual_discount || '0') > 0;
+});
 </script>
 
 <template>
@@ -31,7 +58,7 @@ function hasDiscount(): boolean {
             <span>{{ fmt(transaction.subtotal) }}</span>
         </div>
 
-        <template v-if="hasDiscount()">
+        <template v-if="hasDiscount() || customerHasDiscount">
             <div v-if="parseFloat(transaction.offer_discount || '0') > 0" class="flex justify-between text-green-600">
                 <span>Item Discounts</span>
                 <span>-{{ fmt(transaction.offer_discount) }}</span>
@@ -44,15 +71,47 @@ function hasDiscount(): boolean {
                 <span>Min Spend: {{ transaction.minimum_spend_offer_name }}</span>
                 <span>-{{ fmt(transaction.minimum_spend_discount) }}</span>
             </div>
-            <div v-if="parseFloat(transaction.customer_discount || '0') > 0" class="flex justify-between text-green-600">
-                <span>Customer Discount</span>
-                <span>-{{ fmt(transaction.customer_discount) }}</span>
+
+            <!-- Customer discount row with toggle -->
+            <div v-if="customerHasDiscount" class="flex justify-between items-center text-green-600">
+                <span class="flex items-center gap-1.5">
+                    Customer ({{ transaction.customer?.discount_percentage }}%)
+                    <ToggleSwitch
+                        v-if="canApplyDiscounts && isDraft"
+                        :modelValue="customerDiscountActive"
+                        class="!scale-75"
+                        @update:modelValue="emit('toggle-customer-discount')"
+                    />
+                </span>
+                <span v-if="customerDiscountActive">-{{ fmt(transaction.customer_discount) }}</span>
+                <span v-else class="text-muted-color line-through">off</span>
             </div>
-            <div v-if="parseFloat(transaction.manual_discount || '0') > 0" class="flex justify-between text-green-600">
-                <span>Manual Discount</span>
+
+            <!-- Manual discount row -->
+            <div
+                v-if="hasManualDiscount"
+                class="flex justify-between items-center text-green-600"
+                :class="{ 'cursor-pointer hover:text-green-700': canApplyDiscounts && isDraft }"
+                @click="canApplyDiscounts && isDraft ? emit('open-manual-discount') : undefined"
+            >
+                <span class="flex items-center gap-1">
+                    Manual Discount
+                    <i v-if="canApplyDiscounts && isDraft" class="pi pi-pencil text-[10px]" />
+                </span>
                 <span>-{{ fmt(transaction.manual_discount) }}</span>
             </div>
         </template>
+
+        <!-- Add discount button -->
+        <div v-if="canApplyDiscounts && isDraft && !hasManualDiscount" class="flex justify-end">
+            <button
+                class="text-xs text-primary hover:underline flex items-center gap-1"
+                @click="emit('open-manual-discount')"
+            >
+                <i class="pi pi-percentage !text-[8px]" />
+                Add Discount
+            </button>
+        </div>
 
         <div v-if="parseFloat(transaction.tax_amount || '0') > 0" class="flex justify-between">
             <span class="text-muted-color">

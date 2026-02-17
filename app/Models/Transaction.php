@@ -42,6 +42,8 @@ class Transaction extends Model
         'minimum_spend_offer_id',
         'minimum_spend_offer_name',
         'customer_discount_percentage',
+        'manual_discount_type',
+        'manual_discount_value',
         'version_count',
         'created_by',
         'updated_by',
@@ -69,6 +71,7 @@ class Transaction extends Model
             'balance_due' => 'decimal:4',
             'change_amount' => 'decimal:4',
             'customer_discount_percentage' => 'decimal:2',
+            'manual_discount_value' => 'decimal:4',
             'version_count' => 'integer',
         ];
     }

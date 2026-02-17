@@ -319,6 +319,72 @@ class TransactionController extends Controller
     }
 
     /**
+     * Clear customer discount without removing the customer.
+     */
+    public function clearCustomerDiscount(Transaction $transaction): JsonResponse
+    {
+        $transaction = $this->transactionService->clearCustomerDiscount(
+            $transaction,
+            request()->user()->id
+        );
+
+        return response()->json($transaction);
+    }
+
+    /**
+     * Restore customer discount on transaction.
+     */
+    public function restoreCustomerDiscount(Request $request, Transaction $transaction): JsonResponse
+    {
+        $transaction = $this->transactionService->restoreCustomerDiscount(
+            $transaction,
+            $request->user()->id
+        );
+
+        return response()->json($transaction);
+    }
+
+    /**
+     * Apply a manual discount to the transaction.
+     */
+    public function applyManualDiscount(Request $request, Transaction $transaction): JsonResponse
+    {
+        $request->validate([
+            'type' => 'required|in:percentage,amount',
+            'value' => 'required|numeric|gt:0',
+        ]);
+
+        // Check APPLY_DISCOUNTS permission
+        $employee = $request->user()->employee;
+        $es = $employee?->employeeStores()->where('store_id', $transaction->store_id)->where('active', true)->first();
+        if (! $es || ! $es->hasPermission(StorePermissions::APPLY_DISCOUNTS)) {
+            abort(403, 'You do not have permission to apply discounts for this store.');
+        }
+
+        $transaction = $this->transactionService->applyManualDiscount(
+            $transaction,
+            $request->input('type'),
+            (string) $request->input('value'),
+            $request->user()->id
+        );
+
+        return response()->json($transaction);
+    }
+
+    /**
+     * Clear manual discount from transaction.
+     */
+    public function clearManualDiscount(Request $request, Transaction $transaction): JsonResponse
+    {
+        $transaction = $this->transactionService->clearManualDiscount(
+            $transaction,
+            $request->user()->id
+        );
+
+        return response()->json($transaction);
+    }
+
+    /**
      * Add payment to transaction.
      */
     public function addPayment(Request $request, Transaction $transaction): JsonResponse
