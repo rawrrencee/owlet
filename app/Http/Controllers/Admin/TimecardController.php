@@ -12,6 +12,7 @@ use App\Models\Employee;
 use App\Models\Store;
 use App\Models\Timecard;
 use App\Models\TimecardDetail;
+use App\Services\LeaveService;
 use App\Services\TimecardService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -22,7 +23,8 @@ use Inertia\Response as InertiaResponse;
 class TimecardController extends Controller
 {
     public function __construct(
-        private readonly TimecardService $timecardService
+        private readonly TimecardService $timecardService,
+        private readonly LeaveService $leaveService,
     ) {}
 
     /**
@@ -99,6 +101,23 @@ class TimecardController extends Controller
 
         // Get employee's monthly timecards
         $monthlyData = $this->timecardService->getMonthlyTimecards($employee, $month);
+
+        // Merge leave data into calendar
+        $leaveCalendarData = $this->leaveService->getLeaveCalendarData($employee, $month);
+        foreach ($leaveCalendarData as $date => $leaveEntries) {
+            if ($monthlyData->has($date)) {
+                $dayData = $monthlyData->get($date);
+                $dayData['leave'] = $leaveEntries;
+                $monthlyData->put($date, $dayData);
+            } else {
+                $monthlyData->put($date, [
+                    'date' => $date,
+                    'total_hours' => 0,
+                    'stores' => [],
+                    'leave' => $leaveEntries,
+                ]);
+            }
+        }
 
         return Inertia::render('Management/Timecards/ByEmployee', [
             'employee' => [

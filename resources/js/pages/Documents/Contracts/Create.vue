@@ -4,6 +4,7 @@ import {
     type BreadcrumbItem,
     type Company,
     type EmployeeContract,
+    type LeaveType,
 } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import Button from 'primevue/button';
@@ -29,6 +30,7 @@ interface EmployeeOption {
 interface Props {
     employees: EmployeeOption[];
     companies: Company[];
+    leaveTypes?: LeaveType[];
     selectedEmployee?: EmployeeOption;
     employeeContracts?: EmployeeContract[];
 }
@@ -66,16 +68,22 @@ function getLeaveDisplay(entitled: number, taken: number): string {
     return `${remaining}/${entitled} (${remaining} remaining)`;
 }
 
+const entitlements = ref(
+    (props.leaveTypes ?? []).map((lt) => ({
+        leave_type_id: lt.id,
+        leave_type_name: lt.name,
+        leave_type_color: lt.color,
+        entitled_days: 0,
+        taken_days: 0,
+    })),
+);
+
 const form = useForm({
     employee_id: props.selectedEmployee?.id ?? null,
     company_id: null as number | null,
     start_date: null as Date | null,
     end_date: null as Date | null,
     salary_amount: 0,
-    annual_leave_entitled: 14,
-    annual_leave_taken: 0,
-    sick_leave_entitled: 14,
-    sick_leave_taken: 0,
     external_document_url: '',
     comments: '',
     document: null as File | null,
@@ -151,13 +159,11 @@ function submitForm() {
     if (form.end_date)
         formData.append('end_date', formatDateForBackend(form.end_date) ?? '');
     formData.append('salary_amount', String(form.salary_amount));
-    formData.append(
-        'annual_leave_entitled',
-        String(form.annual_leave_entitled),
-    );
-    formData.append('annual_leave_taken', String(form.annual_leave_taken));
-    formData.append('sick_leave_entitled', String(form.sick_leave_entitled));
-    formData.append('sick_leave_taken', String(form.sick_leave_taken));
+    entitlements.value.forEach((ent, idx) => {
+        formData.append(`entitlements[${idx}][leave_type_id]`, String(ent.leave_type_id));
+        formData.append(`entitlements[${idx}][entitled_days]`, String(ent.entitled_days));
+        formData.append(`entitlements[${idx}][taken_days]`, String(ent.taken_days));
+    });
     if (form.external_document_url)
         formData.append('external_document_url', form.external_document_url);
     if (form.comments) formData.append('comments', form.comments);
@@ -433,119 +439,42 @@ function submitForm() {
                                 </small>
                             </div>
 
-                            <div class="grid gap-4 sm:grid-cols-2">
-                                <div class="flex flex-col gap-2">
-                                    <label class="font-medium"
-                                        >Annual Leave *</label
-                                    >
+                            <div v-if="entitlements.length > 0" class="grid gap-4 sm:grid-cols-2">
+                                <div
+                                    v-for="ent in entitlements"
+                                    :key="ent.leave_type_id"
+                                    class="flex flex-col gap-2"
+                                >
+                                    <label class="flex items-center gap-2 font-medium">
+                                        <div
+                                            v-if="ent.leave_type_color"
+                                            class="h-3 w-3 rounded-full"
+                                            :style="{ backgroundColor: ent.leave_type_color }"
+                                        ></div>
+                                        {{ ent.leave_type_name }}
+                                    </label>
                                     <div class="grid grid-cols-2 gap-2">
                                         <div>
-                                            <label
-                                                class="text-xs text-muted-foreground"
-                                                >Entitled</label
-                                            >
+                                            <label class="text-xs text-muted-foreground">Entitled</label>
                                             <InputNumber
-                                                v-model="
-                                                    form.annual_leave_entitled
-                                                "
-                                                :invalid="
-                                                    !!form.errors
-                                                        .annual_leave_entitled
-                                                "
+                                                v-model="ent.entitled_days"
                                                 :min="0"
-                                                :max="255"
+                                                :max-fraction-digits="1"
                                                 size="small"
                                                 fluid
                                             />
                                         </div>
                                         <div>
-                                            <label
-                                                class="text-xs text-muted-foreground"
-                                                >Taken</label
-                                            >
+                                            <label class="text-xs text-muted-foreground">Taken</label>
                                             <InputNumber
-                                                v-model="
-                                                    form.annual_leave_taken
-                                                "
-                                                :invalid="
-                                                    !!form.errors
-                                                        .annual_leave_taken
-                                                "
+                                                v-model="ent.taken_days"
                                                 :min="0"
-                                                :max="255"
+                                                :max-fraction-digits="1"
                                                 size="small"
                                                 fluid
                                             />
                                         </div>
                                     </div>
-                                    <small
-                                        v-if="form.errors.annual_leave_entitled"
-                                        class="text-red-500"
-                                    >
-                                        {{ form.errors.annual_leave_entitled }}
-                                    </small>
-                                    <small
-                                        v-if="form.errors.annual_leave_taken"
-                                        class="text-red-500"
-                                    >
-                                        {{ form.errors.annual_leave_taken }}
-                                    </small>
-                                </div>
-
-                                <div class="flex flex-col gap-2">
-                                    <label class="font-medium"
-                                        >Sick Leave *</label
-                                    >
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <div>
-                                            <label
-                                                class="text-xs text-muted-foreground"
-                                                >Entitled</label
-                                            >
-                                            <InputNumber
-                                                v-model="
-                                                    form.sick_leave_entitled
-                                                "
-                                                :invalid="
-                                                    !!form.errors
-                                                        .sick_leave_entitled
-                                                "
-                                                :min="0"
-                                                :max="255"
-                                                size="small"
-                                                fluid
-                                            />
-                                        </div>
-                                        <div>
-                                            <label
-                                                class="text-xs text-muted-foreground"
-                                                >Taken</label
-                                            >
-                                            <InputNumber
-                                                v-model="form.sick_leave_taken"
-                                                :invalid="
-                                                    !!form.errors
-                                                        .sick_leave_taken
-                                                "
-                                                :min="0"
-                                                :max="255"
-                                                size="small"
-                                                fluid
-                                            />
-                                        </div>
-                                    </div>
-                                    <small
-                                        v-if="form.errors.sick_leave_entitled"
-                                        class="text-red-500"
-                                    >
-                                        {{ form.errors.sick_leave_entitled }}
-                                    </small>
-                                    <small
-                                        v-if="form.errors.sick_leave_taken"
-                                        class="text-red-500"
-                                    >
-                                        {{ form.errors.sick_leave_taken }}
-                                    </small>
                                 </div>
                             </div>
 
@@ -779,27 +708,15 @@ function submitForm() {
                 <div>
                     <h4 class="mb-3 font-medium">Leave Entitlements</h4>
                     <div class="grid gap-3 sm:grid-cols-2">
-                        <div class="flex flex-col gap-1">
-                            <span class="text-sm text-muted-foreground"
-                                >Annual Leave</span
-                            >
-                            <span>{{
-                                getLeaveDisplay(
-                                    viewingContract.annual_leave_entitled,
-                                    viewingContract.annual_leave_taken,
-                                )
-                            }}</span>
-                        </div>
-                        <div class="flex flex-col gap-1">
-                            <span class="text-sm text-muted-foreground"
-                                >Sick Leave</span
-                            >
-                            <span>{{
-                                getLeaveDisplay(
-                                    viewingContract.sick_leave_entitled,
-                                    viewingContract.sick_leave_taken,
-                                )
-                            }}</span>
+                        <div
+                            v-for="ent in (viewingContract?.leave_entitlements ?? [])"
+                            :key="ent.id"
+                            class="flex flex-col gap-1"
+                        >
+                            <span class="text-sm text-muted-foreground">
+                                {{ ent.leave_type?.name ?? 'Unknown' }}
+                            </span>
+                            <span>{{ getLeaveDisplay(ent.entitled_days, ent.taken_days) }}</span>
                         </div>
                     </div>
                 </div>

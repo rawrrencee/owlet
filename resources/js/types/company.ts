@@ -1,4 +1,5 @@
 import type { Country } from './country';
+import type { ContractLeaveEntitlement } from './leave';
 
 export interface Company {
     id: number;
@@ -61,12 +62,7 @@ export interface EmployeeContract {
     start_date: string;
     end_date: string | null;
     salary_amount: string | number;
-    annual_leave_entitled: number;
-    annual_leave_taken: number;
-    annual_leave_remaining: number;
-    sick_leave_entitled: number;
-    sick_leave_taken: number;
-    sick_leave_remaining: number;
+    leave_entitlements?: ContractLeaveEntitlement[];
     external_document_url: string | null;
     document_url: string | null;
     document_filename: string | null;

@@ -246,29 +246,20 @@ function viewDocument() {
                                     Leave Entitlements
                                 </h3>
                                 <div class="grid gap-4 sm:grid-cols-2">
-                                    <div class="flex flex-col gap-1">
-                                        <span
-                                            class="text-sm text-muted-foreground"
-                                            >Annual Leave</span
-                                        >
-                                        <span>{{
-                                            getLeaveDisplay(
-                                                contract.annual_leave_entitled,
-                                                contract.annual_leave_taken,
-                                            )
-                                        }}</span>
-                                    </div>
-                                    <div class="flex flex-col gap-1">
-                                        <span
-                                            class="text-sm text-muted-foreground"
-                                            >Sick Leave</span
-                                        >
-                                        <span>{{
-                                            getLeaveDisplay(
-                                                contract.sick_leave_entitled,
-                                                contract.sick_leave_taken,
-                                            )
-                                        }}</span>
+                                    <div
+                                        v-for="ent in (contract.leave_entitlements ?? [])"
+                                        :key="ent.id"
+                                        class="flex flex-col gap-1"
+                                    >
+                                        <span class="flex items-center gap-2 text-sm text-muted-foreground">
+                                            <span
+                                                v-if="ent.leave_type?.color"
+                                                class="inline-block h-2.5 w-2.5 rounded-full"
+                                                :style="{ backgroundColor: ent.leave_type.color }"
+                                            ></span>
+                                            {{ ent.leave_type?.name ?? 'Unknown' }}
+                                        </span>
+                                        <span>{{ getLeaveDisplay(ent.entitled_days, ent.taken_days) }}</span>
                                     </div>
                                 </div>
                             </div>

@@ -271,6 +271,14 @@ class Employee extends Model
     }
 
     /**
+     * Get all leave requests for this employee.
+     */
+    public function leaveRequests(): HasMany
+    {
+        return $this->hasMany(LeaveRequest::class);
+    }
+
+    /**
      * Get all stocktakes for this employee.
      */
     public function stocktakes(): HasMany

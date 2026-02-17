@@ -74,6 +74,15 @@ export interface TimecardSummary {
     total_hours: number;
 }
 
+export interface CalendarLeaveData {
+    id: number;
+    leave_type: string;
+    color: string;
+    status: 'pending' | 'approved';
+    is_half_day: boolean;
+    half_day_type?: 'am' | 'pm';
+}
+
 export interface CalendarDayData {
     date: string;
     total_hours: number;
@@ -90,6 +99,7 @@ export interface CalendarDayData {
         hours: number;
         status: TimecardStatus;
     }[];
+    leave?: CalendarLeaveData[];
 }
 
 export interface CurrentTimecardState {

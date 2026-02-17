@@ -16,12 +16,7 @@ class EmployeeContractResource extends JsonResource
             'start_date' => $this->start_date?->toDateString(),
             'end_date' => $this->end_date?->toDateString(),
             'salary_amount' => $this->salary_amount,
-            'annual_leave_entitled' => $this->annual_leave_entitled,
-            'annual_leave_taken' => $this->annual_leave_taken,
-            'annual_leave_remaining' => $this->annual_leave_remaining,
-            'sick_leave_entitled' => $this->sick_leave_entitled,
-            'sick_leave_taken' => $this->sick_leave_taken,
-            'sick_leave_remaining' => $this->sick_leave_remaining,
+            'leave_entitlements' => $this->whenLoaded('leaveEntitlements', fn () => ContractLeaveEntitlementResource::collection($this->leaveEntitlements)->resolve()),
             'external_document_url' => $this->external_document_url,
             'document_url' => $this->document_path
                 ? route('users.contracts.document', ['employee' => $this->employee_id, 'contract' => $this->id])

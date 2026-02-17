@@ -2,6 +2,10 @@
 
 use App\DataMigration\Http\Controllers\DataMigrationController;
 use App\Http\Controllers\Admin\TimecardController as AdminTimecardController;
+use App\Http\Controllers\LeaveController;
+use App\Http\Controllers\LeaveManagementController;
+use App\Http\Controllers\LeaveTypeController;
+use App\Http\Controllers\MyTeamLeaveController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyController;
@@ -76,6 +80,21 @@ Route::middleware([
     Route::post('timecards/{timecard}/end-break', [TimecardController::class, 'endBreak'])->name('timecards.end-break');
     Route::post('timecards/{timecard}/resolve-incomplete', [TimecardController::class, 'resolveIncomplete'])->name('timecards.resolve-incomplete');
     Route::get('timecards/{date}', [TimecardController::class, 'show'])->name('timecards.show');
+
+    // Self-service Leave
+    Route::get('leave', [LeaveController::class, 'index'])->name('leave.index');
+    Route::get('leave/create', [LeaveController::class, 'create'])->name('leave.create');
+    Route::post('leave', [LeaveController::class, 'store'])->name('leave.store');
+    Route::get('leave/{leaveRequest}', [LeaveController::class, 'show'])->name('leave.show');
+    Route::get('leave/{leaveRequest}/edit', [LeaveController::class, 'edit'])->name('leave.edit');
+    Route::put('leave/{leaveRequest}', [LeaveController::class, 'update'])->name('leave.update');
+    Route::post('leave/{leaveRequest}/cancel', [LeaveController::class, 'cancel'])->name('leave.cancel');
+
+    // Team Leave - for employees with subordinates
+    Route::get('my-team-leave', [MyTeamLeaveController::class, 'index'])->name('my-team-leave.index');
+    Route::get('my-team-leave/{leaveRequest}', [MyTeamLeaveController::class, 'show'])->name('my-team-leave.show');
+    Route::post('my-team-leave/{leaveRequest}/approve', [MyTeamLeaveController::class, 'approve'])->name('my-team-leave.approve');
+    Route::post('my-team-leave/{leaveRequest}/reject', [MyTeamLeaveController::class, 'reject'])->name('my-team-leave.reject');
 
     // Team Timecards - for employees with subordinates
     Route::get('my-team-timecards', [MyTeamTimecardController::class, 'index'])->name('my-team-timecards.index');
@@ -348,6 +367,14 @@ Route::middleware([
         Route::delete('stocktake-templates/{stocktakeTemplate}', [StocktakeTemplateController::class, 'destroy'])->name('stocktake-templates.destroy');
     });
 
+    // Leave management routes (admin or permission-based)
+    Route::middleware('permission:leave_requests.manage')->prefix('management')->name('management.')->group(function () {
+        Route::get('leave', [LeaveManagementController::class, 'index'])->name('leave.index');
+        Route::get('leave/{leaveRequest}', [LeaveManagementController::class, 'show'])->name('leave.show');
+        Route::post('leave/{leaveRequest}/approve', [LeaveManagementController::class, 'approve'])->name('leave.approve');
+        Route::post('leave/{leaveRequest}/reject', [LeaveManagementController::class, 'reject'])->name('leave.reject');
+    });
+
     // Stocktake management routes
     Route::middleware('permission:stocktakes.manage')->prefix('management')->name('management.')->group(function () {
         Route::get('stocktakes', [StocktakeManagementController::class, 'index'])->name('stocktakes.index');
@@ -454,6 +481,16 @@ Route::middleware([
         Route::post('users/{employee}/hierarchy', [OrganisationChartController::class, 'addSubordinate'])->name('users.hierarchy.store');
         Route::delete('users/{employee}/hierarchy/{subordinate}', [OrganisationChartController::class, 'removeSubordinate'])->name('users.hierarchy.destroy');
         Route::put('users/{employee}/hierarchy/visibility', [OrganisationChartController::class, 'updateVisibility'])->name('users.hierarchy.visibility');
+
+        // Management - Leave Types (admin only)
+        Route::prefix('management')->name('management.')->group(function () {
+            Route::get('leave-types', [LeaveTypeController::class, 'index'])->name('leave-types.index');
+            Route::get('leave-types/create', [LeaveTypeController::class, 'create'])->name('leave-types.create');
+            Route::post('leave-types', [LeaveTypeController::class, 'store'])->name('leave-types.store');
+            Route::get('leave-types/{leave_type}/edit', [LeaveTypeController::class, 'edit'])->name('leave-types.edit');
+            Route::put('leave-types/{leave_type}', [LeaveTypeController::class, 'update'])->name('leave-types.update');
+            Route::delete('leave-types/{leave_type}', [LeaveTypeController::class, 'destroy'])->name('leave-types.destroy');
+        });
 
         // Management - Stocktake Templates & Notifications (admin only)
         Route::prefix('management')->name('management.')->group(function () {

@@ -8,10 +8,12 @@ use App\Http\Requests\UpdateEmployeeContractRequest;
 use App\Http\Requests\UpdateEmployeeInsuranceRequest;
 use App\Http\Resources\EmployeeContractResource;
 use App\Http\Resources\EmployeeInsuranceResource;
+use App\Http\Resources\LeaveTypeResource;
 use App\Models\Company;
 use App\Models\Employee;
 use App\Models\EmployeeContract;
 use App\Models\EmployeeInsurance;
+use App\Models\LeaveType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -182,6 +184,7 @@ class DocumentController extends Controller
         $data = [
             'employees' => $employees,
             'companies' => $companies,
+            'leaveTypes' => LeaveTypeResource::collection(LeaveType::active()->orderBy('sort_order')->get()),
         ];
 
         if ($request->filled('employee_id')) {
@@ -192,7 +195,7 @@ class DocumentController extends Controller
             if ($selectedEmployee) {
                 $data['selectedEmployee'] = $selectedEmployee;
                 $data['employeeContracts'] = EmployeeContractResource::collection(
-                    $selectedEmployee->contracts()->with('company')->orderBy('start_date', 'desc')->get()
+                    $selectedEmployee->contracts()->with(['company', 'leaveEntitlements.leaveType'])->orderBy('start_date', 'desc')->get()
                 )->resolve();
             }
         }
@@ -204,13 +207,21 @@ class DocumentController extends Controller
     {
         $data = $request->validated();
         $employeeId = $data['employee_id'];
-        $data['annual_leave_taken'] = $data['annual_leave_taken'] ?? 0;
-        $data['sick_leave_taken'] = $data['sick_leave_taken'] ?? 0;
+        $entitlements = $data['entitlements'] ?? [];
 
-        // Remove document from data array (handled separately)
-        unset($data['document']);
+        // Remove non-contract fields
+        unset($data['document'], $data['entitlements']);
 
         $contract = EmployeeContract::create($data);
+
+        // Create leave entitlements
+        foreach ($entitlements as $entitlement) {
+            $contract->leaveEntitlements()->create([
+                'leave_type_id' => $entitlement['leave_type_id'],
+                'entitled_days' => $entitlement['entitled_days'],
+                'taken_days' => $entitlement['taken_days'] ?? 0,
+            ]);
+        }
 
         // Handle document upload if provided
         if ($request->hasFile('document')) {
@@ -295,6 +306,7 @@ class DocumentController extends Controller
         $contract->load([
             'employee' => fn ($q) => $q->withTrashed(),
             'company',
+            'leaveEntitlements.leaveType',
             'createdBy:id,name',
             'updatedBy:id,name',
             'previousUpdatedBy:id,name',
@@ -307,21 +319,37 @@ class DocumentController extends Controller
 
     public function editContract(EmployeeContract $contract): Response
     {
-        $contract->load(['employee' => fn ($q) => $q->withTrashed(), 'company']);
+        $contract->load(['employee' => fn ($q) => $q->withTrashed(), 'company', 'leaveEntitlements.leaveType']);
 
         return Inertia::render('Documents/Contracts/Edit', [
             'contract' => (new EmployeeContractResource($contract))->resolve(),
             'companies' => Company::query()->where('active', true)->orderBy('company_name')->get(),
+            'leaveTypes' => LeaveTypeResource::collection(LeaveType::active()->orderBy('sort_order')->get()),
         ]);
     }
 
     public function updateContract(UpdateEmployeeContractRequest $request, EmployeeContract $contract): RedirectResponse
     {
         $data = $request->validated();
-        $data['annual_leave_taken'] = $data['annual_leave_taken'] ?? 0;
-        $data['sick_leave_taken'] = $data['sick_leave_taken'] ?? 0;
+        $entitlements = $data['entitlements'] ?? [];
+        unset($data['entitlements']);
 
         $contract->update($data);
+
+        // Sync leave entitlements
+        $existingIds = [];
+        foreach ($entitlements as $entitlement) {
+            $record = $contract->leaveEntitlements()->updateOrCreate(
+                ['leave_type_id' => $entitlement['leave_type_id']],
+                [
+                    'entitled_days' => $entitlement['entitled_days'],
+                    'taken_days' => $entitlement['taken_days'] ?? 0,
+                ]
+            );
+            $existingIds[] = $record->id;
+        }
+        // Remove entitlements that are no longer present
+        $contract->leaveEntitlements()->whereNotIn('id', $existingIds)->delete();
 
         return redirect()
             ->route('documents.contracts.show', $contract)

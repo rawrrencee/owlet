@@ -21,7 +21,7 @@ class EmployeeContractController extends Controller
     public function index(Request $request, Employee $employee): JsonResponse
     {
         $contracts = $employee->contracts()
-            ->with(['company'])
+            ->with(['company', 'leaveEntitlements.leaveType'])
             ->orderBy('start_date', 'desc')
             ->get();
 
@@ -34,13 +34,23 @@ class EmployeeContractController extends Controller
     {
         $data = $request->validated();
         $data['employee_id'] = $employee->id;
-        $data['annual_leave_taken'] = $data['annual_leave_taken'] ?? 0;
-        $data['sick_leave_taken'] = $data['sick_leave_taken'] ?? 0;
 
-        // Remove document from data array (handled separately)
-        unset($data['document']);
+        // Extract entitlements data
+        $entitlements = $data['entitlements'] ?? [];
+        unset($data['entitlements'], $data['document']);
 
         $contract = EmployeeContract::create($data);
+
+        // Save leave entitlements
+        foreach ($entitlements as $entitlement) {
+            if (($entitlement['entitled_days'] ?? 0) > 0 || ($entitlement['taken_days'] ?? 0) > 0) {
+                $contract->leaveEntitlements()->create([
+                    'leave_type_id' => $entitlement['leave_type_id'],
+                    'entitled_days' => $entitlement['entitled_days'] ?? 0,
+                    'taken_days' => $entitlement['taken_days'] ?? 0,
+                ]);
+            }
+        }
 
         // Handle document upload if provided
         if ($request->hasFile('document')) {
@@ -57,7 +67,7 @@ class EmployeeContractController extends Controller
             ]);
         }
 
-        $contract->load(['company']);
+        $contract->load(['company', 'leaveEntitlements.leaveType']);
 
         return $this->respondWithCreated(
             $request,
@@ -71,18 +81,36 @@ class EmployeeContractController extends Controller
     public function update(UpdateEmployeeContractRequest $request, Employee $employee, EmployeeContract $contract): RedirectResponse|JsonResponse
     {
         $data = $request->validated();
-        $data['annual_leave_taken'] = $data['annual_leave_taken'] ?? 0;
-        $data['sick_leave_taken'] = $data['sick_leave_taken'] ?? 0;
+
+        // Extract entitlements data
+        $entitlements = $data['entitlements'] ?? [];
+        unset($data['entitlements']);
 
         $contract->update($data);
-        $contract->load(['company']);
+
+        // Sync leave entitlements
+        if (! empty($entitlements)) {
+            // Delete existing entitlements and recreate
+            $contract->leaveEntitlements()->delete();
+            foreach ($entitlements as $entitlement) {
+                if (($entitlement['entitled_days'] ?? 0) > 0 || ($entitlement['taken_days'] ?? 0) > 0) {
+                    $contract->leaveEntitlements()->create([
+                        'leave_type_id' => $entitlement['leave_type_id'],
+                        'entitled_days' => $entitlement['entitled_days'] ?? 0,
+                        'taken_days' => $entitlement['taken_days'] ?? 0,
+                    ]);
+                }
+            }
+        }
+
+        $contract->load(['company', 'leaveEntitlements.leaveType']);
 
         return $this->respondWithSuccess(
             $request,
             'users.edit',
             ['employee' => $employee->id],
             'Contract updated successfully.',
-            (new EmployeeContractResource($contract->fresh(['company'])))->resolve()
+            (new EmployeeContractResource($contract->fresh(['company', 'leaveEntitlements.leaveType'])))->resolve()
         );
     }
 

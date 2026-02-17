@@ -260,6 +260,24 @@ function formatHours(hours: number): string {
                                     : 'people'
                             }}
                         </span>
+                        <!-- Leave indicators -->
+                        <div
+                            v-if="day.data.leave && day.data.leave.length > 0"
+                            class="flex flex-wrap gap-0.5"
+                        >
+                            <span
+                                v-for="leave in day.data.leave"
+                                :key="leave.id"
+                                class="inline-flex items-center rounded-full px-1 text-[10px] leading-tight text-white"
+                                :class="{
+                                    'border border-dashed opacity-70': leave.status === 'pending',
+                                }"
+                                :style="{ backgroundColor: leave.color || '#9E9E9E' }"
+                                :title="`${leave.leave_type} (${leave.status})${leave.is_half_day ? ` - ${leave.half_day_type?.toUpperCase()}` : ''}`"
+                            >
+                                {{ leave.is_half_day ? leave.half_day_type?.toUpperCase() : leave.leave_type.charAt(0) }}
+                            </span>
+                        </div>
                     </template>
                 </div>
             </div>

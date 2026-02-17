@@ -19,9 +19,10 @@ class NavigationService
             ['title' => 'Dashboard', 'href' => '/dashboard', 'icon' => 'LayoutGrid'],
         ];
 
-        // Add My Timecards for all authenticated users with employee record
+        // Add My Timecards and My Leave for all authenticated users with employee record
         if ($user->employee) {
             $platformItems[] = ['title' => 'My Timecards', 'href' => '/timecards', 'icon' => 'Clock'];
+            $platformItems[] = ['title' => 'My Leave', 'href' => '/leave', 'icon' => 'CalendarDays'];
         }
 
         $sections[] = [
@@ -34,6 +35,7 @@ class NavigationService
         if ($user->employee?->hasSubordinates()) {
             $myToolsItems[] = ['title' => 'My Team', 'href' => '/my-team', 'icon' => 'UsersRound'];
             $myToolsItems[] = ['title' => 'Team Timecards', 'href' => '/my-team-timecards', 'icon' => 'ClipboardList'];
+            $myToolsItems[] = ['title' => 'Team Leave', 'href' => '/my-team-leave', 'icon' => 'CalendarClock'];
         }
 
         if (! empty($myToolsItems)) {
@@ -130,6 +132,7 @@ class NavigationService
             $organisationItems[] = ['title' => 'Organisation Chart', 'href' => '/organisation-chart', 'icon' => 'Network'];
             $organisationItems[] = ['title' => 'Documents', 'href' => '/documents', 'icon' => 'Folder'];
             $organisationItems[] = ['title' => 'Timecards', 'href' => '/management/timecards', 'icon' => 'CalendarClock'];
+            $organisationItems[] = ['title' => 'Leave Requests', 'href' => '/management/leave', 'icon' => 'CalendarCheck'];
         }
 
         if (! empty($organisationItems)) {
@@ -144,6 +147,7 @@ class NavigationService
 
         if ($user->isAdmin()) {
             $systemItems[] = ['title' => 'Currencies', 'href' => '/currencies', 'icon' => 'Coins'];
+            $systemItems[] = ['title' => 'Leave Types', 'href' => '/management/leave-types', 'icon' => 'ListChecks'];
         }
         if ($user->isAdmin() || $this->permissionService->canAccessPage($user, 'stocktakes.manage')) {
             $systemItems[] = ['title' => 'Stocktakes', 'href' => '/management/stocktakes', 'icon' => 'ClipboardList'];

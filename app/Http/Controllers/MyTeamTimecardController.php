@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\TimecardResource;
 use App\Models\Employee;
+use App\Services\LeaveService;
 use App\Services\TimecardService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -13,7 +14,8 @@ use Inertia\Response as InertiaResponse;
 class MyTeamTimecardController extends Controller
 {
     public function __construct(
-        private readonly TimecardService $timecardService
+        private readonly TimecardService $timecardService,
+        private readonly LeaveService $leaveService,
     ) {}
 
     /**
@@ -66,6 +68,23 @@ class MyTeamTimecardController extends Controller
 
         // Get subordinate's monthly timecard data
         $monthlyData = $this->timecardService->getSubordinateMonthlyTimecards($employee, $month);
+
+        // Merge leave data into calendar
+        $leaveCalendarData = $this->leaveService->getLeaveCalendarData($employee, $month);
+        foreach ($leaveCalendarData as $date => $leaveEntries) {
+            if ($monthlyData->has($date)) {
+                $dayData = $monthlyData->get($date);
+                $dayData['leave'] = $leaveEntries;
+                $monthlyData->put($date, $dayData);
+            } else {
+                $monthlyData->put($date, [
+                    'date' => $date,
+                    'total_hours' => 0,
+                    'stores' => [],
+                    'leave' => $leaveEntries,
+                ]);
+            }
+        }
 
         return Inertia::render('MyTeamTimecards/Show', [
             'employee' => [

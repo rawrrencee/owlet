@@ -6,6 +6,7 @@ use App\Models\Concerns\HasAuditTrail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class EmployeeContract extends Model
 {
@@ -17,10 +18,6 @@ class EmployeeContract extends Model
         'start_date',
         'end_date',
         'salary_amount',
-        'annual_leave_entitled',
-        'annual_leave_taken',
-        'sick_leave_entitled',
-        'sick_leave_taken',
         'external_document_url',
         'document_path',
         'document_filename',
@@ -38,10 +35,6 @@ class EmployeeContract extends Model
             'start_date' => 'date',
             'end_date' => 'date',
             'salary_amount' => 'decimal:4',
-            'annual_leave_entitled' => 'integer',
-            'annual_leave_taken' => 'integer',
-            'sick_leave_entitled' => 'integer',
-            'sick_leave_taken' => 'integer',
         ];
     }
 
@@ -55,14 +48,9 @@ class EmployeeContract extends Model
         return $this->belongsTo(Company::class);
     }
 
-    public function getAnnualLeaveRemainingAttribute(): int
+    public function leaveEntitlements(): HasMany
     {
-        return max(0, $this->annual_leave_entitled - $this->annual_leave_taken);
-    }
-
-    public function getSickLeaveRemainingAttribute(): int
-    {
-        return max(0, $this->sick_leave_entitled - $this->sick_leave_taken);
+        return $this->hasMany(ContractLeaveEntitlement::class);
     }
 
     public function isActive(): bool

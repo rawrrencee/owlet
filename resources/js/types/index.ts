@@ -10,6 +10,7 @@ export * from './delivery-order';
 export * from './employee';
 export * from './hierarchy';
 export * from './inventory-log';
+export * from './leave';
 export * from './navigation';
 export * from './offer';
 export * from './pagination';

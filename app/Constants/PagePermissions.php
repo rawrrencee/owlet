@@ -77,6 +77,9 @@ class PagePermissions
 
     public const PAYMENT_MODES_MANAGE = 'payment_modes.manage';
 
+    // Leave
+    public const LEAVE_REQUESTS_MANAGE = 'leave_requests.manage';
+
     // Inventory
     public const INVENTORY_LOGS_VIEW = 'inventory_logs.view';
 
@@ -242,6 +245,11 @@ class PagePermissions
                 'key' => self::PAYMENT_MODES_MANAGE,
                 'label' => 'Manage Payment Modes',
                 'group' => 'Payment Modes',
+            ],
+            self::LEAVE_REQUESTS_MANAGE => [
+                'key' => self::LEAVE_REQUESTS_MANAGE,
+                'label' => 'Manage Leave Requests',
+                'group' => 'Leave',
             ],
             self::INVENTORY_LOGS_VIEW => [
                 'key' => self::INVENTORY_LOGS_VIEW,

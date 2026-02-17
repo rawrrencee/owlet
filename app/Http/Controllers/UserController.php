@@ -10,6 +10,7 @@ use App\Http\Resources\DesignationResource;
 use App\Http\Resources\EmployeeCompanyResource;
 use App\Http\Resources\EmployeeContractResource;
 use App\Http\Resources\EmployeeInsuranceResource;
+use App\Http\Resources\LeaveTypeResource;
 use App\Http\Resources\EmployeeResource;
 use App\Http\Resources\EmployeeStoreResource;
 use App\Http\Resources\StoreResource;
@@ -19,6 +20,7 @@ use App\Models\Country;
 use App\Models\Customer;
 use App\Models\Designation;
 use App\Models\Employee;
+use App\Models\LeaveType;
 use App\Models\Store;
 use App\Services\WorkOSUserService;
 use Illuminate\Http\JsonResponse;
@@ -155,6 +157,7 @@ class UserController extends Controller
             'employeeCompanies.company',
             'employeeCompanies.designation',
             'contracts.company',
+            'contracts.leaveEntitlements.leaveType',
             'insurances',
             'employeeStores.store',
             'countryOfResidence',
@@ -231,7 +234,7 @@ class UserController extends Controller
 
     public function edit(Employee $employee, WorkOSUserService $workOSUserService): InertiaResponse
     {
-        $employee->load(['user', 'employeeCompanies.company', 'employeeCompanies.designation', 'contracts.company', 'insurances', 'countryOfResidence', 'nationalityCountry']);
+        $employee->load(['user', 'employeeCompanies.company', 'employeeCompanies.designation', 'contracts.company', 'contracts.leaveEntitlements.leaveType', 'insurances', 'countryOfResidence', 'nationalityCountry']);
 
         $workosUser = null;
         $workosRole = null;
@@ -277,6 +280,7 @@ class UserController extends Controller
             'designations' => DesignationResource::collection(Designation::orderBy('designation_name')->get())->resolve(),
             'stores' => StoreResource::collection(Store::where('active', true)->orderBy('store_name')->get())->resolve(),
             'countries' => Country::active()->ordered()->get(['id', 'name', 'code', 'nationality_name']),
+            'leaveTypes' => LeaveTypeResource::collection(LeaveType::active()->orderBy('sort_order')->get())->resolve(),
         ]);
     }
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { type Company, type EmployeeContract } from '@/types/company';
+import type { LeaveType } from '@/types/leave';
 import { router } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Column from 'primevue/column';
@@ -18,6 +19,7 @@ interface Props {
     employeeId: number;
     contracts: EmployeeContract[];
     companies: Company[];
+    leaveTypes: LeaveType[];
 }
 
 const props = defineProps<Props>();
@@ -30,15 +32,18 @@ const saving = ref(false);
 const documentPreviewVisible = ref(false);
 const documentPreviewUrl = ref<string | null>(null);
 
+interface EntitlementFormRow {
+    leave_type_id: number;
+    entitled_days: number;
+    taken_days: number;
+}
+
 const form = reactive({
     company_id: null as number | null,
     start_date: null as Date | null,
     end_date: null as Date | null,
     salary_amount: 0,
-    annual_leave_entitled: 0,
-    annual_leave_taken: 0,
-    sick_leave_entitled: 0,
-    sick_leave_taken: 0,
+    entitlements: [] as EntitlementFormRow[],
     external_document_url: '',
     comments: '',
 });
@@ -82,15 +87,20 @@ function formatCurrency(value: string | number | null): string {
     }).format(num);
 }
 
+function initEntitlements() {
+    form.entitlements = props.leaveTypes.map((lt) => ({
+        leave_type_id: lt.id,
+        entitled_days: 0,
+        taken_days: 0,
+    }));
+}
+
 function resetForm() {
     form.company_id = null;
     form.start_date = null;
     form.end_date = null;
     form.salary_amount = 0;
-    form.annual_leave_entitled = 0;
-    form.annual_leave_taken = 0;
-    form.sick_leave_entitled = 0;
-    form.sick_leave_taken = 0;
+    initEntitlements();
     form.external_document_url = '';
     form.comments = '';
     selectedFile.value = null;
@@ -117,10 +127,20 @@ function openEditDialog(contract: EmployeeContract) {
         : null;
     form.end_date = contract.end_date ? new Date(contract.end_date) : null;
     form.salary_amount = Number(contract.salary_amount) || 0;
-    form.annual_leave_entitled = contract.annual_leave_entitled;
-    form.annual_leave_taken = contract.annual_leave_taken;
-    form.sick_leave_entitled = contract.sick_leave_entitled;
-    form.sick_leave_taken = contract.sick_leave_taken;
+
+    // Populate entitlements from contract's leave_entitlements
+    const entitlements = Array.isArray(contract.leave_entitlements) ? contract.leave_entitlements : [];
+    form.entitlements = props.leaveTypes.map((lt) => {
+        const existing = entitlements.find(
+            (e: any) => e.leave_type_id === lt.id,
+        );
+        return {
+            leave_type_id: lt.id,
+            entitled_days: existing ? Number(existing.entitled_days) : 0,
+            taken_days: existing ? Number(existing.taken_days) : 0,
+        };
+    });
+
     form.external_document_url = contract.external_document_url || '';
     form.comments = contract.comments || '';
     dialogVisible.value = true;
@@ -152,16 +172,23 @@ function saveContract() {
         if (form.end_date)
             formData.append('end_date', formatDateForBackend(form.end_date)!);
         formData.append('salary_amount', String(form.salary_amount));
-        formData.append(
-            'annual_leave_entitled',
-            String(form.annual_leave_entitled),
-        );
-        formData.append('annual_leave_taken', String(form.annual_leave_taken));
-        formData.append(
-            'sick_leave_entitled',
-            String(form.sick_leave_entitled),
-        );
-        formData.append('sick_leave_taken', String(form.sick_leave_taken));
+
+        // Append entitlements
+        form.entitlements.forEach((ent, idx) => {
+            formData.append(
+                `entitlements[${idx}][leave_type_id]`,
+                String(ent.leave_type_id),
+            );
+            formData.append(
+                `entitlements[${idx}][entitled_days]`,
+                String(ent.entitled_days),
+            );
+            formData.append(
+                `entitlements[${idx}][taken_days]`,
+                String(ent.taken_days),
+            );
+        });
+
         if (form.external_document_url)
             formData.append(
                 'external_document_url',
@@ -190,10 +217,7 @@ function saveContract() {
             start_date: formatDateForBackend(form.start_date),
             end_date: formatDateForBackend(form.end_date),
             salary_amount: form.salary_amount,
-            annual_leave_entitled: form.annual_leave_entitled,
-            annual_leave_taken: form.annual_leave_taken,
-            sick_leave_entitled: form.sick_leave_entitled,
-            sick_leave_taken: form.sick_leave_taken,
+            entitlements: form.entitlements,
             external_document_url: form.external_document_url || null,
             comments: form.comments || null,
         };
@@ -250,11 +274,9 @@ function viewDocument(contract: EmployeeContract) {
 
     if (contract.document_url) {
         if (contract.is_document_viewable_inline) {
-            // Show image in dialog
             documentPreviewUrl.value = contract.document_url;
             documentPreviewVisible.value = true;
         } else {
-            // Open PDF/other docs in new tab
             window.open(contract.document_url, '_blank');
         }
     }
@@ -264,7 +286,6 @@ function onFileSelect(event: Event) {
     const target = event.target as HTMLInputElement;
     if (target.files && target.files.length > 0) {
         const file = target.files[0];
-        // Check file size (5MB max)
         if (file.size > 5 * 1024 * 1024) {
             alert('File size must be less than 5MB');
             target.value = '';
@@ -300,7 +321,6 @@ function uploadDocumentInDialog() {
                 if (fileInput.value) {
                     fileInput.value.value = '';
                 }
-                // Update the editingContract with new document info (will be refreshed from page props)
             },
             onFinish: () => {
                 uploadingDocument.value = false;
@@ -342,9 +362,18 @@ function viewDocumentInDialog() {
     viewDocument(editingContract.value);
 }
 
-function getLeaveDisplay(entitled: number, taken: number): string {
-    const remaining = Math.max(0, entitled - taken);
-    return `${remaining}/${entitled}`;
+function getLeaveDisplay(contract: EmployeeContract, leaveTypeId: number): string {
+    const entitlements = Array.isArray(contract.leave_entitlements) ? contract.leave_entitlements : [];
+    const ent = entitlements.find(
+        (e: any) => e.leave_type_id === leaveTypeId,
+    );
+    if (!ent) return '-';
+    const remaining = Math.max(0, Number(ent.entitled_days) - Number(ent.taken_days));
+    return `${remaining}/${ent.entitled_days}`;
+}
+
+function getLeaveTypeName(leaveTypeId: number): string {
+    return props.leaveTypes.find((lt) => lt.id === leaveTypeId)?.name ?? '';
 }
 </script>
 
@@ -409,24 +438,14 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                     {{ formatCurrency(data.salary_amount) }}
                 </template>
             </Column>
-            <Column header="Annual Leave" class="hidden sm:table-cell">
+            <Column
+                v-for="lt in leaveTypes.slice(0, 2)"
+                :key="lt.id"
+                :header="lt.name"
+                class="hidden sm:table-cell"
+            >
                 <template #body="{ data }">
-                    {{
-                        getLeaveDisplay(
-                            data.annual_leave_entitled,
-                            data.annual_leave_taken,
-                        )
-                    }}
-                </template>
-            </Column>
-            <Column header="Sick Leave" class="hidden lg:table-cell">
-                <template #body="{ data }">
-                    {{
-                        getLeaveDisplay(
-                            data.sick_leave_entitled,
-                            data.sick_leave_taken,
-                        )
-                    }}
+                    {{ getLeaveDisplay(data, lt.id) }}
                 </template>
             </Column>
             <Column header="Status">
@@ -508,29 +527,15 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                         }}</span>
                     </div>
                     <div
+                        v-for="lt in leaveTypes"
+                        :key="lt.id"
                         class="flex justify-between gap-4 border-b border-border pb-2"
                     >
-                        <span class="shrink-0 text-muted-foreground"
-                            >Annual Leave</span
-                        >
-                        <span class="text-right">{{
-                            getLeaveDisplay(
-                                data.annual_leave_entitled,
-                                data.annual_leave_taken,
-                            )
+                        <span class="shrink-0 text-muted-foreground">{{
+                            lt.name
                         }}</span>
-                    </div>
-                    <div
-                        class="flex justify-between gap-4 border-b border-border pb-2"
-                    >
-                        <span class="shrink-0 text-muted-foreground"
-                            >Sick Leave</span
-                        >
                         <span class="text-right">{{
-                            getLeaveDisplay(
-                                data.sick_leave_entitled,
-                                data.sick_leave_taken,
-                            )
+                            getLeaveDisplay(data, lt.id)
                         }}</span>
                     </div>
                     <div
@@ -667,95 +672,49 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                     </small>
                 </div>
 
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <div class="flex flex-col gap-2">
-                        <label class="font-medium">Annual Leave *</label>
+                <!-- Dynamic Leave Entitlements -->
+                <div class="flex flex-col gap-3">
+                    <label class="font-medium">Leave Entitlements</label>
+                    <div
+                        v-for="(ent, idx) in form.entitlements"
+                        :key="ent.leave_type_id"
+                        class="flex flex-col gap-2"
+                    >
+                        <label class="text-sm font-medium">{{
+                            getLeaveTypeName(ent.leave_type_id)
+                        }}</label>
                         <div class="grid grid-cols-2 gap-2">
                             <div>
-                                <label class="text-xs text-muted-foreground"
+                                <label
+                                    class="text-xs text-muted-foreground"
                                     >Entitled</label
                                 >
                                 <InputNumber
-                                    v-model="form.annual_leave_entitled"
-                                    :invalid="
-                                        !!formErrors.annual_leave_entitled
-                                    "
+                                    v-model="form.entitlements[idx].entitled_days"
                                     :min="0"
-                                    :max="255"
+                                    :max="999"
+                                    :minFractionDigits="0"
+                                    :maxFractionDigits="1"
                                     size="small"
                                     fluid
                                 />
                             </div>
                             <div>
-                                <label class="text-xs text-muted-foreground"
+                                <label
+                                    class="text-xs text-muted-foreground"
                                     >Taken</label
                                 >
                                 <InputNumber
-                                    v-model="form.annual_leave_taken"
-                                    :invalid="!!formErrors.annual_leave_taken"
+                                    v-model="form.entitlements[idx].taken_days"
                                     :min="0"
-                                    :max="255"
+                                    :max="999"
+                                    :minFractionDigits="0"
+                                    :maxFractionDigits="1"
                                     size="small"
                                     fluid
                                 />
                             </div>
                         </div>
-                        <small
-                            v-if="formErrors.annual_leave_entitled"
-                            class="text-red-500"
-                        >
-                            {{ formErrors.annual_leave_entitled }}
-                        </small>
-                        <small
-                            v-if="formErrors.annual_leave_taken"
-                            class="text-red-500"
-                        >
-                            {{ formErrors.annual_leave_taken }}
-                        </small>
-                    </div>
-
-                    <div class="flex flex-col gap-2">
-                        <label class="font-medium">Sick Leave *</label>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <label class="text-xs text-muted-foreground"
-                                    >Entitled</label
-                                >
-                                <InputNumber
-                                    v-model="form.sick_leave_entitled"
-                                    :invalid="!!formErrors.sick_leave_entitled"
-                                    :min="0"
-                                    :max="255"
-                                    size="small"
-                                    fluid
-                                />
-                            </div>
-                            <div>
-                                <label class="text-xs text-muted-foreground"
-                                    >Taken</label
-                                >
-                                <InputNumber
-                                    v-model="form.sick_leave_taken"
-                                    :invalid="!!formErrors.sick_leave_taken"
-                                    :min="0"
-                                    :max="255"
-                                    size="small"
-                                    fluid
-                                />
-                            </div>
-                        </div>
-                        <small
-                            v-if="formErrors.sick_leave_entitled"
-                            class="text-red-500"
-                        >
-                            {{ formErrors.sick_leave_entitled }}
-                        </small>
-                        <small
-                            v-if="formErrors.sick_leave_taken"
-                            class="text-red-500"
-                        >
-                            {{ formErrors.sick_leave_taken }}
-                        </small>
                     </div>
                 </div>
 
@@ -785,7 +744,6 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                     <div
                         class="rounded-lg border border-border p-3 dark:border-border"
                     >
-                        <!-- Show existing document if present (only when editing) -->
                         <div
                             v-if="
                                 editingId &&
@@ -820,7 +778,6 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                                 />
                             </div>
                         </div>
-                        <!-- Show upload UI if no document or creating new -->
                         <div v-else class="flex flex-col gap-2">
                             <div class="flex items-center gap-2">
                                 <input
@@ -842,7 +799,6 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                                             : 'Choose file'
                                     }}
                                 </label>
-                                <!-- For existing contracts, show separate upload button -->
                                 <Button
                                     v-if="editingId && selectedFile"
                                     label="Upload"
@@ -851,7 +807,6 @@ function getLeaveDisplay(entitled: number, taken: number): string {
                                     :loading="uploadingDocument"
                                     @click="uploadDocumentInDialog"
                                 />
-                                <!-- For new contracts, file will be submitted with form -->
                                 <Button
                                     v-if="!editingId && selectedFile"
                                     icon="pi pi-times"
@@ -943,7 +898,7 @@ function getLeaveDisplay(entitled: number, taken: number): string {
             </form>
         </Dialog>
 
-        <!-- Document Upload Dialog (shown when editing existing contract) -->
+        <!-- Document Preview Dialog -->
         <Dialog
             v-model:visible="documentPreviewVisible"
             header="Document Preview"

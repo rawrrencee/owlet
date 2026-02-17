@@ -24,6 +24,7 @@ import {
     type EmployeeCompany,
     type EmployeeContract,
     type EmployeeInsurance,
+    type LeaveType,
     type Store,
     type WorkOSUser,
 } from '@/types';
@@ -53,6 +54,7 @@ interface Props {
     employeeCompanies?: EmployeeCompany[];
     contracts?: EmployeeContract[];
     insurances?: EmployeeInsurance[];
+    leaveTypes?: LeaveType[];
     companies?: Company[];
     designations?: Designation[];
     stores?: Store[];
@@ -2754,6 +2756,7 @@ function cancel() {
                                             :employee-id="employee.id"
                                             :contracts="contracts ?? []"
                                             :companies="companies ?? []"
+                                            :leave-types="leaveTypes ?? []"
                                         />
                                     </div>
                                 </TabPanel>
