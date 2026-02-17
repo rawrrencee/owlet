@@ -9,6 +9,7 @@ export interface OrgChartNodeData {
 
 export interface OrgChartNode {
     key: string;
+    label: string;
     type: 'employee';
     data: OrgChartNodeData;
     children: OrgChartNode[];

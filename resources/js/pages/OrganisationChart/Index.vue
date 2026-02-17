@@ -4,12 +4,11 @@ import { type BreadcrumbItem, type OrgChartNode } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
-import Card from 'primevue/card';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import InputText from 'primevue/inputtext';
-import OrganizationChart from 'primevue/organizationchart';
 import Tag from 'primevue/tag';
+import Tree from 'primevue/tree';
 import { computed, ref } from 'vue';
 
 interface Props {
@@ -24,9 +23,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const searchQuery = ref('');
-const collapsedKeys = ref<Record<string, boolean>>({});
+const expandedKeys = ref<Record<string, boolean>>({});
 
-// Filter org chart nodes based on search
+// Filter org chart nodes based on search (bubble-up: parent shows if child matches)
 function filterNodes(nodes: OrgChartNode[], query: string): OrgChartNode[] {
     if (!query.trim()) return nodes;
 
@@ -43,7 +42,6 @@ function filterNodes(nodes: OrgChartNode[], query: string): OrgChartNode[] {
 
             const filteredChildren = filterNodes(node.children, query);
 
-            // Include node if it matches or has matching children
             if (matchesSearch || filteredChildren.length > 0) {
                 return {
                     ...node,
@@ -83,10 +81,6 @@ function getTierColor(tier: number): string {
 }
 
 function expandAll() {
-    collapsedKeys.value = {};
-}
-
-function collapseAll() {
     const keys: Record<string, boolean> = {};
     function collectKeys(nodes: OrgChartNode[]) {
         for (const node of nodes) {
@@ -97,7 +91,11 @@ function collapseAll() {
         }
     }
     collectKeys(props.orgChart);
-    collapsedKeys.value = keys;
+    expandedKeys.value = keys;
+}
+
+function collapseAll() {
+    expandedKeys.value = {};
 }
 </script>
 
@@ -151,69 +149,52 @@ function collapseAll() {
                 </div>
             </div>
 
-            <!-- Organisation Chart -->
-            <div
+            <!-- Organisation Tree -->
+            <Tree
                 v-if="filteredOrgChart.length > 0"
-                class="flex flex-col gap-6 overflow-x-auto"
+                :value="filteredOrgChart"
+                v-model:expandedKeys="expandedKeys"
+                class="w-full"
             >
-                <Card
-                    v-for="rootNode in filteredOrgChart"
-                    :key="rootNode.key"
-                    class="min-w-max"
-                >
-                    <template #content>
-                        <OrganizationChart
-                            :key="`${rootNode.key}-${searchQuery}`"
-                            :value="rootNode"
-                            v-model:collapsedKeys="collapsedKeys"
-                            collapsible
+                <template #employee="{ node }">
+                    <div
+                        class="flex cursor-pointer flex-wrap items-center gap-2 py-0.5"
+                        @click="navigateToEmployee(node.data.id)"
+                    >
+                        <Avatar
+                            v-if="node.data.profile_picture_url"
+                            :image="node.data.profile_picture_url"
+                            shape="circle"
+                            size="normal"
+                        />
+                        <Avatar
+                            v-else
+                            :label="getInitials(node.data.name)"
+                            shape="circle"
+                            size="normal"
+                            class="bg-primary/10 text-primary"
+                        />
+                        <span class="font-semibold">{{ node.data.name }}</span>
+                        <span
+                            v-if="node.data.designation"
+                            class="text-muted-color text-sm"
                         >
-                            <template #employee="{ node }">
-                                <div
-                                    class="hover:bg-surface-100 dark:hover:bg-surface-700 flex cursor-pointer flex-col items-center gap-2 p-3 transition-colors"
-                                    @click="navigateToEmployee(node.data.id)"
-                                >
-                                    <Avatar
-                                        v-if="node.data.profile_picture_url"
-                                        :image="node.data.profile_picture_url"
-                                        shape="circle"
-                                        size="large"
-                                    />
-                                    <Avatar
-                                        v-else
-                                        :label="getInitials(node.data.name)"
-                                        shape="circle"
-                                        size="large"
-                                        class="bg-primary/10 text-primary"
-                                    />
-                                    <div class="text-center">
-                                        <div class="font-semibold">
-                                            {{ node.data.name }}
-                                        </div>
-                                        <div
-                                            v-if="node.data.designation"
-                                            class="text-sm text-muted-foreground"
-                                        >
-                                            {{ node.data.designation }}
-                                        </div>
-                                        <div
-                                            v-if="node.data.company"
-                                            class="text-xs text-muted-foreground"
-                                        >
-                                            {{ node.data.company }}
-                                        </div>
-                                    </div>
-                                    <Tag
-                                        :value="`Tier ${node.data.tier}`"
-                                        :severity="getTierColor(node.data.tier)"
-                                        class="!text-xs"
-                                    />
-                                </div>
-                            </template>
-                        </OrganizationChart>
-                    </template>
-                </Card>
-            </div>
+                            · {{ node.data.designation }}
+                        </span>
+                        <span
+                            v-if="node.data.company"
+                            class="text-muted-color text-sm"
+                        >
+                            · {{ node.data.company }}
+                        </span>
+                        <Tag
+                            :value="`Tier ${node.data.tier}`"
+                            :severity="getTierColor(node.data.tier)"
+                            class="!text-xs"
+                        />
+                    </div>
+                </template>
+            </Tree>
 
             <!-- Empty State -->
             <div

@@ -17,26 +17,50 @@ class HierarchyService
      */
     public function buildOrgChartTree(?int $rootEmployeeId = null): array
     {
+        // Load all active employees with companies in a single query
+        $allEmployees = Employee::with(['activeCompanies'])
+            ->whereNull('termination_date')
+            ->get()
+            ->keyBy('id');
+
+        // Load all active hierarchies
+        $hierarchies = EmployeeHierarchy::where('active', true)->get();
+
+        // Build adjacency map
+        $subordinatesMap = [];
+        $subordinateIdsSet = [];
+        foreach ($hierarchies as $h) {
+            $subordinatesMap[$h->manager_id][] = $h->subordinate_id;
+            $subordinateIdsSet[$h->subordinate_id] = true;
+        }
+
+        // Preload designations
+        $designationIds = $allEmployees->flatMap(function ($emp) {
+            return $emp->activeCompanies->pluck('pivot.designation_id');
+        })->filter()->unique()->values()->all();
+
+        $designations = Designation::whereIn('id', $designationIds)->pluck('designation_name', 'id');
+
+        // Calculate tiers
+        $tiers = $this->calculateAllTiers($allEmployees);
+
         if ($rootEmployeeId !== null) {
-            $rootEmployee = Employee::with(['activeSubordinates', 'activeCompanies'])->find($rootEmployeeId);
-            if (! $rootEmployee) {
+            if (! $allEmployees->has($rootEmployeeId)) {
                 return [];
             }
 
-            return [$this->buildNodeRecursive($rootEmployee)];
+            return [$this->buildNodeFromMap($rootEmployeeId, $allEmployees, $subordinatesMap, $tiers, $designations)];
         }
 
         // Find all root employees (those who have no managers)
-        $allEmployeeIds = Employee::whereNull('termination_date')->pluck('id');
-        $subordinateIds = EmployeeHierarchy::where('active', true)->pluck('subordinate_id');
-        $rootEmployeeIds = $allEmployeeIds->diff($subordinateIds);
+        $nodes = [];
+        foreach ($allEmployees as $employee) {
+            if (! isset($subordinateIdsSet[$employee->id])) {
+                $nodes[] = $this->buildNodeFromMap($employee->id, $allEmployees, $subordinatesMap, $tiers, $designations);
+            }
+        }
 
-        $roots = Employee::with(['activeSubordinates', 'activeCompanies'])
-            ->whereIn('id', $rootEmployeeIds)
-            ->whereNull('termination_date')
-            ->get();
-
-        return $roots->map(fn (Employee $employee) => $this->buildNodeRecursive($employee))->toArray();
+        return $nodes;
     }
 
     /**
@@ -46,23 +70,39 @@ class HierarchyService
      */
     public function buildFullOrgChart(): array
     {
-        // Get all active employees
-        $allEmployees = Employee::with(['activeSubordinates', 'activeCompanies'])
+        // Load all active employees with companies in a single query
+        $allEmployees = Employee::with(['activeCompanies'])
             ->whereNull('termination_date')
-            ->get();
+            ->get()
+            ->keyBy('id');
 
-        // Find employees who are subordinates (have a manager)
-        $subordinateIds = EmployeeHierarchy::where('active', true)->pluck('subordinate_id');
+        // Load all active hierarchies in a single query
+        $hierarchies = EmployeeHierarchy::where('active', true)->get();
 
-        // Calculate tiers for all employees
+        // Build adjacency map: manager_id => [subordinate_ids]
+        $subordinatesMap = [];
+        $subordinateIds = [];
+        foreach ($hierarchies as $h) {
+            $subordinatesMap[$h->manager_id][] = $h->subordinate_id;
+            $subordinateIds[$h->subordinate_id] = true;
+        }
+
+        // Preload all designations in a single query
+        $designationIds = $allEmployees->flatMap(function ($emp) {
+            return $emp->activeCompanies->pluck('pivot.designation_id');
+        })->filter()->unique()->values()->all();
+
+        $designations = Designation::whereIn('id', $designationIds)->pluck('designation_name', 'id');
+
+        // Calculate tiers
         $tiers = $this->calculateAllTiers($allEmployees);
 
         $nodes = [];
 
         foreach ($allEmployees as $employee) {
             // Only include as root if they have no manager
-            if (! $subordinateIds->contains($employee->id)) {
-                $nodes[] = $this->buildNodeRecursive($employee, $tiers);
+            if (! isset($subordinateIds[$employee->id])) {
+                $nodes[] = $this->buildNodeFromMap($employee->id, $allEmployees, $subordinatesMap, $tiers, $designations);
             }
         }
 
@@ -70,37 +110,94 @@ class HierarchyService
     }
 
     /**
-     * Build a tree node for a single employee recursively.
+     * Build a tree node using preloaded data maps (no recursive DB queries).
      *
-     * @param  array<int, int>|null  $precomputedTiers
+     * @param  \Illuminate\Support\Collection<int, Employee>  $employeesMap
+     * @param  array<int, array<int>>  $subordinatesMap
+     * @param  array<int, int>  $tiers
+     * @param  \Illuminate\Support\Collection<int, string>  $designations
+     * @param  array<int, bool>  $visited  Cycle detection
      * @return array<string, mixed>
      */
-    private function buildNodeRecursive(Employee $employee, ?array $precomputedTiers = null): array
-    {
-        $tier = $precomputedTiers[$employee->id] ?? $this->calculateTier($employee);
+    private function buildNodeFromMap(
+        int $employeeId,
+        \Illuminate\Support\Collection $employeesMap,
+        array $subordinatesMap,
+        array $tiers,
+        \Illuminate\Support\Collection $designations,
+        array &$visited = [],
+    ): array {
+        // Cycle detection
+        if (isset($visited[$employeeId])) {
+            $name = $employeesMap[$employeeId]?->full_name ?? 'Unknown';
 
-        $children = [];
-        foreach ($employee->activeSubordinates as $subordinate) {
-            $children[] = $this->buildNodeRecursive($subordinate, $precomputedTiers);
+            return [
+                'key' => (string) $employeeId,
+                'label' => $name,
+                'type' => 'employee',
+                'data' => [
+                    'id' => $employeeId,
+                    'name' => $name,
+                    'profile_picture_url' => null,
+                    'designation' => null,
+                    'company' => null,
+                    'tier' => $tiers[$employeeId] ?? 1,
+                ],
+                'children' => [],
+            ];
+        }
+        $visited[$employeeId] = true;
+
+        $employee = $employeesMap[$employeeId] ?? null;
+        if (! $employee) {
+            return [
+                'key' => (string) $employeeId,
+                'label' => 'Unknown',
+                'type' => 'employee',
+                'data' => [
+                    'id' => $employeeId,
+                    'name' => 'Unknown',
+                    'profile_picture_url' => null,
+                    'designation' => null,
+                    'company' => null,
+                    'tier' => 1,
+                ],
+                'children' => [],
+            ];
         }
 
-        // Get designation from the pivot's designation_id
+        $children = [];
+        $childIds = $subordinatesMap[$employeeId] ?? [];
+        foreach ($childIds as $childId) {
+            $children[] = $this->buildNodeFromMap($childId, $employeesMap, $subordinatesMap, $tiers, $designations, $visited);
+        }
+
+        // Get designation from preloaded map
         $designation = null;
         $firstActiveCompany = $employee->activeCompanies->first();
         if ($firstActiveCompany?->pivot?->designation_id) {
-            $designation = Designation::find($firstActiveCompany->pivot->designation_id)?->designation_name;
+            $designation = $designations[$firstActiveCompany->pivot->designation_id] ?? null;
+        }
+
+        $labelParts = [$employee->full_name];
+        if ($designation) {
+            $labelParts[] = $designation;
+        }
+        if ($firstActiveCompany?->company_name) {
+            $labelParts[] = $firstActiveCompany->company_name;
         }
 
         return [
             'key' => (string) $employee->id,
+            'label' => implode(' · ', $labelParts),
             'type' => 'employee',
             'data' => [
                 'id' => $employee->id,
                 'name' => $employee->full_name,
                 'profile_picture_url' => $employee->getProfilePictureUrl(),
                 'designation' => $designation,
-                'company' => $employee->activeCompanies->first()?->company_name,
-                'tier' => $tier,
+                'company' => $firstActiveCompany?->company_name,
+                'tier' => $tiers[$employee->id] ?? 1,
             ],
             'children' => $children,
         ];
@@ -148,23 +245,32 @@ class HierarchyService
         }
 
         // Calculate tier for each employee using memoization
+        $visiting = []; // Track nodes currently in the recursion stack for cycle detection
         foreach ($employees as $employee) {
-            $tiers[$employee->id] = $this->calculateTierRecursive($employee->id, $subordinatesMap, $tiers);
+            $tiers[$employee->id] = $this->calculateTierRecursive($employee->id, $subordinatesMap, $tiers, $visiting);
         }
 
         return $tiers;
     }
 
     /**
-     * Recursive tier calculation with memoization.
+     * Recursive tier calculation with memoization and cycle detection.
      *
      * @param  array<int, array<int>>  $subordinatesMap
      * @param  array<int, int>  $memo
+     * @param  array<int, bool>  $visiting  Nodes in current recursion stack
      */
-    private function calculateTierRecursive(int $employeeId, array $subordinatesMap, array &$memo): int
+    private function calculateTierRecursive(int $employeeId, array $subordinatesMap, array &$memo, array &$visiting): int
     {
         if (isset($memo[$employeeId])) {
             return $memo[$employeeId];
+        }
+
+        // Cycle detected — this node is already being visited in the current stack
+        if (isset($visiting[$employeeId])) {
+            $memo[$employeeId] = 1;
+
+            return 1;
         }
 
         $subordinateIds = $subordinatesMap[$employeeId] ?? [];
@@ -175,11 +281,15 @@ class HierarchyService
             return 1;
         }
 
+        $visiting[$employeeId] = true;
+
         $maxTier = 0;
         foreach ($subordinateIds as $subId) {
-            $tier = $this->calculateTierRecursive($subId, $subordinatesMap, $memo);
+            $tier = $this->calculateTierRecursive($subId, $subordinatesMap, $memo, $visiting);
             $maxTier = max($maxTier, $tier);
         }
+
+        unset($visiting[$employeeId]);
 
         $memo[$employeeId] = $maxTier + 1;
 
@@ -471,18 +581,25 @@ class HierarchyService
             ->orderBy('last_name')
             ->get();
 
+        // Preload all designations in a single query
+        $designationIds = $employees->flatMap(function ($emp) {
+            return $emp->activeCompanies->pluck('pivot.designation_id');
+        })->filter()->unique()->values()->all();
+
+        $designations = Designation::whereIn('id', $designationIds)->pluck('designation_name', 'id');
+
         // Calculate tiers for all employees
         $tiers = $this->calculateAllTiers($employees);
 
-        return $employees->map(function (Employee $employee) use ($tiers) {
-            // Get designation from the first active company
+        return $employees->map(function (Employee $employee) use ($tiers, $designations) {
+            // Get designation from preloaded map
             $designation = null;
             $companyName = null;
             $firstActiveCompany = $employee->activeCompanies->first();
             if ($firstActiveCompany) {
                 $companyName = $firstActiveCompany->company_name;
                 if ($firstActiveCompany->pivot?->designation_id) {
-                    $designation = Designation::find($firstActiveCompany->pivot->designation_id)?->designation_name;
+                    $designation = $designations[$firstActiveCompany->pivot->designation_id] ?? null;
                 }
             }
 
