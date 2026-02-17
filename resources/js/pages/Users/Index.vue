@@ -327,7 +327,7 @@ function onPage(event: { page: number; rows: number }) {
     <Head :title="pageTitle" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 p-4">
+        <div class="flex h-full min-w-0 flex-1 flex-col gap-4 p-4">
             <div
                 class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
             >
@@ -473,7 +473,7 @@ function onPage(event: { page: number; rows: number }) {
                         />
                     </template>
                 </Column>
-                <Column field="name" header="Name" class="!pl-3">
+                <Column field="name" header="Name" class="!pl-3 max-w-0 md:max-w-none">
                     <template #body="{ data }">
                         <div class="flex min-w-0 items-center gap-2">
                             <span
@@ -672,7 +672,7 @@ function onPage(event: { page: number; rows: number }) {
                         />
                     </template>
                 </Column>
-                <Column field="name" header="Name" class="!pl-3">
+                <Column field="name" header="Name" class="!pl-3 max-w-0 md:max-w-none">
                     <template #body="{ data }">
                         <span class="block truncate font-medium">{{
                             getFullName(data)

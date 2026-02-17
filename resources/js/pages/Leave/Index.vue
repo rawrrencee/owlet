@@ -164,6 +164,7 @@ function halfDayLabel(half: string): string {
                     :options="statusOptions"
                     option-label="label"
                     option-value="value"
+                    placeholder="Status"
                     size="small"
                     class="w-full sm:w-48"
                 />
