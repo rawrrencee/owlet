@@ -78,7 +78,7 @@ function formatDateTime(dateStr: string | null | undefined): string {
     <div v-if="versions.length === 0" class="text-center text-muted-foreground py-4 text-sm">
         No version history available.
     </div>
-    <div v-else class="max-w-xl mx-auto">
+    <div v-else class="max-w-xl mx-auto px-2 sm:px-0 [&_.p-timeline-event-opposite]:hidden">
     <Timeline :value="versions" class="w-full">
         <template #marker="{ item }">
             <span

@@ -47,7 +47,7 @@ function productInitial(name: string): string {
         <Column expander class="w-[12%] sm:w-12 !pr-0 md:hidden" />
         <Column header="Product">
             <template #body="{ data }">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 max-w-[60vw] sm:max-w-none">
                     <Image
                         v-if="data.product?.image_path"
                         :src="`/storage/${data.product.image_path}`"
