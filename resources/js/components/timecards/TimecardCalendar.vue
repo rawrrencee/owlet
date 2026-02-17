@@ -51,7 +51,15 @@ function handleMonthSelect(
     emit('monthChange', newMonth);
 }
 
-const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const daysOfWeek = [
+    { short: 'S', full: 'Sun' },
+    { short: 'M', full: 'Mon' },
+    { short: 'T', full: 'Tue' },
+    { short: 'W', full: 'Wed' },
+    { short: 'T', full: 'Thu' },
+    { short: 'F', full: 'Fri' },
+    { short: 'S', full: 'Sat' },
+];
 
 const calendarDays = computed(() => {
     const year = currentMonth.value.getFullYear();
@@ -206,18 +214,19 @@ function formatHours(hours: number): string {
         </div>
 
         <!-- Days of week header -->
-        <div class="mb-2 grid grid-cols-7 gap-1">
+        <div class="mb-2 grid grid-cols-7 gap-px sm:gap-1">
             <div
                 v-for="day in daysOfWeek"
-                :key="day"
-                class="p-2 text-center text-xs font-medium text-muted-foreground"
+                :key="day.full"
+                class="p-1 text-center text-xs font-medium text-muted-foreground sm:p-2"
             >
-                {{ day }}
+                <span class="sm:hidden">{{ day.short }}</span>
+                <span class="hidden sm:inline">{{ day.full }}</span>
             </div>
         </div>
 
         <!-- Calendar grid -->
-        <div class="grid grid-cols-7 gap-1">
+        <div class="grid grid-cols-7 gap-px sm:gap-1">
             <div
                 v-for="day in calendarDays"
                 :key="day.dateString"
@@ -253,12 +262,14 @@ function formatHours(hours: number): string {
                             v-if="showEmployeeCount && day.data.employee_count"
                             class="text-xs text-muted-foreground"
                         >
-                            {{ day.data.employee_count }}
-                            {{
-                                day.data.employee_count === 1
-                                    ? 'person'
-                                    : 'people'
-                            }}
+                            <span class="sm:hidden" :title="day.data.employee_count + (day.data.employee_count === 1 ? ' person' : ' people')">
+                                <i class="pi pi-user" style="font-size: 0.625rem"></i>
+                                {{ day.data.employee_count }}
+                            </span>
+                            <span class="hidden sm:inline">
+                                {{ day.data.employee_count }}
+                                {{ day.data.employee_count === 1 ? 'person' : 'people' }}
+                            </span>
                         </span>
                         <!-- Leave indicators -->
                         <div

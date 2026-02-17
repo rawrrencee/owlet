@@ -350,7 +350,7 @@ function navigateBack() {
                                     <div
                                         v-for="(breakEntry, index) in breaks"
                                         :key="index"
-                                        class="flex items-end gap-4 rounded-lg bg-background p-3"
+                                        class="flex flex-col gap-2 rounded-lg bg-background p-3 sm:flex-row sm:items-end sm:gap-4"
                                     >
                                         <div class="flex-1">
                                             <label
@@ -378,14 +378,16 @@ function navigateBack() {
                                                 class="w-full"
                                             />
                                         </div>
-                                        <Button
-                                            icon="pi pi-trash"
-                                            severity="danger"
-                                            text
-                                            size="small"
-                                            @click="removeBreak(index)"
-                                            v-tooltip.top="'Remove break'"
-                                        />
+                                        <div class="flex justify-end sm:block">
+                                            <Button
+                                                icon="pi pi-trash"
+                                                severity="danger"
+                                                text
+                                                size="small"
+                                                @click="removeBreak(index)"
+                                                v-tooltip.top="'Remove break'"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -123,7 +123,7 @@ function navigateToCreate() {
             <!-- Grouped by Employee -->
             <div
                 v-if="orderedGroupedTimecards.length > 0"
-                class="flex flex-col gap-6"
+                class="flex flex-col gap-4 sm:gap-6"
             >
                 <template
                     v-for="(group, index) in orderedGroupedTimecards"
@@ -148,7 +148,7 @@ function navigateToCreate() {
                     >
                         <!-- Employee Header -->
                         <div
-                            class="flex cursor-pointer items-center gap-3 rounded-lg p-3 transition-colors"
+                            class="flex cursor-pointer items-center gap-2 rounded-lg p-2 transition-colors sm:gap-3 sm:p-3"
                             :class="{
                                 'bg-primary/10 hover:bg-primary/15':
                                     isHighlighted(group.employee.id),
@@ -162,12 +162,13 @@ function navigateToCreate() {
                                 v-if="group.employee.profile_picture_url"
                                 :image="group.employee.profile_picture_url"
                                 shape="circle"
+                                class="shrink-0"
                             />
                             <Avatar
                                 v-else
                                 :label="getInitials(group.employee.name)"
                                 shape="circle"
-                                class="bg-primary/10 text-primary"
+                                class="shrink-0 bg-primary/10 text-primary"
                             />
                             <div class="flex-1">
                                 <p class="font-semibold">
@@ -191,7 +192,7 @@ function navigateToCreate() {
 
                         <!-- Timecards -->
                         <div
-                            class="ml-4 flex flex-col gap-3 border-l-2 pl-4"
+                            class="ml-1 flex flex-col gap-3 border-l-2 pl-2 sm:ml-4 sm:pl-4"
                             :class="{
                                 'border-primary': isHighlighted(
                                     group.employee.id,

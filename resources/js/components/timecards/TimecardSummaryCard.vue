@@ -64,7 +64,7 @@ function formatDuration(detail: { hours: number; is_open?: boolean }): string {
         <template #content>
             <div class="flex flex-col gap-3">
                 <!-- Header Row -->
-                <div class="flex items-start justify-between">
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                     <div class="flex flex-col gap-1">
                         <!-- Employee Name (if shown) -->
                         <div
@@ -86,7 +86,7 @@ function formatDuration(detail: { hours: number; is_open?: boolean }): string {
                         <div
                             class="flex items-center gap-2 text-muted-foreground"
                         >
-                            <MapPin class="h-4 w-4" />
+                            <MapPin class="h-4 w-4 shrink-0" />
                             <span>{{
                                 timecard.store?.name || 'Unknown Store'
                             }}</span>
@@ -96,7 +96,7 @@ function formatDuration(detail: { hours: number; is_open?: boolean }): string {
                         <div
                             class="flex items-center gap-2 text-sm text-muted-foreground"
                         >
-                            <Clock class="h-4 w-4" />
+                            <Clock class="h-4 w-4 shrink-0" />
                             <span>
                                 {{ formatTime(timecard.start_date) }}
                                 -
@@ -105,7 +105,7 @@ function formatDuration(detail: { hours: number; is_open?: boolean }): string {
                         </div>
                     </div>
 
-                    <div class="flex flex-col items-end gap-2">
+                    <div class="flex items-center gap-2 sm:flex-col sm:items-end">
                         <div class="flex items-center gap-2">
                             <Tag
                                 v-if="timecard.is_inaccurate"
@@ -154,7 +154,7 @@ function formatDuration(detail: { hours: number; is_open?: boolean }): string {
                         <div
                             v-for="detail in timecard.details"
                             :key="detail.id"
-                            class="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2 text-sm"
+                            class="flex flex-col gap-1 rounded-lg bg-muted/50 px-3 py-2 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-2"
                         >
                             <div class="flex items-center gap-2">
                                 <Tag

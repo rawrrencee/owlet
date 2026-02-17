@@ -402,7 +402,7 @@ function confirmDeleteTimecard() {
             v-model:visible="showDetailDialog"
             :header="editingDetail ? 'Edit Time Entry' : 'Add Time Entry'"
             :modal="true"
-            :style="{ width: '400px' }"
+            :style="{ width: '95vw', maxWidth: '400px' }"
         >
             <form
                 @submit.prevent="handleDetailSubmit"
@@ -454,7 +454,7 @@ function confirmDeleteTimecard() {
                     </small>
                 </div>
 
-                <div class="flex justify-end gap-2">
+                <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                     <Button
                         label="Cancel"
                         severity="secondary"

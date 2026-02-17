@@ -119,7 +119,7 @@ function halfDayLabel(half: string): string {
                     <div class="mb-2 flex items-center gap-2">
                         <div
                             v-if="balance.leave_type.color"
-                            class="h-3 w-3 rounded-full"
+                            class="h-3 w-3 shrink-0 rounded-full"
                             :style="{
                                 backgroundColor: balance.leave_type.color,
                             }"
@@ -203,7 +203,7 @@ function halfDayLabel(half: string): string {
                         <div class="flex items-center gap-2">
                             <div
                                 v-if="data.leave_type?.color"
-                                class="h-2.5 w-2.5 rounded-full"
+                                class="h-2.5 w-2.5 shrink-0 rounded-full"
                                 :style="{
                                     backgroundColor: data.leave_type.color,
                                 }"

@@ -4,7 +4,7 @@ import Button from 'primevue/button';
 import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
 import Tag from 'primevue/tag';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 interface Props {
     details: TimecardDetail[];
@@ -50,16 +50,19 @@ function formatHours(hours: number): string {
 function getTypeSeverity(type: string): 'success' | 'warn' {
     return type === 'WORK' ? 'success' : 'warn';
 }
+
+const expandedRows = ref<Record<string, boolean>>({});
 </script>
 
 <template>
     <div class="timecard-details-table">
         <DataTable
+            v-model:expandedRows="expandedRows"
             :value="sortedDetails"
             :loading="loading"
             size="small"
             striped-rows
-            responsive-layout="scroll"
+            data-key="id"
         >
             <template #header v-if="editable">
                 <div class="flex justify-end">
@@ -78,6 +81,9 @@ function getTypeSeverity(type: string): 'success' | 'warn' {
                 </div>
             </template>
 
+            <!-- Expander column for mobile -->
+            <Column expander class="w-[3rem] sm:hidden" />
+
             <Column field="type" header="Type" style="width: 100px">
                 <template #body="{ data }">
                     <Tag
@@ -87,13 +93,13 @@ function getTypeSeverity(type: string): 'success' | 'warn' {
                 </template>
             </Column>
 
-            <Column field="start_date" header="Start Time">
+            <Column field="start_date" header="Start Time" class="hidden sm:table-cell">
                 <template #body="{ data }">
                     {{ formatTime(data.start_date) }}
                 </template>
             </Column>
 
-            <Column field="end_date" header="End Time">
+            <Column field="end_date" header="End Time" class="hidden sm:table-cell">
                 <template #body="{ data }">
                     <span
                         v-if="data.is_open"
@@ -118,7 +124,7 @@ function getTypeSeverity(type: string): 'success' | 'warn' {
                 v-if="editable"
                 header="Actions"
                 style="width: 120px"
-                class="text-right"
+                class="hidden text-right md:table-cell"
             >
                 <template #body="{ data }">
                     <div class="flex justify-end gap-1">
@@ -141,6 +147,39 @@ function getTypeSeverity(type: string): 'success' | 'warn' {
                     </div>
                 </template>
             </Column>
+
+            <!-- Expansion template for mobile -->
+            <template #expansion="{ data }">
+                <div class="flex flex-col gap-2 p-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-muted-foreground">Start Time</span>
+                        <span>{{ formatTime(data.start_date) }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-muted-foreground">End Time</span>
+                        <span v-if="data.is_open" class="text-muted-foreground italic">In progress...</span>
+                        <span v-else>{{ formatTime(data.end_date) }}</span>
+                    </div>
+                    <div v-if="editable" class="flex justify-end gap-1 pt-2 border-t border-muted">
+                        <Button
+                            icon="pi pi-pencil"
+                            label="Edit"
+                            text
+                            size="small"
+                            severity="secondary"
+                            @click="emit('edit', data)"
+                        />
+                        <Button
+                            icon="pi pi-trash"
+                            label="Delete"
+                            text
+                            size="small"
+                            severity="danger"
+                            @click="emit('delete', data)"
+                        />
+                    </div>
+                </div>
+            </template>
         </DataTable>
     </div>
 </template>
