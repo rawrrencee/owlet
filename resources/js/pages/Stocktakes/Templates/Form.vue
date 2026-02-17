@@ -2,7 +2,7 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useSmartBack } from '@/composables/useSmartBack';
 import type { BreadcrumbItem, StocktakeTemplate } from '@/types';
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Checkbox from 'primevue/checkbox';

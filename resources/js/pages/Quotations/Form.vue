@@ -632,7 +632,7 @@ function formatCurrency(value: number, symbol: string): string {
 }
 
 // Currency change handler
-function onCurrencyChange(index: number, product: LineItem) {
+function onCurrencyChange(index: number) {
     // Find product price for new currency
     // We don't have product prices cached per-item, so just re-resolve the offer
     if (form.company_id) {
@@ -857,7 +857,7 @@ function cancel() {
                                         size="small"
                                         filter
                                         fluid
-                                        @change="onCurrencyChange(index, data)"
+                                        @change="onCurrencyChange(index)"
                                     />
                                 </template>
                             </Column>

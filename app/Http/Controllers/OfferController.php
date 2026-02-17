@@ -107,6 +107,21 @@ class OfferController extends Controller
         ]);
     }
 
+    /**
+     * Get offer details as JSON (for dialog display).
+     */
+    public function showJson(Offer $offer): JsonResponse
+    {
+        $offer->load([
+            'category', 'brand', 'stores',
+            'amounts.currency', 'products.product',
+            'bundles.product', 'bundles.category', 'bundles.subcategory.category',
+            'minimumSpends.currency',
+        ]);
+
+        return response()->json(OfferResource::make($offer)->resolve());
+    }
+
     public function edit(Offer $offer): InertiaResponse
     {
         $offer->load([
@@ -178,7 +193,7 @@ class OfferController extends Controller
             ->where('is_active', true)
             ->whereNull('deleted_at')
             ->search($search)
-            ->limit(20)
+            ->limit(50)
             ->get()
             ->map(fn ($product) => [
                 'id' => $product->id,

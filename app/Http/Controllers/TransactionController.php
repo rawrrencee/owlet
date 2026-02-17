@@ -59,6 +59,7 @@ class TransactionController extends Controller
                     'code' => $c->code,
                     'symbol' => $c->symbol,
                     'name' => $c->name,
+                    'exchange_rate' => (string) $c->exchange_rate,
                 ]),
             ]);
 
@@ -97,7 +98,7 @@ class TransactionController extends Controller
                 'variants.prices' => fn ($q) => $q->where('currency_id', $currencyId),
                 'productStores' => fn ($q) => $q->where('store_id', $storeId),
                 'productStores.storePrices' => fn ($q) => $q->where('currency_id', $currencyId),
-                'prices' => fn ($q) => $q->where('currency_id', $currencyId),
+                'prices',
                 'category',
                 'subcategory',
                 'brand',
@@ -140,7 +141,7 @@ class TransactionController extends Controller
                 'productStores.storePrices' => fn ($q) => $q->where('currency_id', $currencyId),
                 'prices' => fn ($q) => $q->where('currency_id', $currencyId),
             ])
-            ->limit(20)
+            ->limit(50)
             ->get();
 
         return response()->json($products);
@@ -163,7 +164,7 @@ class TransactionController extends Controller
                 ->orWhere('email', 'like', "%{$search}%")
                 ->orWhere('phone', 'like', "%{$search}%");
         })
-            ->limit(20)
+            ->limit(50)
             ->get()
             ->map(fn ($c) => [
                 'id' => $c->id,
@@ -206,11 +207,25 @@ class TransactionController extends Controller
         ]);
 
         $user = $request->user();
-        $employeeId = $user->employee_id;
+        $employee = $user->employee;
+
+        if (! $employee) {
+            abort(403, 'You must have an employee record to create transactions.');
+        }
+
+        // Verify PROCESS_SALES permission for the requested store
+        $es = $employee->employeeStores()
+            ->where('store_id', $request->integer('store_id'))
+            ->where('active', true)
+            ->first();
+
+        if (! $es || ! $es->hasPermission(StorePermissions::PROCESS_SALES)) {
+            abort(403, 'You do not have permission to process sales for this store.');
+        }
 
         $transaction = $this->transactionService->create(
             $request->integer('store_id'),
-            $employeeId,
+            $employee->id,
             $request->integer('currency_id'),
             $user->id
         );

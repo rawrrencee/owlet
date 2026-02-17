@@ -42,14 +42,6 @@ const supplierOptions = computed(() => [
     ...props.suppliers.map((s) => ({ label: s.supplier_name, value: s.id })),
 ]);
 
-const storeOptions = computed(() => [
-    { label: 'All Stores', value: '' },
-    ...props.stores.map((s) => ({
-        label: `${s.store_name} (${s.store_code})`,
-        value: s.id,
-    })),
-]);
-
 const statusFilterOptions = computed(() => [
     { label: 'All Statuses', value: '' },
     ...props.statusOptions,

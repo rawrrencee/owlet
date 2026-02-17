@@ -35,7 +35,7 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\TransactionHistoryController;
 use App\Http\Controllers\StocktakeController;
 use App\Http\Controllers\StocktakeManagementController;
-use App\Http\Controllers\StocktakeNotificationRecipientController;
+use App\Http\Controllers\NotificationRecipientController;
 use App\Http\Controllers\StocktakeTemplateController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\SupplierController;
@@ -280,6 +280,7 @@ Route::middleware([
     Route::middleware('permission:offers.view')->group(function () {
         Route::get('offers', [OfferController::class, 'index'])->name('offers.index');
         Route::get('offers/{offer}', [OfferController::class, 'show'])->name('offers.show');
+        Route::get('offers/{offer}/json', [OfferController::class, 'showJson'])->name('offers.show.json');
     });
     Route::middleware('permission:offers.manage')->group(function () {
         Route::get('offers/{offer}/edit', [OfferController::class, 'edit'])->name('offers.edit');
@@ -300,6 +301,7 @@ Route::middleware([
         Route::get('quotations/search-customers', [QuotationController::class, 'searchCustomers'])->name('quotations.search-customers');
         Route::post('quotations/resolve-offer', [QuotationController::class, 'resolveOffer'])->name('quotations.resolve-offer');
         Route::get('quotations/offers', [QuotationController::class, 'offers'])->name('quotations.offers');
+        Route::get('quotations/offers/{offer}', [OfferController::class, 'showJson'])->name('quotations.offers.show');
     });
     Route::middleware('permission:quotations.view')->group(function () {
         Route::get('quotations', [QuotationController::class, 'index'])->name('quotations.index');
@@ -330,6 +332,7 @@ Route::middleware([
         Route::get('pos/search-customers', [TransactionController::class, 'searchCustomers'])->name('pos.search-customers');
         Route::get('pos/suspended', [TransactionController::class, 'suspendedList'])->name('pos.suspended');
         Route::get('pos/offers', [TransactionController::class, 'offers'])->name('pos.offers');
+        Route::get('pos/offers/{offer}', [OfferController::class, 'showJson'])->name('pos.offers.show');
         Route::post('pos/transactions', [TransactionController::class, 'store'])->name('pos.transactions.store');
         Route::get('pos/transactions/{transaction}', [TransactionController::class, 'show'])->name('pos.transactions.show');
         Route::post('pos/transactions/{transaction}/items', [TransactionController::class, 'addItem'])->name('pos.transactions.items.store');
@@ -538,10 +541,10 @@ Route::middleware([
             Route::delete('stocktake-templates/{template}', [StocktakeTemplateController::class, 'adminDestroy'])->name('stocktake-templates.destroy');
 
             // Notification recipient CRUD
-            Route::get('notifications/stocktake', [StocktakeNotificationRecipientController::class, 'index'])->name('notifications.stocktake.index');
-            Route::post('notifications/stocktake', [StocktakeNotificationRecipientController::class, 'store'])->name('notifications.stocktake.store');
-            Route::put('notifications/stocktake/{recipient}', [StocktakeNotificationRecipientController::class, 'update'])->name('notifications.stocktake.update');
-            Route::delete('notifications/stocktake/{recipient}', [StocktakeNotificationRecipientController::class, 'destroy'])->name('notifications.stocktake.destroy');
+            Route::get('notifications', [NotificationRecipientController::class, 'index'])->name('notifications.index');
+            Route::post('notifications', [NotificationRecipientController::class, 'store'])->name('notifications.store');
+            Route::put('notifications/{recipient}', [NotificationRecipientController::class, 'update'])->name('notifications.update');
+            Route::delete('notifications/{recipient}', [NotificationRecipientController::class, 'destroy'])->name('notifications.destroy');
         });
 
         // Management - Timecards

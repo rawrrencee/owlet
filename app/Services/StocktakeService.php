@@ -12,7 +12,8 @@ use App\Models\Product;
 use App\Models\ProductStore;
 use App\Models\Stocktake;
 use App\Models\StocktakeItem;
-use App\Models\StocktakeNotificationRecipient;
+use App\Enums\NotificationEventType;
+use App\Models\NotificationRecipient;
 use App\Models\StocktakeTemplate;
 use App\Models\Store;
 use App\Models\User;
@@ -256,7 +257,8 @@ class StocktakeService
      */
     protected function sendNotifications(Stocktake $stocktake): void
     {
-        $recipients = StocktakeNotificationRecipient::where('store_id', $stocktake->store_id)
+        $recipients = NotificationRecipient::forEventType(NotificationEventType::Stocktake)
+            ->where('store_id', $stocktake->store_id)
             ->active()
             ->get();
 

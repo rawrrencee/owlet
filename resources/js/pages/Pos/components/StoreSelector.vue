@@ -9,7 +9,7 @@ interface StoreOption {
     include_tax: boolean;
     can_void: boolean;
     can_apply_discounts: boolean;
-    currencies: Array<{ id: number; code: string; symbol: string; name: string }>;
+    currencies: Array<{ id: number; code: string; symbol: string; name: string; exchange_rate: string }>;
 }
 
 defineProps<{
@@ -27,7 +27,7 @@ const emit = defineEmits<{
         <div v-if="stores.length === 0" class="text-center text-muted-color">
             <p>No stores available. You need <strong>Process Sales</strong> permission for at least one store.</p>
         </div>
-        <div class="grid gap-3">
+        <div class="grid gap-3 max-h-[60vh] overflow-y-auto">
             <Card
                 v-for="store in stores"
                 :key="store.id"

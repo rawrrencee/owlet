@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Transaction, TransactionItem } from '@/types';
+import type { Transaction } from '@/types';
 import Button from 'primevue/button';
 import Checkbox from 'primevue/checkbox';
 import Dialog from 'primevue/dialog';

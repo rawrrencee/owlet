@@ -15,7 +15,7 @@ interface Props {
     breadcrumbs: BreadcrumbItem[];
 }
 
-const props = defineProps<Props>();
+defineProps<Props>();
 
 const confirm = useConfirm();
 

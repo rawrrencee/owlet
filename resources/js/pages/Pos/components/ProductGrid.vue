@@ -16,10 +16,19 @@ interface FilterBrand {
     brand_name: string;
 }
 
+interface CurrencyInfo {
+    id: number;
+    code: string;
+    symbol: string;
+    name: string;
+    exchange_rate: string;
+}
+
 const props = defineProps<{
     storeId: number;
     currencyId: number;
     currencySymbol: string;
+    currencies?: CurrencyInfo[];
     favouriteIds?: Set<number>;
     scrollContainer?: HTMLElement | null;
 }>();
@@ -51,6 +60,12 @@ const allCategories = ref<FilterCategory[]>([]);
 const allBrands = ref<FilterBrand[]>([]);
 const showFilterDialog = ref(false);
 const filterDialogMode = ref<'category' | 'brand'>('category');
+const filtersExpanded = ref(localStorage.getItem('pos_filters_expanded') !== 'false');
+
+function toggleFilters() {
+    filtersExpanded.value = !filtersExpanded.value;
+    localStorage.setItem('pos_filters_expanded', filtersExpanded.value.toString());
+}
 
 const filteredSubcategories = computed(() => {
     if (!selectedCategory.value) return [];
@@ -167,10 +182,14 @@ function filterByBrand(brandId: number | null) {
     loadProducts(true);
 }
 
-function clearAll() {
+function clearAllCategories() {
     selectedCategory.value = null;
     selectedCategoryName.value = null;
     selectedSubcategory.value = null;
+    loadProducts(true);
+}
+
+function clearAllBrands() {
     selectedBrand.value = null;
     selectedBrandName.value = null;
     loadProducts(true);
@@ -249,9 +268,18 @@ watch(() => [props.storeId, props.currencyId], () => {
 </script>
 
 <template>
-    <!-- Filter chips -->
-    <div class="mb-3 flex flex-wrap gap-1.5 items-center">
-        <!-- Favourites toggle -->
+    <!-- Filter header with collapse toggle -->
+    <div class="mb-2 flex items-center justify-between">
+        <Button
+            :icon="filtersExpanded ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+            :label="filtersExpanded ? 'Hide Filters' : 'Show Filters'"
+            text
+            size="small"
+            severity="secondary"
+            class="!pl-0"
+            @click="toggleFilters"
+        />
+        <!-- Favourites toggle (always visible) -->
         <Button
             v-if="favouriteIds && favouriteIds.size > 0"
             icon="pi pi-star-fill"
@@ -261,13 +289,19 @@ watch(() => [props.storeId, props.currencyId], () => {
             v-tooltip.bottom="'Favourites'"
             @click="showFavourites = !showFavourites"
         />
+    </div>
 
+    <!-- Collapsible filter rows -->
+    <div v-show="filtersExpanded">
+    <!-- Categories row -->
+    <div class="mb-2 flex flex-wrap gap-1.5 items-center">
+        <span class="text-xs text-muted-color font-medium mr-1">Category:</span>
         <Button
             label="All"
             size="small"
-            :severity="!selectedCategory && !selectedBrand ? undefined : 'secondary'"
-            :outlined="!!(selectedCategory || selectedBrand)"
-            @click="clearAll"
+            :severity="!selectedCategory ? undefined : 'secondary'"
+            :outlined="!!selectedCategory"
+            @click="clearAllCategories"
         />
 
         <!-- Show selected category from dialog if not in inline chips -->
@@ -277,7 +311,7 @@ watch(() => [props.storeId, props.currencyId], () => {
             size="small"
             icon="pi pi-times"
             icon-pos="right"
-            @click="clearAll"
+            @click="clearAllCategories"
         />
 
         <Button
@@ -300,8 +334,18 @@ watch(() => [props.storeId, props.currencyId], () => {
             v-tooltip.bottom="'More categories'"
             @click="openFilterDialog('category')"
         />
+    </div>
 
-        <span v-if="(categories.length || (selectedCategory && !selectedCategoryInChips)) && (brands.length || (selectedBrand && !selectedBrandInChips))" class="border-l mx-1 h-6"></span>
+    <!-- Brands row -->
+    <div class="mb-3 flex flex-wrap gap-1.5 items-center">
+        <span class="text-xs text-muted-color font-medium mr-1">Brand:</span>
+        <Button
+            label="All"
+            size="small"
+            :severity="!selectedBrand ? 'info' : 'secondary'"
+            :outlined="!!selectedBrand"
+            @click="clearAllBrands"
+        />
 
         <!-- Show selected brand from dialog if not in inline chips -->
         <Button
@@ -311,7 +355,7 @@ watch(() => [props.storeId, props.currencyId], () => {
             severity="info"
             icon="pi pi-times"
             icon-pos="right"
-            @click="clearAll"
+            @click="clearAllBrands"
         />
 
         <Button
@@ -348,6 +392,7 @@ watch(() => [props.storeId, props.currencyId], () => {
             @click="filterBySubcategory(selectedSubcategory === sub.id ? null : sub.id)"
         />
     </div>
+    </div>
 
     <!-- Product grid -->
     <div v-if="loading && products.length === 0" class="flex justify-center p-8">
@@ -366,6 +411,7 @@ watch(() => [props.storeId, props.currencyId], () => {
             :store-id="storeId"
             :currency-id="currencyId"
             :currency-symbol="currencySymbol"
+            :currencies="currencies"
             :is-favourite="favouriteIds?.has(product.id) ?? false"
             @select="emit('select', product)"
             @toggle-favourite="emit('toggle-favourite', product.id)"

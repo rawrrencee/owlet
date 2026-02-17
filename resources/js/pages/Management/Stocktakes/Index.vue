@@ -134,11 +134,6 @@ function viewStocktake(stocktake: Stocktake) {
     router.get(`/management/stocktakes/${stocktake.id}`);
 }
 
-function formatDate(dateString: string | null): string {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString();
-}
-
 function formatDateTime(dateString: string | null): string {
     if (!dateString) return '-';
     return new Date(dateString).toLocaleString();

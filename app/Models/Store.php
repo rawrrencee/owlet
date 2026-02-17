@@ -85,9 +85,9 @@ class Store extends Model
     /**
      * Get notification recipients for this store.
      */
-    public function stocktakeNotificationRecipients(): HasMany
+    public function notificationRecipients(): HasMany
     {
-        return $this->hasMany(StocktakeNotificationRecipient::class);
+        return $this->hasMany(NotificationRecipient::class);
     }
 
     /**

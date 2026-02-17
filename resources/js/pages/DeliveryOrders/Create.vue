@@ -248,7 +248,7 @@ function submit() {
                         </template>
                     </Column>
                     <Column header="Quantity" class="w-32">
-                        <template #body="{ data, index }">
+                        <template #body="{ index }">
                             <InputNumber
                                 v-model="form.items[index].quantity"
                                 :min="1"

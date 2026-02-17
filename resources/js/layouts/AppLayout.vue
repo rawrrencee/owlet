@@ -9,10 +9,12 @@ import Toast from 'primevue/toast';
 
 type Props = {
     breadcrumbs?: BreadcrumbItem[];
+    hideFloatingPanel?: boolean;
 };
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
     breadcrumbs: () => [],
+    hideFloatingPanel: false,
 });
 
 // Watch for flash messages and show toasts
@@ -23,12 +25,12 @@ usePermissionGuard();
 </script>
 
 <template>
-    <Toast position="top-right" />
+    <Toast position="top-right" class="!max-w-[calc(100vw-2rem)]" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <slot />
     </AppLayout>
     <!-- Floating clock panel for time tracking -->
-    <FloatingClockPanel />
+    <FloatingClockPanel v-if="!props.hideFloatingPanel" />
     <!-- Modal for resolving incomplete timecards -->
     <IncompleteTimecardModal />
 </template>

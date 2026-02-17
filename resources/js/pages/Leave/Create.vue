@@ -15,7 +15,7 @@ interface Props {
     breadcrumbs: BreadcrumbItem[];
 }
 
-const props = defineProps<Props>();
+defineProps<Props>();
 
 const form = useForm({
     leave_type_id: null as number | null,

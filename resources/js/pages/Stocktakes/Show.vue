@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import BarcodeScanner from '@/components/stocktakes/BarcodeScanner.vue';
 import ProductSearchBar from '@/components/stocktakes/ProductSearchBar.vue';
+import StocktakeBarcodeScannerDialog from '@/components/stocktakes/StocktakeBarcodeScannerDialog.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type {
     BreadcrumbItem,
@@ -36,7 +36,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const confirm = useConfirm();
-const scannerActive = ref(false);
+const showScannerDialog = ref(false);
 const productSearchBarRef = ref<InstanceType<typeof ProductSearchBar>>();
 const submitDialogVisible = ref(false);
 const expandedRows = ref({});
@@ -201,12 +201,12 @@ const discrepancyCount = computed(
             <template v-if="stocktake.status === 'in_progress'">
                 <div class="flex flex-wrap gap-2">
                     <Button
-                        :label="scannerActive ? 'Close Scanner' : 'Scan Barcode'"
-                        :icon="scannerActive ? 'pi pi-times' : 'pi pi-camera'"
-                        :severity="scannerActive ? 'secondary' : 'info'"
+                        label="Scan Barcode"
+                        icon="pi pi-camera"
+                        severity="info"
                         outlined
                         size="small"
-                        @click="scannerActive = !scannerActive"
+                        @click="showScannerDialog = true"
                     />
                     <div v-if="templateOptions.length > 0" class="flex gap-2">
                         <Select
@@ -228,13 +228,6 @@ const discrepancyCount = computed(
                         />
                     </div>
                 </div>
-
-                <!-- Barcode Scanner -->
-                <BarcodeScanner
-                    :active="scannerActive"
-                    @scan="onBarcodeScan"
-                    @close="scannerActive = false"
-                />
 
                 <!-- Product Search -->
                 <div>
@@ -440,6 +433,12 @@ const discrepancyCount = computed(
                     />
                 </template>
             </Dialog>
+
+            <!-- Barcode Scanner Dialog -->
+            <StocktakeBarcodeScannerDialog
+                v-model:visible="showScannerDialog"
+                @scan="onBarcodeScan"
+            />
 
             <ConfirmDialog />
         </div>

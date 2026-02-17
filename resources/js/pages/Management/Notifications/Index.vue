@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { BreadcrumbItem, StocktakeNotificationRecipient } from '@/types';
+import type { BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Column from 'primevue/column';
@@ -12,8 +12,6 @@ import InputText from 'primevue/inputtext';
 import Select from 'primevue/select';
 import Tab from 'primevue/tab';
 import TabList from 'primevue/tablist';
-import TabPanel from 'primevue/tabpanel';
-import TabPanels from 'primevue/tabpanels';
 import Tabs from 'primevue/tabs';
 import Tag from 'primevue/tag';
 import { useConfirm } from 'primevue/useconfirm';
@@ -25,11 +23,27 @@ interface StoreOption {
     store_code: string;
 }
 
+interface EventType {
+    value: string;
+    label: string;
+}
+
+interface NotificationRecipient {
+    id: number;
+    event_type: string;
+    store_id: number;
+    email: string;
+    name: string | null;
+    is_active: boolean;
+}
+
 interface Props {
     stores: StoreOption[];
-    recipients: StocktakeNotificationRecipient[];
+    recipients: NotificationRecipient[];
+    eventTypes: EventType[];
     filters: {
         store_id: string | null;
+        event_type: string;
     };
 }
 
@@ -44,6 +58,7 @@ const confirm = useConfirm();
 
 const filters = reactive({
     store_id: props.filters.store_id ?? '',
+    event_type: props.filters.event_type ?? 'stocktake',
 });
 
 const storeOptions = [
@@ -54,21 +69,33 @@ const storeOptions = [
     })),
 ];
 
-watch(() => filters.store_id, () => {
+function reloadWithFilters() {
     const params: Record<string, string> = {};
     if (filters.store_id) params.store_id = filters.store_id;
-    router.get('/management/notifications/stocktake', params, { preserveState: true });
+    if (filters.event_type) params.event_type = filters.event_type;
+    router.get('/management/notifications', params, { preserveState: true });
+}
+
+watch(() => filters.store_id, () => {
+    reloadWithFilters();
 });
+
+function onTabChange(eventType: string) {
+    filters.event_type = eventType;
+    reloadWithFilters();
+}
 
 // Add dialog
 const addDialogVisible = ref(false);
 const addForm = useForm({
+    event_type: '',
     store_id: null as number | null,
     email: '',
     name: '',
 });
 
 function openAddDialog() {
+    addForm.event_type = filters.event_type;
     addForm.store_id = filters.store_id ? Number(filters.store_id) : null;
     addForm.email = '';
     addForm.name = '';
@@ -76,7 +103,7 @@ function openAddDialog() {
 }
 
 function submitAdd() {
-    addForm.post('/management/notifications/stocktake', {
+    addForm.post('/management/notifications', {
         preserveScroll: true,
         onSuccess: () => {
             addDialogVisible.value = false;
@@ -93,7 +120,7 @@ const editForm = useForm({
 });
 const editingRecipientId = ref<number | null>(null);
 
-function openEditDialog(recipient: StocktakeNotificationRecipient) {
+function openEditDialog(recipient: NotificationRecipient) {
     editingRecipientId.value = recipient.id;
     editForm.email = recipient.email;
     editForm.name = recipient.name ?? '';
@@ -103,7 +130,7 @@ function openEditDialog(recipient: StocktakeNotificationRecipient) {
 
 function submitEdit() {
     if (!editingRecipientId.value) return;
-    editForm.put(`/management/notifications/stocktake/${editingRecipientId.value}`, {
+    editForm.put(`/management/notifications/${editingRecipientId.value}`, {
         preserveScroll: true,
         onSuccess: () => {
             editDialogVisible.value = false;
@@ -111,7 +138,7 @@ function submitEdit() {
     });
 }
 
-function confirmDelete(recipient: StocktakeNotificationRecipient) {
+function confirmDelete(recipient: NotificationRecipient) {
     confirm.require({
         message: `Remove "${recipient.email}" from notifications?`,
         header: 'Remove Recipient',
@@ -121,7 +148,7 @@ function confirmDelete(recipient: StocktakeNotificationRecipient) {
         acceptLabel: 'Remove',
         acceptProps: { severity: 'danger', size: 'small' },
         accept: () => {
-            router.delete(`/management/notifications/stocktake/${recipient.id}`, {
+            router.delete(`/management/notifications/${recipient.id}`, {
                 preserveScroll: true,
             });
         },
@@ -145,91 +172,95 @@ function confirmDelete(recipient: StocktakeNotificationRecipient) {
                 />
             </div>
 
-            <Tabs value="stocktake">
+            <Tabs :value="filters.event_type">
                 <TabList>
-                    <Tab value="stocktake">Stocktake</Tab>
+                    <Tab
+                        v-for="et in eventTypes"
+                        :key="et.value"
+                        :value="et.value"
+                        @click="onTabChange(et.value)"
+                    >
+                        {{ et.label }}
+                    </Tab>
                 </TabList>
-                <TabPanels>
-                    <TabPanel value="stocktake">
-                        <div class="flex flex-col gap-4 pt-4">
-                            <!-- Store Selector -->
-                            <div>
-                                <Select
-                                    v-model="filters.store_id"
-                                    :options="storeOptions"
-                                    optionLabel="label"
-                                    optionValue="value"
-                                    placeholder="Select store..."
+            </Tabs>
+
+            <div class="flex flex-col gap-4">
+                <!-- Store Selector -->
+                <div>
+                    <Select
+                        v-model="filters.store_id"
+                        :options="storeOptions"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="Select store..."
+                        size="small"
+                        class="w-full sm:w-64"
+                    />
+                </div>
+
+                <!-- No store selected message -->
+                <div v-if="!filters.store_id" class="rounded-lg border border-border p-8 text-center text-muted-foreground">
+                    Select a store to view and manage notification recipients.
+                </div>
+
+                <!-- Recipients table -->
+                <DataTable
+                    v-else
+                    :value="recipients"
+                    dataKey="id"
+                    striped-rows
+                    size="small"
+                    class="overflow-hidden rounded-lg border border-border"
+                >
+                    <template #empty>
+                        <div class="p-4 text-center text-muted-foreground">
+                            No notification recipients for this store and event type.
+                        </div>
+                    </template>
+                    <Column header="Name">
+                        <template #body="{ data }">
+                            <span class="font-medium">{{ data.name || '-' }}</span>
+                        </template>
+                    </Column>
+                    <Column header="Email">
+                        <template #body="{ data }">
+                            {{ data.email }}
+                        </template>
+                    </Column>
+                    <Column header="Status" :style="{ width: '6rem' }">
+                        <template #body="{ data }">
+                            <Tag
+                                :value="data.is_active ? 'Active' : 'Inactive'"
+                                :severity="data.is_active ? 'success' : 'secondary'"
+                                class="!text-xs"
+                            />
+                        </template>
+                    </Column>
+                    <Column header="" :style="{ width: '6rem' }">
+                        <template #body="{ data }">
+                            <div class="flex justify-end gap-1">
+                                <Button
+                                    icon="pi pi-pencil"
+                                    severity="secondary"
+                                    text
+                                    rounded
                                     size="small"
-                                    class="w-full sm:w-64"
+                                    @click="openEditDialog(data)"
+                                />
+                                <Button
+                                    icon="pi pi-trash"
+                                    severity="danger"
+                                    text
+                                    rounded
+                                    size="small"
+                                    @click="confirmDelete(data)"
                                 />
                             </div>
-
-                            <!-- No store selected message -->
-                            <div v-if="!filters.store_id" class="rounded-lg border border-border p-8 text-center text-muted-foreground">
-                                Select a store to view and manage notification recipients.
-                            </div>
-
-                            <!-- Recipients table -->
-                            <DataTable
-                                v-else
-                                :value="recipients"
-                                dataKey="id"
-                                striped-rows
-                                size="small"
-                                class="overflow-hidden rounded-lg border border-border"
-                            >
-                                <template #empty>
-                                    <div class="p-4 text-center text-muted-foreground">
-                                        No notification recipients for this store.
-                                    </div>
-                                </template>
-                                <Column header="Name">
-                                    <template #body="{ data }">
-                                        <span class="font-medium">{{ data.name || '-' }}</span>
-                                    </template>
-                                </Column>
-                                <Column header="Email">
-                                    <template #body="{ data }">
-                                        {{ data.email }}
-                                    </template>
-                                </Column>
-                                <Column header="Status" :style="{ width: '6rem' }">
-                                    <template #body="{ data }">
-                                        <Tag
-                                            :value="data.is_active ? 'Active' : 'Inactive'"
-                                            :severity="data.is_active ? 'success' : 'secondary'"
-                                            class="!text-xs"
-                                        />
-                                    </template>
-                                </Column>
-                                <Column header="" :style="{ width: '6rem' }">
-                                    <template #body="{ data }">
-                                        <div class="flex justify-end gap-1">
-                                            <Button
-                                                icon="pi pi-pencil"
-                                                severity="secondary"
-                                                text
-                                                rounded
-                                                size="small"
-                                                @click="openEditDialog(data)"
-                                            />
-                                            <Button
-                                                icon="pi pi-trash"
-                                                severity="danger"
-                                                text
-                                                rounded
-                                                size="small"
-                                                @click="confirmDelete(data)"
-                                            />
-                                        </div>
-                                    </template>
-                                </Column>
-                            </DataTable>
-                        </div>
-                    </TabPanel>
-                </TabPanels>
-            </Tabs>
+                        </template>
+                    </Column>
+                </DataTable>
+            </div>
 
             <!-- Add Recipient Dialog -->
             <Dialog

@@ -159,7 +159,7 @@ class NavigationService
             $systemItems[] = ['title' => 'Stocktakes', 'href' => '/management/stocktakes', 'icon' => 'ClipboardList'];
         }
         if ($user->isAdmin()) {
-            $systemItems[] = ['title' => 'Notifications', 'href' => '/management/notifications/stocktake', 'icon' => 'BellRing'];
+            $systemItems[] = ['title' => 'Notifications', 'href' => '/management/notifications', 'icon' => 'BellRing'];
             $systemItems[] = ['title' => 'Data Migration', 'href' => '/admin/data-migration', 'icon' => 'DatabaseZap'];
         }
 

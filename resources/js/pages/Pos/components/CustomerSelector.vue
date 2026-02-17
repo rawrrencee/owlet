@@ -4,7 +4,7 @@ import Button from 'primevue/button';
 import Tag from 'primevue/tag';
 import { ref } from 'vue';
 
-const props = defineProps<{
+defineProps<{
     customer: any;
     disabled: boolean;
 }>();

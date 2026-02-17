@@ -6,7 +6,7 @@ import {
 } from '@/composables/useSmartBack';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem, DeliveryOrder } from '@/types';
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
 import Column from 'primevue/column';
@@ -252,7 +252,7 @@ function submit() {
                         </template>
                     </Column>
                     <Column header="Quantity" class="w-32">
-                        <template #body="{ data, index }">
+                        <template #body="{ index }">
                             <InputNumber
                                 v-model="form.items[index].quantity"
                                 :min="1"

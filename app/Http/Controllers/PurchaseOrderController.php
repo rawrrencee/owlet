@@ -228,7 +228,7 @@ class PurchaseOrderController extends Controller
             ->where('is_active', true)
             ->whereNull('deleted_at')
             ->search($search)
-            ->limit(20)
+            ->limit(50)
             ->get()
             ->map(fn ($product) => [
                 'id' => $product->id,

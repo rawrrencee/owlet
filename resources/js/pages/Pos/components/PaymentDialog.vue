@@ -3,7 +3,6 @@ import type { Transaction } from '@/types';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import InputNumber from 'primevue/inputnumber';
-import Tag from 'primevue/tag';
 import { computed, ref, watch } from 'vue';
 
 interface PaymentModeOption {
@@ -113,11 +112,9 @@ function selectModeAndPay(mode: PaymentModeOption) {
                     :min="0.01"
                     :max-fraction-digits="2"
                     :min-fraction-digits="2"
-                    mode="currency"
-                    :currency="'USD'"
+                    :prefix="currencySymbol"
                     class="w-full mb-3"
                     size="small"
-                    :prefix="currencySymbol"
                 />
 
                 <!-- Payment mode buttons (touch-friendly grid) -->

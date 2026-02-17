@@ -2,8 +2,8 @@
 import StocktakeWidget from '@/components/stocktakes/StocktakeWidget.vue';
 import type { AppPageProps, Stocktake } from '@/types';
 import type { Timecard, TimecardStore } from '@/types/timecard';
-import { usePage } from '@inertiajs/vue3';
-import { Clock, Coffee, Play } from 'lucide-vue-next';
+import { router, usePage } from '@inertiajs/vue3';
+import { Clock, Coffee, Play, ShoppingBag } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Divider from 'primevue/divider';
 import Drawer from 'primevue/drawer';
@@ -185,6 +185,22 @@ onMounted(() => {
             </template>
 
             <div class="flex flex-col gap-4 p-4">
+                <!-- Quick Links -->
+                <Button
+                    label="Point of Sale"
+                    severity="secondary"
+                    outlined
+                    size="small"
+                    class="w-full"
+                    @click="router.visit('/pos'); isOpen = false"
+                >
+                    <template #icon>
+                        <ShoppingBag class="h-4 w-4" />
+                    </template>
+                </Button>
+
+                <Divider class="!my-0" />
+
                 <!-- Time Clock Section -->
                 <div>
                     <div class="mb-3 flex items-center gap-2">

@@ -3,9 +3,12 @@ import { Html5Qrcode } from 'html5-qrcode';
 import Button from 'primevue/button';
 import { onBeforeUnmount, ref, watch } from 'vue';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
     active: boolean;
-}>();
+    scannerId?: string;
+}>(), {
+    scannerId: 'barcode-scanner-region',
+});
 
 const emit = defineEmits<{
     scan: [barcode: string];
@@ -37,7 +40,7 @@ async function startScanner() {
     }
 
     try {
-        scanner.value = new Html5Qrcode('barcode-scanner-region');
+        scanner.value = new Html5Qrcode(props.scannerId);
         await scanner.value.start(
             { facingMode: facingMode.value },
             {
@@ -100,9 +103,31 @@ watch(
     { immediate: true },
 );
 
+function pause() {
+    if (scanner.value) {
+        try {
+            scanner.value.pause(false);
+        } catch {
+            // ignore if not running
+        }
+    }
+}
+
+function resume() {
+    if (scanner.value) {
+        try {
+            scanner.value.resume();
+        } catch {
+            // ignore if not paused
+        }
+    }
+}
+
 onBeforeUnmount(() => {
     stopScanner();
 });
+
+defineExpose({ pause, resume });
 </script>
 
 <template>
@@ -137,7 +162,7 @@ onBeforeUnmount(() => {
                 {{ error }}
             </div>
             <div
-                id="barcode-scanner-region"
+                :id="scannerId"
                 ref="scannerRef"
                 class="overflow-hidden rounded-md"
             />

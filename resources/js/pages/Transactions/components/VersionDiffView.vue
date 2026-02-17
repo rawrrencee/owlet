@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TransactionVersion } from '@/types';
 import Select from 'primevue/select';
-import { computed, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps<{
     versions: TransactionVersion[];

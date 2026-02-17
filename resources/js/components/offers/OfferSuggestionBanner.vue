@@ -34,10 +34,6 @@ function formatDiscount(offer: OfferSuggestion): string {
     return `$${offer.discount_amount.toFixed(2)} off`;
 }
 
-function applyAll() {
-    emit('apply', [...arguments[0] || []]);
-}
-
 function dismissAll() {
     emit('dismiss-all', dontShowAgain.value);
 }

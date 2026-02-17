@@ -2,9 +2,7 @@
 import type { Stocktake } from '@/types';
 import { router } from '@inertiajs/vue3';
 import Button from 'primevue/button';
-import Divider from 'primevue/divider';
 import Select from 'primevue/select';
-import Tag from 'primevue/tag';
 import { ref } from 'vue';
 
 interface StoreOption {

@@ -256,7 +256,7 @@ class StocktakeTemplateController extends Controller
                 $q->where('store_id', $storeId);
             })
             ->search($search)
-            ->limit(20)
+            ->limit(50)
             ->get()
             ->map(fn ($product) => [
                 'id' => $product->id,

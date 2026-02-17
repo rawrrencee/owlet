@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Transaction } from '@/types';
-import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
 import InputNumber from 'primevue/inputnumber';
 import Tag from 'primevue/tag';

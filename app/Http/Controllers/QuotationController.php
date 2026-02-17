@@ -302,7 +302,7 @@ class QuotationController extends Controller
             ->whereNull('deleted_at')
             ->search($search)
             ->with('prices')
-            ->limit(20)
+            ->limit(50)
             ->get()
             ->map(fn ($product) => [
                 'id' => $product->id,
@@ -335,7 +335,7 @@ class QuotationController extends Controller
                     ->orWhere('email', 'like', "%{$search}%")
                     ->orWhere('phone', 'like', "%{$search}%");
             })
-            ->limit(20)
+            ->limit(50)
             ->get()
             ->map(fn ($customer) => [
                 'id' => $customer->id,
