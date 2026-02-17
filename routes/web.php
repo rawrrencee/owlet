@@ -31,6 +31,8 @@ use App\Http\Controllers\PaymentModeController;
 use App\Http\Controllers\PublicQuotationController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\StockCheckController;
+use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\TransactionHistoryController;
 use App\Http\Controllers\StocktakeController;
 use App\Http\Controllers\StocktakeManagementController;
 use App\Http\Controllers\StocktakeNotificationRecipientController;
@@ -297,6 +299,7 @@ Route::middleware([
         Route::get('quotations/search-products', [QuotationController::class, 'searchProducts'])->name('quotations.search-products');
         Route::get('quotations/search-customers', [QuotationController::class, 'searchCustomers'])->name('quotations.search-customers');
         Route::post('quotations/resolve-offer', [QuotationController::class, 'resolveOffer'])->name('quotations.resolve-offer');
+        Route::get('quotations/offers', [QuotationController::class, 'offers'])->name('quotations.offers');
     });
     Route::middleware('permission:quotations.view')->group(function () {
         Route::get('quotations', [QuotationController::class, 'index'])->name('quotations.index');
@@ -316,6 +319,40 @@ Route::middleware([
     Route::middleware('permission:quotations.admin')->group(function () {
         Route::post('quotations/{quotation}/accept', [QuotationController::class, 'markAsAccepted'])->name('quotations.accept');
         Route::post('quotations/{quotation}/mark-paid', [QuotationController::class, 'markAsPaid'])->name('quotations.mark-paid');
+    });
+
+    // Point of Sale
+    Route::middleware('permission:pos.access')->group(function () {
+        Route::get('pos', [TransactionController::class, 'index'])->name('pos.index');
+        Route::get('pos/products', [TransactionController::class, 'products'])->name('pos.products');
+        Route::get('pos/filters', [TransactionController::class, 'filters'])->name('pos.filters');
+        Route::get('pos/search-products', [TransactionController::class, 'searchProducts'])->name('pos.search-products');
+        Route::get('pos/search-customers', [TransactionController::class, 'searchCustomers'])->name('pos.search-customers');
+        Route::get('pos/suspended', [TransactionController::class, 'suspendedList'])->name('pos.suspended');
+        Route::get('pos/offers', [TransactionController::class, 'offers'])->name('pos.offers');
+        Route::post('pos/transactions', [TransactionController::class, 'store'])->name('pos.transactions.store');
+        Route::get('pos/transactions/{transaction}', [TransactionController::class, 'show'])->name('pos.transactions.show');
+        Route::post('pos/transactions/{transaction}/items', [TransactionController::class, 'addItem'])->name('pos.transactions.items.store');
+        Route::put('pos/transactions/{transaction}/items/{item}', [TransactionController::class, 'updateItem'])->name('pos.transactions.items.update');
+        Route::delete('pos/transactions/{transaction}/items/{item}', [TransactionController::class, 'removeItem'])->name('pos.transactions.items.destroy');
+        Route::put('pos/transactions/{transaction}/customer', [TransactionController::class, 'setCustomer'])->name('pos.transactions.customer');
+        Route::post('pos/transactions/{transaction}/payments', [TransactionController::class, 'addPayment'])->name('pos.transactions.payments.store');
+        Route::delete('pos/transactions/{transaction}/payments/{payment}', [TransactionController::class, 'removePayment'])->name('pos.transactions.payments.destroy');
+        Route::post('pos/transactions/{transaction}/complete', [TransactionController::class, 'complete'])->name('pos.transactions.complete');
+        Route::post('pos/transactions/{transaction}/suspend', [TransactionController::class, 'suspend'])->name('pos.transactions.suspend');
+        Route::post('pos/transactions/{transaction}/resume', [TransactionController::class, 'resume'])->name('pos.transactions.resume');
+        Route::post('pos/transactions/{transaction}/void', [TransactionController::class, 'voidTransaction'])->name('pos.transactions.void');
+        Route::post('pos/transactions/{transaction}/refund', [TransactionController::class, 'refund'])->name('pos.transactions.refund');
+        Route::get('pos/favourites', [TransactionController::class, 'favourites'])->name('pos.favourites');
+        Route::post('pos/favourites/{product}', [TransactionController::class, 'toggleFavourite'])->name('pos.favourites.toggle');
+    });
+
+    // Transactions
+    Route::middleware('permission:transactions.view')->group(function () {
+        Route::get('transactions', [TransactionHistoryController::class, 'index'])->name('transactions.index');
+        Route::get('transactions/{transaction}', [TransactionHistoryController::class, 'show'])->name('transactions.show');
+        Route::get('transactions/{transaction}/versions', [TransactionHistoryController::class, 'versions'])->name('transactions.versions');
+        Route::get('transactions/{transaction}/versions/{version}/diff', [TransactionHistoryController::class, 'versionDiff'])->name('transactions.versions.diff');
     });
 
     // Payment Modes (admin or permission-based)

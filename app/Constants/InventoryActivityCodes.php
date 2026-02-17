@@ -20,6 +20,12 @@ class InventoryActivityCodes
 
     public const PURCHASE_ORDER_REVERT_OUT = 'PRO';
 
+    public const SOLD_ITEM = 'SI';
+
+    public const REFUND_ITEM = 'RI';
+
+    public const TRANSACTION_ADJUSTMENT = 'TA';
+
     /**
      * Get all activity codes with their labels.
      *
@@ -36,6 +42,9 @@ class InventoryActivityCodes
             self::DELIVERY_ORDER_REVERT_IN => 'Delivery Revert In',
             self::DELIVERY_ORDER_REVERT_OUT => 'Delivery Revert Out',
             self::PURCHASE_ORDER_REVERT_OUT => 'Purchase Revert Out',
+            self::SOLD_ITEM => 'Sold Item',
+            self::REFUND_ITEM => 'Refund Item',
+            self::TRANSACTION_ADJUSTMENT => 'Transaction Adjustment',
         ];
     }
 

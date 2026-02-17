@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import OfferBrowseDialog from '@/components/offers/OfferBrowseDialog.vue';
+import OfferTag from '@/components/offers/OfferTag.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem, Quotation, TaxMode } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
@@ -342,6 +344,9 @@ const pendingOffer = ref<PendingOffer | null>(null);
 // Batch offer confirmation
 const showBatchOfferDialog = ref(false);
 const pendingBatchOffers = ref<PendingOffer[]>([]);
+
+// Browse offers dialog
+const showOfferBrowseDialog = ref(false);
 
 async function fetchOfferForItem(index: number): Promise<any> {
     const item = form.items[index];
@@ -754,7 +759,18 @@ function cancel() {
 
                 <!-- Line Items Section -->
                 <div class="rounded-lg border border-border p-4">
-                    <h3 class="mb-3 font-medium">Line Items *</h3>
+                    <div class="mb-3 flex items-center justify-between">
+                        <h3 class="font-medium">Line Items *</h3>
+                        <Button
+                            v-if="form.company_id"
+                            icon="pi pi-tag"
+                            label="Offers"
+                            severity="secondary"
+                            text
+                            size="small"
+                            @click="showOfferBrowseDialog = true"
+                        />
+                    </div>
 
                     <!-- Product Search -->
                     <div class="relative mb-3">
@@ -871,7 +887,7 @@ function cancel() {
                             </Column>
                             <Column header="Offer" class="hidden md:table-cell">
                                 <template #body="{ data }">
-                                    <Tag v-if="data.offer_name" :value="data.offer_name" severity="success" />
+                                    <OfferTag v-if="data.offer_name" :name="data.offer_name" />
                                     <span v-else class="text-xs text-muted-foreground">-</span>
                                 </template>
                             </Column>
@@ -1177,5 +1193,12 @@ function cancel() {
                 </div>
             </template>
         </Dialog>
+
+        <!-- Offer Browse Dialog -->
+        <OfferBrowseDialog
+            v-model:visible="showOfferBrowseDialog"
+            :company-id="form.company_id"
+            fetch-url="/quotations/offers"
+        />
     </AppLayout>
 </template>

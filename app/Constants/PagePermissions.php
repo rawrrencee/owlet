@@ -80,6 +80,14 @@ class PagePermissions
     // Leave
     public const LEAVE_REQUESTS_MANAGE = 'leave_requests.manage';
 
+    // Point of Sale
+    public const POS_ACCESS = 'pos.access';
+
+    // Transactions
+    public const TRANSACTIONS_VIEW = 'transactions.view';
+
+    public const TRANSACTIONS_MANAGE = 'transactions.manage';
+
     // Inventory
     public const INVENTORY_LOGS_VIEW = 'inventory_logs.view';
 
@@ -250,6 +258,21 @@ class PagePermissions
                 'key' => self::LEAVE_REQUESTS_MANAGE,
                 'label' => 'Manage Leave Requests',
                 'group' => 'Leave',
+            ],
+            self::POS_ACCESS => [
+                'key' => self::POS_ACCESS,
+                'label' => 'Access Point of Sale',
+                'group' => 'Point of Sale',
+            ],
+            self::TRANSACTIONS_VIEW => [
+                'key' => self::TRANSACTIONS_VIEW,
+                'label' => 'View Transactions',
+                'group' => 'Transactions',
+            ],
+            self::TRANSACTIONS_MANAGE => [
+                'key' => self::TRANSACTIONS_MANAGE,
+                'label' => 'Manage Transactions',
+                'group' => 'Transactions',
             ],
             self::INVENTORY_LOGS_VIEW => [
                 'key' => self::INVENTORY_LOGS_VIEW,

@@ -103,6 +103,12 @@ class NavigationService
         // Sales section - customer-facing transactions & payment config
         $salesItems = [];
 
+        if ($this->permissionService->canAccessPage($user, 'pos.access')) {
+            $salesItems[] = ['title' => 'Point of Sale', 'href' => '/pos', 'icon' => 'ShoppingBag'];
+        }
+        if ($this->permissionService->canAccessPage($user, 'transactions.view')) {
+            $salesItems[] = ['title' => 'Transactions', 'href' => '/transactions', 'icon' => 'Receipt'];
+        }
         if ($this->permissionService->canAccessPage($user, 'offers.view')) {
             $salesItems[] = ['title' => 'Offers', 'href' => '/offers', 'icon' => 'Percent'];
         }

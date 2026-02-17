@@ -13,6 +13,7 @@ use App\Models\PaymentMode;
 use App\Models\Product;
 use App\Models\Quotation;
 use App\Models\Store;
+use App\Services\OfferService;
 use App\Services\PermissionService;
 use App\Services\QuotationService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -27,7 +28,8 @@ class QuotationController extends Controller
 {
     public function __construct(
         private readonly QuotationService $service,
-        private readonly PermissionService $permissionService
+        private readonly PermissionService $permissionService,
+        private readonly OfferService $offerService
     ) {}
 
     public function index(Request $request): InertiaResponse
@@ -368,5 +370,69 @@ class QuotationController extends Controller
         );
 
         return response()->json($offer);
+    }
+
+    /**
+     * Get active offers for all stores in a company (for the offers browse dialog).
+     */
+    public function offers(Request $request): JsonResponse
+    {
+        $companyId = $request->integer('company_id');
+        if (! $companyId) {
+            return response()->json([]);
+        }
+
+        $storeIds = Store::where('company_id', $companyId)->pluck('id');
+
+        // Merge offers from all company stores, deduplicating by offer ID
+        $allOffers = [];
+        foreach ($storeIds as $storeId) {
+            $grouped = $this->offerService->getActiveOffersForStore($storeId);
+            foreach ($grouped as $type => $offers) {
+                if (! isset($allOffers[$type])) {
+                    $allOffers[$type] = collect();
+                }
+                foreach ($offers as $offer) {
+                    if (! $allOffers[$type]->contains('id', $offer->id)) {
+                        $allOffers[$type]->push($offer);
+                    }
+                }
+            }
+        }
+
+        // Also check global offers (apply_to_all_stores)
+        if ($storeIds->isEmpty()) {
+            $grouped = $this->offerService->getActiveOffersForStore(null);
+            foreach ($grouped as $type => $offers) {
+                if (! isset($allOffers[$type])) {
+                    $allOffers[$type] = collect();
+                }
+                foreach ($offers as $offer) {
+                    if (! $allOffers[$type]->contains('id', $offer->id)) {
+                        $allOffers[$type]->push($offer);
+                    }
+                }
+            }
+        }
+
+        // Convert to arrays and map to the expected format
+        $result = [];
+        foreach ($allOffers as $type => $offers) {
+            $result[$type] = $offers->map(fn ($offer) => [
+                'id' => $offer->id,
+                'offer_name' => $offer->name,
+                'type' => $offer->type->value,
+                'discount_type' => $offer->discount_type->value,
+                'is_combinable' => $offer->is_combinable,
+                'status' => $offer->status->value,
+                'amounts' => $offer->amounts->map(fn ($a) => [
+                    'currency_id' => $a->currency_id,
+                    'discount_percentage' => $offer->discount_percentage,
+                    'discount_amount' => $a->discount_amount,
+                ]),
+            ])->values();
+        }
+
+        return response()->json($result);
     }
 }

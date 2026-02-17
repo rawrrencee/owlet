@@ -14,6 +14,7 @@ class InventoryLog extends Model
         'stocktake_id',
         'delivery_order_id',
         'purchase_order_id',
+        'transaction_id',
         'activity_code',
         'quantity_in',
         'quantity_out',
@@ -54,6 +55,11 @@ class InventoryLog extends Model
     public function purchaseOrder(): BelongsTo
     {
         return $this->belongsTo(PurchaseOrder::class);
+    }
+
+    public function transaction(): BelongsTo
+    {
+        return $this->belongsTo(Transaction::class);
     }
 
     public function createdByUser(): BelongsTo

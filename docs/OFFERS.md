@@ -242,60 +242,91 @@ Location: `app/Services/OfferService.php`
 
 ---
 
-## POS Integration Plan
+## Shared Offer Components (POS + Quotation)
 
-### Page Load
-```php
-$offers = app(OfferService::class)->getActiveOffersForStore($currentStoreId);
-// Pass $offers to Inertia as page props
-```
+Both POS and Quotation use shared Vue components for offer UX:
 
-### Cart Line Item Addition
-1. Call `findBestProductOffer()` for product-specific, category, and brand offers
-2. Display offer on line item with discounted price
-3. If `is_combinable` and customer has `discount_percentage`, apply both
-4. If not combinable, apply whichever gives the larger discount
+### Components
 
-### Bundle Detection
-On every cart change, call `findApplicableBundleOffers()` and display banner when satisfied.
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| `OfferBrowseDialog` | `resources/js/components/offers/OfferBrowseDialog.vue` | Modal to browse all active offers for the current store |
+| `OfferSuggestionBanner` | `resources/js/components/offers/OfferSuggestionBanner.vue` | Auto-popup when applicable offers are detected |
+| `OfferTag` | `resources/js/components/offers/OfferTag.vue` | Small tag showing applied offer name on a line item |
 
-### Minimum Spend Check
-On every cart total recalculation, call `findBestMinimumSpendOffer()`.
+### OfferBrowseDialog
 
-### Discount Application Order
-1. Line-item offers (product/category/brand) — automatic
-2. Bundle offers — automatic when bundle satisfied
-3. Customer discount_percentage — automatic when customer loaded
-4. Minimum spend — automatic when threshold met
-5. Manual staff discount — future
+- Fetches offers grouped by type from a configurable URL (`fetchUrl` prop)
+- Displays offers in sections: Product, Category, Brand, Bundle, Minimum Spend
+- Each offer shows: name, discount format (% or $ off), "Combinable" badge
+- Staff can tap an offer to select it
+- Used in POS (via `/pos/offers`) and Quotation (via `/quotations/offers`)
 
-### Price Calculation
-```
-For each line item:
-  base_price = unit price
-  offer_discount = resolved offer discount (if any)
-  customer_discount = customer.discount_percentage (if applicable and combinable)
-  line_total = (base_price - offer_discount) * quantity
-  if customer_discount applicable:
-    line_total = line_total * (1 - customer_discount/100)
+### OfferSuggestionBanner
 
-Cart subtotal = sum of all line_totals
-Bundle discount = calculated from satisfied bundle offers
-Minimum spend discount = if subtotal >= threshold
-Tax = (subtotal - discounts) * store.tax_percentage
-Grand total = subtotal - bundle_discount - min_spend_discount + tax
-```
+- Appears automatically when offers are detected for items in the cart/quotation
+- Shows offer name and discount preview for each suggestion
+- "Apply" button applies all suggested offers
+- "Dismiss" button hides the banner
+- **Session dismiss:** "Don't show again this session" checkbox stores dismissed offer IDs in a `Set<number>`. Dismissed offers won't auto-popup again during the current session.
+
+### OfferTag
+
+- Displays applied offer name as a PrimeVue `Tag` with `success` severity
+- Used on line items in both POS cart and Quotation form
+
+### Offer UX Behavior
+
+1. **Auto-detection:** Offers resolved server-side on every cart/item change. When a new applicable offer is found, `OfferSuggestionBanner` appears.
+2. **Manual browse:** "Offers" button (always visible) opens `OfferBrowseDialog` listing all active offers for the store. Staff can manually select offers.
+3. **Session dismiss:** If dismissed with checkbox, offer ID stored in session-level `Set<number>` — won't auto-popup again for current transaction/quotation session.
+4. **Display:** Applied offers shown as green `OfferTag` on line items. Transaction-level offers (bundle, min spend) shown in totals panel.
 
 ---
 
-## Quotation Integration Plan
+## POS Integration
 
-### Line Items
-- Each line item stores: `product_id`, `quantity`, `unit_price`, `offer_id` (nullable), `discount_amount`, `discount_percentage`
-- Offers are **resolved at creation time** — quotation stores a snapshot
+### Server-Side Resolution
+
+All offer resolution happens server-side in `TransactionService`:
+
+- **Adding items:** `findBestProductOffer()` called for each product
+- **Cart changes:** `recalculateTotals()` calls `findApplicableBundleOffers()` and `findBestMinimumSpendOffer()`
+- **Customer changes:** All item discounts recalculated with new customer percentage
+
+### Discount Application Order
+
+1. Line-item offers (product/category/brand) — per item, automatic
+2. Customer discount — per item, automatic when customer set
+3. Bundle offer — cart level, automatic when bundle satisfied
+4. Minimum spend — cart level, automatic when threshold met
+5. Manual discount — cart level, staff-applied
+
+### Calculation Details
+
+See `docs/POINT_OF_SALES.md` for full calculation rules including tax handling, combinability logic, and payment balance.
+
+---
+
+## Quotation Integration
+
+### Current Behavior
+
+- Each line item stores: `offer_id`, `offer_name`, `offer_discount_type`, `offer_discount_amount`, `offer_is_combinable`
+- Offers resolved at creation time via `POST /quotations/resolve-offer` — quotation stores a snapshot
 - If reopened later, original offer terms are preserved even if the offer has expired
 - Staff can manually re-resolve offers for current pricing
-- When quotation is accepted, transaction uses quotation's prices
+- Single and batch offer confirmation dialogs before applying
+
+### Offer Resolution Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /quotations/resolve-offer` | Resolve best product-level offer for a single item |
+| `POST /quotations/resolve-bundle-offers` | Detect satisfied bundle offers across all quotation items |
+| `POST /quotations/resolve-minimum-spend-offer` | Find best minimum spend offer for quotation total |
+
+These endpoints reuse `OfferService` methods internally.
 
 ---
 

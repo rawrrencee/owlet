@@ -24,6 +24,7 @@ export * from './store';
 export * from './supplier';
 export * from './tag';
 export * from './timecard';
+export * from './transaction';
 export * from './ui';
 
 import type { Auth } from './auth';

@@ -121,6 +121,7 @@ Before completing any task that modifies TypeScript/Vue files, run the TypeScrip
 
 ```bash
 npx vue-tsc --noEmit
+npm run lint
 ```
 
 - Fix all TypeScript errors found, even if they are not directly related to the current change
