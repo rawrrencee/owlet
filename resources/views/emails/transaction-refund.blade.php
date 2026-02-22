@@ -31,9 +31,13 @@ A refund has been processed on the following transaction:
 
 ## Updated Totals
 
-**Total:** {{ number_format($transaction->total, 2) }}
-**Refund Amount:** {{ number_format($transaction->refund_amount, 2) }}
-**Amount Paid:** {{ number_format($transaction->amount_paid, 2) }}
+@component('mail::table')
+| | |
+|:---|---:|
+| **Total** | **{{ number_format($transaction->total, 2) }}** |
+| Refund Amount | {{ number_format($transaction->refund_amount, 2) }} |
+| Amount Paid | {{ number_format($transaction->amount_paid, 2) }} |
+@endcomponent
 
 Thanks,<br>
 {{ config('app.name') }}

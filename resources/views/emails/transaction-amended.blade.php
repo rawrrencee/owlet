@@ -41,16 +41,20 @@ A completed transaction has been modified:
 
 ## Updated Totals
 
-**Subtotal:** {{ number_format($transaction->subtotal, 2) }}
-**Total Discounts:** {{ number_format($transaction->offer_discount + $transaction->bundle_discount + $transaction->minimum_spend_discount + $transaction->customer_discount + $transaction->manual_discount, 2) }}
+@component('mail::table')
+| | |
+|:---|---:|
+| Subtotal | {{ number_format($transaction->subtotal, 2) }} |
+| Total Discounts | -{{ number_format($transaction->offer_discount + $transaction->bundle_discount + $transaction->minimum_spend_discount + $transaction->customer_discount + $transaction->manual_discount, 2) }} |
 @if($transaction->tax_amount > 0)
-**Tax ({{ $transaction->tax_percentage }}%):** {{ number_format($transaction->tax_amount, 2) }}
+| Tax ({{ $transaction->tax_percentage }}%) | {{ number_format($transaction->tax_amount, 2) }} |
 @endif
-**Total:** {{ number_format($transaction->total, 2) }}
-**Amount Paid:** {{ number_format($transaction->amount_paid, 2) }}
+| **Total** | **{{ number_format($transaction->total, 2) }}** |
+| Amount Paid | {{ number_format($transaction->amount_paid, 2) }} |
 @if($transaction->balance_due > 0)
-**Balance Due:** {{ number_format($transaction->balance_due, 2) }}
+| **Balance Due** | **{{ number_format($transaction->balance_due, 2) }}** |
 @endif
+@endcomponent
 
 Thanks,<br>
 {{ config('app.name') }}

@@ -39,30 +39,34 @@ A transaction has been completed with the following details:
 
 ## Summary
 
-**Subtotal:** {{ number_format($transaction->subtotal, 2) }}
+@component('mail::table')
+| | |
+|:---|---:|
+| Subtotal | {{ number_format($transaction->subtotal, 2) }} |
 @if($transaction->offer_discount > 0)
-**Offer Discount:** -{{ number_format($transaction->offer_discount, 2) }}
+| Offer Discount | -{{ number_format($transaction->offer_discount, 2) }} |
 @endif
 @if($transaction->bundle_discount > 0)
-**Bundle Discount:** -{{ number_format($transaction->bundle_discount, 2) }}
+| Bundle Discount | -{{ number_format($transaction->bundle_discount, 2) }} |
 @endif
 @if($transaction->minimum_spend_discount > 0)
-**Min. Spend Discount:** -{{ number_format($transaction->minimum_spend_discount, 2) }}
+| Min. Spend Discount | -{{ number_format($transaction->minimum_spend_discount, 2) }} |
 @endif
 @if($transaction->customer_discount > 0)
-**Customer Discount:** -{{ number_format($transaction->customer_discount, 2) }}
+| Customer Discount | -{{ number_format($transaction->customer_discount, 2) }} |
 @endif
 @if($transaction->manual_discount > 0)
-**Manual Discount:** -{{ number_format($transaction->manual_discount, 2) }}
+| Manual Discount | -{{ number_format($transaction->manual_discount, 2) }} |
 @endif
 @if($transaction->tax_amount > 0)
-**Tax ({{ $transaction->tax_percentage }}%):** {{ number_format($transaction->tax_amount, 2) }}
+| Tax ({{ $transaction->tax_percentage }}%) | {{ number_format($transaction->tax_amount, 2) }} |
 @endif
-**Total:** {{ number_format($transaction->total, 2) }}
-**Amount Paid:** {{ number_format($transaction->amount_paid, 2) }}
+| **Total** | **{{ number_format($transaction->total, 2) }}** |
+| Amount Paid | {{ number_format($transaction->amount_paid, 2) }} |
 @if($transaction->change_amount > 0)
-**Change:** {{ number_format($transaction->change_amount, 2) }}
+| Change | {{ number_format($transaction->change_amount, 2) }} |
 @endif
+@endcomponent
 
 Thanks,<br>
 {{ config('app.name') }}
