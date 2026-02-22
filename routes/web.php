@@ -35,6 +35,7 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\TransactionHistoryController;
 use App\Http\Controllers\StocktakeController;
 use App\Http\Controllers\StocktakeManagementController;
+use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\NotificationRecipientController;
 use App\Http\Controllers\StocktakeTemplateController;
 use App\Http\Controllers\StoreController;
@@ -361,11 +362,21 @@ Route::middleware([
         Route::post('transactions/{transaction}/refund', [TransactionHistoryController::class, 'refund'])->name('transactions.refund');
         Route::post('transactions/{transaction}/void', [TransactionHistoryController::class, 'voidTransaction'])->name('transactions.void');
         Route::post('transactions/{transaction}/items', [TransactionHistoryController::class, 'addItem'])->name('transactions.items.store');
+        Route::post('transactions/{transaction}/apply-offers', [TransactionHistoryController::class, 'applyOffers'])->name('transactions.apply-offers');
+        Route::post('transactions/{transaction}/clear-offers', [TransactionHistoryController::class, 'clearOffers'])->name('transactions.clear-offers');
         Route::put('transactions/{transaction}/items/{item}', [TransactionHistoryController::class, 'updateItem'])->name('transactions.items.update');
         Route::delete('transactions/{transaction}/items/{item}', [TransactionHistoryController::class, 'removeItem'])->name('transactions.items.destroy');
         Route::post('transactions/{transaction}/payments', [TransactionHistoryController::class, 'addPayment'])->name('transactions.payments.store');
         Route::get('transactions/{transaction}/versions', [TransactionHistoryController::class, 'versions'])->name('transactions.versions');
         Route::get('transactions/{transaction}/versions/{version}/diff', [TransactionHistoryController::class, 'versionDiff'])->name('transactions.versions.diff');
+    });
+
+    // Analytics
+    Route::middleware('permission:analytics.view')->group(function () {
+        Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
+        Route::get('analytics/employees', [AnalyticsController::class, 'employees'])->name('analytics.employees');
+        Route::get('analytics/products', [AnalyticsController::class, 'products'])->name('analytics.products');
+        Route::post('analytics/preferences', [AnalyticsController::class, 'savePreferences'])->name('analytics.preferences');
     });
 
     // Payment Modes (admin or permission-based)
@@ -553,6 +564,7 @@ Route::middleware([
             // Notification recipient CRUD
             Route::get('notifications', [NotificationRecipientController::class, 'index'])->name('notifications.index');
             Route::post('notifications', [NotificationRecipientController::class, 'store'])->name('notifications.store');
+            Route::post('notifications/batch', [NotificationRecipientController::class, 'batchStore'])->name('notifications.batch');
             Route::put('notifications/{recipient}', [NotificationRecipientController::class, 'update'])->name('notifications.update');
             Route::delete('notifications/{recipient}', [NotificationRecipientController::class, 'destroy'])->name('notifications.destroy');
         });

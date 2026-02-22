@@ -10,6 +10,7 @@ import { Head, router } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import ConfirmDialog from 'primevue/confirmdialog';
+import Dialog from 'primevue/dialog';
 import Divider from 'primevue/divider';
 import Tab from 'primevue/tab';
 import TabList from 'primevue/tablist';
@@ -28,10 +29,19 @@ import TransactionSummary from './components/TransactionSummary.vue';
 import VersionDiffView from './components/VersionDiffView.vue';
 import VersionTimeline from './components/VersionTimeline.vue';
 
+interface EligibleOffers {
+    product_offers: Array<{ item_id: number; product_name: string; offer_name: string; discount_amount: number }>;
+    bundle_offers: Array<{ offer_id: number; offer_name: string; discount_estimate: number }>;
+    min_spend_offers: Array<{ offer_id: number; offer_name: string; discount_amount: number }>;
+    has_offers: boolean;
+}
+
 const props = defineProps<{
     transaction: Transaction;
     canVoid: boolean;
     paymentModes: Array<{ id: number; name: string }>;
+    eligibleOffers?: EligibleOffers | null;
+    hasAppliedOffers?: boolean;
 }>();
 
 const confirm = useConfirm();
@@ -165,9 +175,68 @@ function addItemToTransaction(productId: number) {
         preserveScroll: true,
         onSuccess: () => {
             toast.add({ severity: 'success', summary: 'Item added', life: 3000 });
+            // For completed transactions with eligible offers, open the offers dialog
+            if (isCompleted.value && hasEligibleOffers.value) {
+                showOffersDialog.value = true;
+            }
         },
         onError: () => {
             toast.add({ severity: 'error', summary: 'Failed to add item', life: 3000 });
+        },
+    });
+}
+
+// Apply offers to transaction
+const applyingOffers = ref(false);
+const showOffersDialog = ref(false);
+
+function openOffersDialog() {
+    showOffersDialog.value = true;
+}
+
+function applyOffers() {
+    applyingOffers.value = true;
+    showOffersDialog.value = false;
+    router.post(`/transactions/${props.transaction.id}/apply-offers`, {}, {
+        preserveScroll: true,
+        onSuccess: () => {
+            applyingOffers.value = false;
+            toast.add({ severity: 'success', summary: 'Offers applied', life: 3000 });
+        },
+        onError: () => {
+            applyingOffers.value = false;
+            toast.add({ severity: 'error', summary: 'Failed to apply offers', life: 3000 });
+        },
+    });
+}
+
+const hasEligibleOffers = computed(() => props.eligibleOffers?.has_offers ?? false);
+
+// Remove offers from transaction
+const removingOffers = ref(false);
+
+function confirmRemoveOffers() {
+    confirm.require({
+        message: 'Are you sure you want to remove all applied offers from this transaction? Line totals will be recalculated.',
+        header: 'Remove Offers',
+        icon: 'pi pi-exclamation-triangle',
+        rejectLabel: 'Cancel',
+        rejectProps: { severity: 'secondary', size: 'small' },
+        acceptLabel: 'Remove Offers',
+        acceptProps: { severity: 'danger', size: 'small' },
+        accept: () => {
+            removingOffers.value = true;
+            router.post(`/transactions/${props.transaction.id}/clear-offers`, {}, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    removingOffers.value = false;
+                    toast.add({ severity: 'success', summary: 'Offers removed', life: 3000 });
+                },
+                onError: () => {
+                    removingOffers.value = false;
+                    toast.add({ severity: 'error', summary: 'Failed to remove offers', life: 3000 });
+                },
+            });
         },
     });
 }
@@ -236,43 +305,64 @@ const breadcrumbs: BreadcrumbItem[] = [
                 <div class="flex items-center gap-3">
                     <BackButton fallback-url="/transactions" />
                     <h1 class="heading-lg">{{ transaction.transaction_number }}</h1>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
                     <Tag
                         :value="getStatusLabel(transaction.status)"
                         :severity="getStatusSeverity(transaction.status)"
                     />
-                </div>
-                <div v-if="canEdit" class="flex flex-wrap items-center gap-2">
-                    <Button
-                        v-if="hasRefundDue"
-                        label="Record Refund"
-                        icon="pi pi-replay"
-                        severity="warn"
-                        size="small"
-                        @click="openPaymentDialog(-parseFloat(transaction.change_amount))"
-                    />
-                    <Button
-                        v-if="hasBalanceDue"
-                        label="Record Payment"
-                        icon="pi pi-wallet"
-                        size="small"
-                        @click="openPaymentDialog(parseFloat(transaction.balance_due))"
-                    />
-                    <Button
-                        label="Refund"
-                        icon="pi pi-replay"
-                        severity="warn"
-                        size="small"
-                        outlined
-                        @click="showRefundDialog = true"
-                    />
-                    <Button
-                        label="Void"
-                        icon="pi pi-times-circle"
-                        severity="danger"
-                        size="small"
-                        outlined
-                        @click="confirmVoid"
-                    />
+                    <template v-if="canEdit">
+                        <Button
+                            label="Apply Offers"
+                            icon="pi pi-percentage"
+                            size="small"
+                            outlined
+                            :loading="applyingOffers"
+                            :disabled="!hasEligibleOffers"
+                            @click="openOffersDialog"
+                        />
+                        <Button
+                            v-if="hasAppliedOffers"
+                            label="Remove Offers"
+                            icon="pi pi-times"
+                            severity="warn"
+                            size="small"
+                            outlined
+                            :loading="removingOffers"
+                            @click="confirmRemoveOffers"
+                        />
+                        <Button
+                            v-if="hasRefundDue"
+                            label="Record Refund"
+                            icon="pi pi-replay"
+                            severity="warn"
+                            size="small"
+                            @click="openPaymentDialog(-parseFloat(transaction.change_amount))"
+                        />
+                        <Button
+                            v-if="hasBalanceDue"
+                            label="Record Payment"
+                            icon="pi pi-wallet"
+                            size="small"
+                            @click="openPaymentDialog(parseFloat(transaction.balance_due))"
+                        />
+                        <Button
+                            label="Refund"
+                            icon="pi pi-replay"
+                            severity="warn"
+                            size="small"
+                            outlined
+                            @click="showRefundDialog = true"
+                        />
+                        <Button
+                            label="Void"
+                            icon="pi pi-times-circle"
+                            severity="danger"
+                            size="small"
+                            outlined
+                            @click="confirmVoid"
+                        />
+                    </template>
                 </div>
             </div>
 
@@ -437,5 +527,71 @@ const breadcrumbs: BreadcrumbItem[] = [
             @update:visible="showPaymentDialog = $event"
             @save="handleSavePayment"
         />
+
+        <!-- Eligible Offers Dialog -->
+        <Dialog
+            :visible="showOffersDialog"
+            modal
+            header="Eligible Offers"
+            :style="{ width: '500px' }"
+            @update:visible="showOffersDialog = $event"
+        >
+            <div v-if="eligibleOffers" class="space-y-4">
+                <!-- Product Offers -->
+                <div v-if="eligibleOffers.product_offers.length > 0">
+                    <h4 class="text-sm font-semibold mb-2">Product Offers</h4>
+                    <div class="space-y-1">
+                        <div
+                            v-for="o in eligibleOffers.product_offers"
+                            :key="o.item_id"
+                            class="flex items-center justify-between rounded border p-2 text-sm"
+                        >
+                            <div>
+                                <div class="font-medium">{{ o.product_name }}</div>
+                                <div class="text-xs text-muted-foreground">{{ o.offer_name }}</div>
+                            </div>
+                            <span class="shrink-0 font-semibold text-green-600">-{{ currencySymbol }}{{ o.discount_amount.toFixed(2) }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bundle Offers -->
+                <div v-if="eligibleOffers.bundle_offers.length > 0">
+                    <h4 class="text-sm font-semibold mb-2">Bundle Offers</h4>
+                    <div class="space-y-1">
+                        <div
+                            v-for="o in eligibleOffers.bundle_offers"
+                            :key="o.offer_id"
+                            class="flex items-center justify-between rounded border p-2 text-sm"
+                        >
+                            <span class="font-medium">{{ o.offer_name }}</span>
+                            <span class="shrink-0 font-semibold text-green-600">-{{ currencySymbol }}{{ o.discount_estimate.toFixed(2) }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Min Spend Offers -->
+                <div v-if="eligibleOffers.min_spend_offers.length > 0">
+                    <h4 class="text-sm font-semibold mb-2">Minimum Spend Offers</h4>
+                    <div class="space-y-1">
+                        <div
+                            v-for="o in eligibleOffers.min_spend_offers"
+                            :key="o.offer_id"
+                            class="flex items-center justify-between rounded border p-2 text-sm"
+                        >
+                            <span class="font-medium">{{ o.offer_name }}</span>
+                            <span class="shrink-0 font-semibold text-green-600">-{{ currencySymbol }}{{ o.discount_amount.toFixed(2) }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <template #footer>
+                <div class="flex justify-end gap-2">
+                    <Button label="Cancel" severity="secondary" size="small" @click="showOffersDialog = false" />
+                    <Button label="Apply All" icon="pi pi-check" size="small" :loading="applyingOffers" @click="applyOffers" />
+                </div>
+            </template>
+        </Dialog>
     </AppLayout>
 </template>

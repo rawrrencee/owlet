@@ -39,6 +39,10 @@ A refund has been processed on the following transaction:
 | Amount Paid | {{ number_format($transaction->amount_paid, 2) }} |
 @endcomponent
 
+@component('mail::button', ['url' => url("/transactions/{$transaction->id}")])
+View Transaction
+@endcomponent
+
 Thanks,<br>
 {{ config('app.name') }}
 @endcomponent

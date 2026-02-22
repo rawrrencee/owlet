@@ -62,11 +62,11 @@ class TransactionService
     /**
      * Add an item to the transaction.
      */
-    public function addItem(Transaction $transaction, int $productId, int $quantity, int $userId): Transaction
+    public function addItem(Transaction $transaction, int $productId, int $quantity, int $userId, bool $applyOffers = true): Transaction
     {
         $this->assertEditable($transaction);
 
-        return DB::transaction(function () use ($transaction, $productId, $quantity, $userId) {
+        return DB::transaction(function () use ($transaction, $productId, $quantity, $userId, $applyOffers) {
             $product = Product::findOrFail($productId);
             $priceData = $this->resolvePrice($product, $transaction->store_id, $transaction->currency_id);
 
@@ -74,8 +74,11 @@ class TransactionService
                 abort(422, "No price found for product {$product->product_name} in this store/currency.");
             }
 
-            // Check if item already exists (same product) - increment quantity
-            $existingItem = $transaction->items()->where('product_id', $productId)->first();
+            // Check if item already exists (same product, not refunded) - increment quantity
+            $existingItem = $transaction->items()
+                ->where('product_id', $productId)
+                ->where('is_refunded', false)
+                ->first();
             if ($existingItem) {
                 return $this->updateItem($transaction, $existingItem->id, [
                     'quantity' => $existingItem->quantity + $quantity,
@@ -84,13 +87,13 @@ class TransactionService
 
             $unitPrice = $priceData['unit_price'];
 
-            // Resolve best product-level offer
-            $offer = $this->offerService->findBestProductOffer(
+            // Resolve best product-level offer (skip when adding to completed transaction without offers)
+            $offer = $applyOffers ? $this->offerService->findBestProductOffer(
                 $product,
                 $transaction->store_id,
                 $transaction->currency_id,
                 $unitPrice
-            );
+            ) : null;
 
             // Customer discount
             $customerDiscountPercentage = null;
@@ -142,7 +145,7 @@ class TransactionService
             ]);
 
             $transaction->refresh();
-            $this->recalculateTotals($transaction);
+            $this->recalculateTotals($transaction, ! $applyOffers);
 
             // If completed transaction, decrement inventory for new item
             if ($transaction->status === TransactionStatus::COMPLETED) {
@@ -467,6 +470,145 @@ class TransactionService
                 TransactionChangeType::DISCOUNT_APPLIED,
                 $userId,
                 'Manual discount removed'
+            );
+
+            return $transaction->load('items.product', 'payments', 'customer', 'currency', 'store', 'employee');
+        });
+    }
+
+    /**
+     * Apply/re-apply offers to an existing transaction (e.g., after amending a completed transaction).
+     */
+    public function applyOffersToTransaction(Transaction $transaction, int $userId): Transaction
+    {
+        $this->assertEditable($transaction);
+
+        return DB::transaction(function () use ($transaction, $userId) {
+            $transaction->load('items.product');
+
+            // Re-resolve product-level offers for all non-refunded items
+            foreach ($transaction->items as $item) {
+                if ($item->is_refunded) {
+                    continue;
+                }
+
+                $product = $item->product ?? Product::find($item->product_id);
+                if (! $product) {
+                    continue;
+                }
+
+                $offer = $this->offerService->findBestProductOffer(
+                    $product,
+                    $transaction->store_id,
+                    $transaction->currency_id,
+                    (string) $item->unit_price
+                );
+
+                $customerDiscountPercentage = $item->customer_discount_percentage;
+                $lineSubtotal = bcmul((string) $item->unit_price, (string) $item->quantity, 4);
+
+                $offerData = $offer ?? [
+                    'offer_id' => null,
+                    'offer_name' => null,
+                    'discount_type' => null,
+                    'discount_amount' => '0',
+                    'is_combinable' => null,
+                ];
+
+                $lineDiscount = $this->calculateLineDiscount(
+                    (string) $item->unit_price,
+                    $item->quantity,
+                    $offerData,
+                    $customerDiscountPercentage ? (string) $customerDiscountPercentage : null,
+                    $lineSubtotal
+                );
+
+                $lineTotal = bcsub($lineSubtotal, $lineDiscount, 4);
+
+                $item->update([
+                    'offer_id' => $offerData['offer_id'] ?? null,
+                    'offer_name' => $offerData['offer_name'] ?? null,
+                    'offer_discount_type' => $offerData['discount_type'] ?? null,
+                    'offer_discount_amount' => $offerData['discount_amount'] ?? '0',
+                    'offer_is_combinable' => $offerData['is_combinable'] ?? null,
+                    'line_subtotal' => $lineSubtotal,
+                    'line_discount' => $lineDiscount,
+                    'line_total' => $lineTotal,
+                ]);
+            }
+
+            $transaction->refresh();
+            $this->recalculateTotals($transaction);
+
+            $this->createVersion(
+                $transaction,
+                TransactionChangeType::DISCOUNT_APPLIED,
+                $userId,
+                'Offers applied to transaction'
+            );
+
+            return $transaction->load('items.product', 'payments', 'customer', 'currency', 'store', 'employee');
+        });
+    }
+
+    /**
+     * Clear all applied offers from a transaction (product-level + cart-level).
+     */
+    public function clearOffersFromTransaction(Transaction $transaction, int $userId): Transaction
+    {
+        $this->assertEditable($transaction);
+
+        return DB::transaction(function () use ($transaction, $userId) {
+            $transaction->load('items');
+
+            // Clear product-level offers from non-refunded items and recalculate line discounts
+            foreach ($transaction->items as $item) {
+                if ($item->is_refunded) {
+                    continue;
+                }
+
+                $lineSubtotal = bcmul((string) $item->unit_price, (string) $item->quantity, 4);
+
+                $lineDiscount = $this->calculateLineDiscount(
+                    (string) $item->unit_price,
+                    $item->quantity,
+                    null,
+                    $item->customer_discount_percentage ? (string) $item->customer_discount_percentage : null,
+                    $lineSubtotal
+                );
+
+                $lineTotal = bcsub($lineSubtotal, $lineDiscount, 4);
+
+                $item->update([
+                    'offer_id' => null,
+                    'offer_name' => null,
+                    'offer_discount_type' => null,
+                    'offer_discount_amount' => '0',
+                    'offer_is_combinable' => null,
+                    'line_subtotal' => $lineSubtotal,
+                    'line_discount' => $lineDiscount,
+                    'line_total' => $lineTotal,
+                ]);
+            }
+
+            // Clear cart-level offers
+            $transaction->update([
+                'bundle_offer_id' => null,
+                'bundle_offer_name' => null,
+                'bundle_discount' => '0',
+                'minimum_spend_offer_id' => null,
+                'minimum_spend_offer_name' => null,
+                'minimum_spend_discount' => '0',
+            ]);
+
+            $transaction->refresh();
+            $this->recalculateTotals($transaction, skipCartOffers: true);
+
+            $this->createVersion(
+                $transaction,
+                TransactionChangeType::DISCOUNT_APPLIED,
+                $userId,
+                'Offers removed from transaction'
             );
 
             return $transaction->load('items.product', 'payments', 'customer', 'currency', 'store', 'employee');
@@ -808,7 +950,7 @@ class TransactionService
     /**
      * Master recalculation of all transaction totals.
      */
-    public function recalculateTotals(Transaction $transaction): void
+    public function recalculateTotals(Transaction $transaction, bool $skipCartOffers = false): void
     {
         $transaction->loadMissing('items');
 
@@ -842,33 +984,43 @@ class TransactionService
             }
         }
 
-        // Bundle offers
-        if (! empty($cartItems)) {
-            $bundles = $this->offerService->findApplicableBundleOffers(
-                $cartItems,
-                $transaction->store_id,
-                $transaction->currency_id
-            );
-            if (! empty($bundles)) {
-                $bestBundle = $bundles[0];
-                $bundleDiscount = $this->calculateBundleDiscount($bestBundle, $afterLineDiscounts);
-                $bundleOfferId = $bestBundle['offer_id'];
-                $bundleOfferName = $bestBundle['offer_name'];
+        if (! $skipCartOffers) {
+            // Bundle offers
+            if (! empty($cartItems)) {
+                $bundles = $this->offerService->findApplicableBundleOffers(
+                    $cartItems,
+                    $transaction->store_id,
+                    $transaction->currency_id
+                );
+                if (! empty($bundles)) {
+                    $bestBundle = $bundles[0];
+                    $bundleDiscount = $this->calculateBundleDiscount($bestBundle, $transaction);
+                    $bundleOfferId = $bestBundle['offer_id'];
+                    $bundleOfferName = $bestBundle['offer_name'];
+                }
             }
-        }
 
-        // Minimum spend offers (check against subtotal after line-item discounts)
-        if (bccomp($afterLineDiscounts, '0', 4) > 0) {
-            $minSpend = $this->offerService->findBestMinimumSpendOffer(
-                $afterLineDiscounts,
-                $transaction->store_id,
-                $transaction->currency_id
-            );
-            if ($minSpend) {
-                $minSpendDiscount = $minSpend['discount_amount'];
-                $minSpendOfferId = $minSpend['offer_id'];
-                $minSpendOfferName = $minSpend['offer_name'];
+            // Minimum spend offers (check against subtotal after line-item discounts)
+            if (bccomp($afterLineDiscounts, '0', 4) > 0) {
+                $minSpend = $this->offerService->findBestMinimumSpendOffer(
+                    $afterLineDiscounts,
+                    $transaction->store_id,
+                    $transaction->currency_id
+                );
+                if ($minSpend) {
+                    $minSpendDiscount = $minSpend['discount_amount'];
+                    $minSpendOfferId = $minSpend['offer_id'];
+                    $minSpendOfferName = $minSpend['offer_name'];
+                }
             }
+        } else {
+            // Preserve existing cart-level offer values when skipping
+            $bundleDiscount = (string) $transaction->bundle_discount;
+            $bundleOfferId = $transaction->bundle_offer_id;
+            $bundleOfferName = $transaction->bundle_offer_name;
+            $minSpendDiscount = (string) $transaction->minimum_spend_discount;
+            $minSpendOfferId = $transaction->minimum_spend_offer_id;
+            $minSpendOfferName = $transaction->minimum_spend_offer_name;
         }
 
         $manualDiscount = (string) $transaction->manual_discount;
@@ -1097,16 +1249,132 @@ class TransactionService
     }
 
     /**
-     * Calculate bundle discount amount.
+     * Calculate bundle discount amount, supporting multiple applications.
+     *
+     * E.g. a BOGO bundle with 2 requirements (each requiring 1 of same product)
+     * with 4 items in cart → 2 applications of the bundle.
      */
-    protected function calculateBundleDiscount(array $bundleOffer, string $cartTotal): string
+    protected function calculateBundleDiscount(array $bundleOffer, Transaction $transaction): string
     {
+        $bundleItems = $bundleOffer['bundle_items'] ?? [];
+        if (empty($bundleItems)) {
+            return '0';
+        }
+
+        $transaction->loadMissing('items.product');
+
+        $bundleMode = $bundleOffer['bundle_mode'] ?? 'whole';
+
+        // Phase 1: Build availability map from non-refunded transaction items
+        // Each item is keyed by a match key derived from the requirement type
+        $itemsByProduct = [];
+        $itemsByCategory = [];
+        $itemsBySubcategory = [];
+        $cheapestUnitPrice = null;
+
+        foreach ($transaction->items as $item) {
+            if ($item->is_refunded) {
+                continue;
+            }
+
+            $itemsByProduct[$item->product_id] = [
+                'qty' => $item->quantity,
+                'unit_price' => (string) $item->unit_price,
+            ];
+
+            if ($item->product) {
+                if ($item->product->category_id) {
+                    $catId = $item->product->category_id;
+                    $itemsByCategory[$catId] = [
+                        'qty' => ($itemsByCategory[$catId]['qty'] ?? 0) + $item->quantity,
+                        'unit_price' => (string) $item->unit_price,
+                    ];
+                }
+                if ($item->product->subcategory_id) {
+                    $subId = $item->product->subcategory_id;
+                    $itemsBySubcategory[$subId] = [
+                        'qty' => ($itemsBySubcategory[$subId]['qty'] ?? 0) + $item->quantity,
+                        'unit_price' => (string) $item->unit_price,
+                    ];
+                }
+            }
+
+            // Track cheapest unit price for cheapest_item mode
+            if ($cheapestUnitPrice === null || bccomp((string) $item->unit_price, $cheapestUnitPrice, 4) < 0) {
+                $cheapestUnitPrice = (string) $item->unit_price;
+            }
+        }
+
+        // Phase 2: Group requirements by their match key, sum required quantities
+        // This correctly handles BOGO where two bundle requirements reference the same product
+        $groups = [];
+        foreach ($bundleItems as $requirement) {
+            if ($requirement['product_id']) {
+                $key = 'product:' . $requirement['product_id'];
+                $available = $itemsByProduct[$requirement['product_id']]['qty'] ?? 0;
+            } elseif ($requirement['category_id']) {
+                $key = 'category:' . $requirement['category_id'];
+                $available = $itemsByCategory[$requirement['category_id']]['qty'] ?? 0;
+            } elseif ($requirement['subcategory_id']) {
+                $key = 'subcategory:' . $requirement['subcategory_id'];
+                $available = $itemsBySubcategory[$requirement['subcategory_id']]['qty'] ?? 0;
+            } else {
+                continue;
+            }
+
+            if (! isset($groups[$key])) {
+                $groups[$key] = ['total_required' => 0, 'available' => $available];
+            }
+            $groups[$key]['total_required'] += $requirement['required_quantity'];
+        }
+
+        // Phase 3: Calculate max applications
+        $applicationCount = PHP_INT_MAX;
+        foreach ($groups as $group) {
+            if ($group['total_required'] <= 0) {
+                continue;
+            }
+            $apps = intdiv($group['available'], $group['total_required']);
+            $applicationCount = min($applicationCount, $apps);
+        }
+
+        if ($applicationCount <= 0 || $applicationCount === PHP_INT_MAX) {
+            return '0';
+        }
+
+        // Phase 4: Calculate discount for one application
+        $oneAppTotal = '0';
+        foreach ($bundleItems as $requirement) {
+            $unitPrice = '0';
+            if ($requirement['product_id'] && isset($itemsByProduct[$requirement['product_id']])) {
+                $unitPrice = $itemsByProduct[$requirement['product_id']]['unit_price'];
+            } elseif ($requirement['category_id'] && isset($itemsByCategory[$requirement['category_id']])) {
+                $unitPrice = $itemsByCategory[$requirement['category_id']]['unit_price'];
+            } elseif ($requirement['subcategory_id'] && isset($itemsBySubcategory[$requirement['subcategory_id']])) {
+                $unitPrice = $itemsBySubcategory[$requirement['subcategory_id']]['unit_price'];
+            }
+            $oneAppTotal = bcadd($oneAppTotal, bcmul($unitPrice, (string) $requirement['required_quantity'], 4), 4);
+        }
+
+        // For cheapest_item mode: discount base is cheapest price * applicationCount
+        // For whole mode: discount base is one application total * applicationCount
+        if ($bundleMode === 'cheapest_item' && $cheapestUnitPrice !== null) {
+            $discountBase = bcmul($cheapestUnitPrice, (string) $applicationCount, 4);
+        } else {
+            $discountBase = bcmul($oneAppTotal, (string) $applicationCount, 4);
+        }
+
+        if (bccomp($discountBase, '0', 4) <= 0) {
+            return '0';
+        }
+
         if ($bundleOffer['discount_type'] === 'percentage' && $bundleOffer['discount_percentage']) {
-            $discount = bcmul($cartTotal, bcdiv((string) $bundleOffer['discount_percentage'], '100', 6), 4);
+            $discount = bcmul($discountBase, bcdiv((string) $bundleOffer['discount_percentage'], '100', 6), 4);
             $amount = $bundleOffer['amount'] ?? null;
             if ($amount && isset($amount->max_discount_amount) && $amount->max_discount_amount) {
-                if (bccomp($discount, (string) $amount->max_discount_amount, 4) > 0) {
-                    $discount = (string) $amount->max_discount_amount;
+                $maxTotal = bcmul((string) $amount->max_discount_amount, (string) $applicationCount, 4);
+                if (bccomp($discount, $maxTotal, 4) > 0) {
+                    $discount = $maxTotal;
                 }
             }
 
@@ -1116,9 +1384,9 @@ class TransactionService
         if ($bundleOffer['discount_type'] === 'fixed') {
             $amount = $bundleOffer['amount'] ?? null;
             if ($amount && isset($amount->discount_amount) && $amount->discount_amount) {
-                $discount = (string) $amount->discount_amount;
-                if (bccomp($discount, $cartTotal, 4) > 0) {
-                    return $cartTotal;
+                $discount = bcmul((string) $amount->discount_amount, (string) $applicationCount, 4);
+                if (bccomp($discount, $discountBase, 4) > 0) {
+                    return $discountBase;
                 }
 
                 return $discount;
@@ -1278,15 +1546,104 @@ class TransactionService
     }
 
     /**
+     * Get eligible offers for a transaction (read-only preview).
+     */
+    public function getEligibleOffers(Transaction $transaction): array
+    {
+        $transaction->load('items.product');
+
+        $productOffers = [];
+        $bundleOffers = [];
+        $minSpendOffers = [];
+
+        // Product-level offers for each non-refunded item
+        foreach ($transaction->items as $item) {
+            if ($item->is_refunded) {
+                continue;
+            }
+
+            $product = $item->product ?? Product::find($item->product_id);
+            if (! $product) {
+                continue;
+            }
+
+            $offer = $this->offerService->findBestProductOffer(
+                $product,
+                $transaction->store_id,
+                $transaction->currency_id,
+                (string) $item->unit_price
+            );
+
+            if ($offer) {
+                $discountPerItem = $offer['discount_amount'] ?? '0';
+                $totalDiscount = bcmul($discountPerItem, (string) $item->quantity, 4);
+                $productOffers[] = [
+                    'item_id' => $item->id,
+                    'product_name' => $item->product_name . ($item->variant_name ? " ({$item->variant_name})" : ''),
+                    'offer_name' => $offer['offer_name'],
+                    'discount_amount' => round((float) $totalDiscount, 2),
+                ];
+            }
+        }
+
+        // Bundle offers
+        $cartItems = $this->buildCartItemsArray($transaction);
+        if (! empty($cartItems)) {
+            $bundles = $this->offerService->findApplicableBundleOffers(
+                $cartItems,
+                $transaction->store_id,
+                $transaction->currency_id
+            );
+            foreach ($bundles as $bundle) {
+                $discount = $this->calculateBundleDiscount($bundle, $transaction);
+                $bundleOffers[] = [
+                    'offer_id' => $bundle['offer_id'],
+                    'offer_name' => $bundle['offer_name'],
+                    'discount_estimate' => round((float) $discount, 2),
+                ];
+            }
+        }
+
+        // Minimum spend offers
+        $afterLineDiscounts = '0';
+        foreach ($transaction->items as $item) {
+            if (! $item->is_refunded) {
+                $afterLineDiscounts = bcadd($afterLineDiscounts, (string) $item->line_total, 4);
+            }
+        }
+        if (bccomp($afterLineDiscounts, '0', 4) > 0) {
+            $minSpend = $this->offerService->findBestMinimumSpendOffer(
+                $afterLineDiscounts,
+                $transaction->store_id,
+                $transaction->currency_id
+            );
+            if ($minSpend) {
+                $minSpendOffers[] = [
+                    'offer_id' => $minSpend['offer_id'],
+                    'offer_name' => $minSpend['offer_name'],
+                    'discount_amount' => round((float) $minSpend['discount_amount'], 2),
+                ];
+            }
+        }
+
+        return [
+            'product_offers' => $productOffers,
+            'bundle_offers' => $bundleOffers,
+            'min_spend_offers' => $minSpendOffers,
+            'has_offers' => ! empty($productOffers) || ! empty($bundleOffers) || ! empty($minSpendOffers),
+        ];
+    }
+
+    /**
      * Send amended transaction notification (for use by controllers on post-completion modifications).
      */
-    public function sendAmendedNotification(Transaction $transaction, string $changeSummary): void
+    public function sendAmendedNotification(Transaction $transaction, string $changeSummary, ?array $changeDetails = null): void
     {
         $transaction->loadMissing(['items.product', 'payments', 'employee', 'store', 'customer', 'currency']);
         $this->sendTransactionNotification(
             $transaction,
             NotificationEventType::AmendedTransaction,
-            new TransactionAmendedMail($transaction, $changeSummary)
+            new TransactionAmendedMail($transaction, $changeSummary, $changeDetails)
         );
     }
 }

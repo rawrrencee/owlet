@@ -28,6 +28,10 @@ A stocktake has been submitted with the following details:
 **Notes:** {{ $stocktake->notes }}
 @endif
 
+@component('mail::button', ['url' => url("/management/stocktakes/{$stocktake->id}")])
+View Stocktake
+@endcomponent
+
 Thanks,<br>
 {{ config('app.name') }}
 @endcomponent

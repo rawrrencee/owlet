@@ -88,6 +88,9 @@ class PagePermissions
 
     public const TRANSACTIONS_MANAGE = 'transactions.manage';
 
+    // Analytics
+    public const ANALYTICS_VIEW = 'analytics.view';
+
     // Inventory
     public const INVENTORY_LOGS_VIEW = 'inventory_logs.view';
 
@@ -273,6 +276,11 @@ class PagePermissions
                 'key' => self::TRANSACTIONS_MANAGE,
                 'label' => 'Manage Transactions',
                 'group' => 'Transactions',
+            ],
+            self::ANALYTICS_VIEW => [
+                'key' => self::ANALYTICS_VIEW,
+                'label' => 'View Analytics',
+                'group' => 'Analytics',
             ],
             self::INVENTORY_LOGS_VIEW => [
                 'key' => self::INVENTORY_LOGS_VIEW,

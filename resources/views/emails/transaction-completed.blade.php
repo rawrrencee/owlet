@@ -68,6 +68,10 @@ A transaction has been completed with the following details:
 @endif
 @endcomponent
 
+@component('mail::button', ['url' => url("/transactions/{$transaction->id}")])
+View Transaction
+@endcomponent
+
 Thanks,<br>
 {{ config('app.name') }}
 @endcomponent

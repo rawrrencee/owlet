@@ -41,6 +41,10 @@
 **Notes:** {{ $quotation->internal_notes }}
 @endif
 
+@component('mail::button', ['url' => url("/quotations/{$quotation->id}")])
+View Quotation
+@endcomponent
+
 Thanks,<br>
 {{ config('app.name') }}
 @endcomponent

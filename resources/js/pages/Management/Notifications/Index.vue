@@ -3,6 +3,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import Button from 'primevue/button';
+import Checkbox from 'primevue/checkbox';
 import Column from 'primevue/column';
 import ConfirmDialog from 'primevue/confirmdialog';
 import DataTable from 'primevue/datatable';
@@ -15,7 +16,7 @@ import TabList from 'primevue/tablist';
 import Tabs from 'primevue/tabs';
 import Tag from 'primevue/tag';
 import { useConfirm } from 'primevue/useconfirm';
-import { reactive, ref, watch } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 
 interface StoreOption {
     id: number;
@@ -32,6 +33,8 @@ interface NotificationRecipient {
     id: number;
     event_type: string;
     store_id: number;
+    store_name: string | null;
+    store_code: string | null;
     email: string;
     name: string | null;
     is_active: boolean;
@@ -57,12 +60,12 @@ const breadcrumbs: BreadcrumbItem[] = [
 const confirm = useConfirm();
 
 const filters = reactive({
-    store_id: props.filters.store_id ?? '',
+    store_id: props.filters.store_id ?? 'all',
     event_type: props.filters.event_type ?? 'stocktake',
 });
 
 const storeOptions = [
-    { label: 'Select store...', value: '' },
+    { label: 'All Stores', value: 'all' },
     ...props.stores.map((s) => ({
         label: `${s.store_name} (${s.store_code})`,
         value: String(s.id),
@@ -87,23 +90,42 @@ function onTabChange(eventType: string) {
 
 // Add dialog
 const addDialogVisible = ref(false);
+const selectedStoreIds = ref<number[]>([]);
+const selectAllStores = ref(false);
 const addForm = useForm({
     event_type: '',
-    store_id: null as number | null,
+    store_ids: [] as number[],
     email: '',
     name: '',
 });
 
+const allStoreIds = computed(() => props.stores.map((s) => s.id));
+
+watch(selectAllStores, (val) => {
+    selectedStoreIds.value = val ? [...allStoreIds.value] : [];
+});
+
+watch(selectedStoreIds, (val) => {
+    selectAllStores.value = val.length === allStoreIds.value.length && val.length > 0;
+}, { deep: true });
+
 function openAddDialog() {
     addForm.event_type = filters.event_type;
-    addForm.store_id = filters.store_id ? Number(filters.store_id) : null;
     addForm.email = '';
     addForm.name = '';
+    // Pre-select current store filter if specific store is selected
+    if (filters.store_id && filters.store_id !== 'all') {
+        selectedStoreIds.value = [Number(filters.store_id)];
+    } else {
+        selectedStoreIds.value = [];
+    }
+    selectAllStores.value = false;
     addDialogVisible.value = true;
 }
 
 function submitAdd() {
-    addForm.post('/management/notifications', {
+    addForm.store_ids = selectedStoreIds.value;
+    addForm.post('/management/notifications/batch', {
         preserveScroll: true,
         onSuccess: () => {
             addDialogVisible.value = false;
@@ -164,7 +186,6 @@ function confirmDelete(recipient: NotificationRecipient) {
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <h1 class="heading-lg">Notifications</h1>
                 <Button
-                    v-if="filters.store_id"
                     label="Add Recipient"
                     icon="pi pi-plus"
                     size="small"
@@ -193,20 +214,14 @@ function confirmDelete(recipient: NotificationRecipient) {
                         :options="storeOptions"
                         optionLabel="label"
                         optionValue="value"
-                        placeholder="Select store..."
+                        placeholder="All Stores"
                         size="small"
                         class="w-full sm:w-64"
                     />
                 </div>
 
-                <!-- No store selected message -->
-                <div v-if="!filters.store_id" class="rounded-lg border border-border p-8 text-center text-muted-foreground">
-                    Select a store to view and manage notification recipients.
-                </div>
-
                 <!-- Recipients table -->
                 <DataTable
-                    v-else
                     :value="recipients"
                     dataKey="id"
                     striped-rows
@@ -215,7 +230,7 @@ function confirmDelete(recipient: NotificationRecipient) {
                 >
                     <template #empty>
                         <div class="p-4 text-center text-muted-foreground">
-                            No notification recipients for this store and event type.
+                            No notification recipients for this event type{{ filters.store_id !== 'all' ? ' and store' : '' }}.
                         </div>
                     </template>
                     <Column header="Name">
@@ -226,6 +241,16 @@ function confirmDelete(recipient: NotificationRecipient) {
                     <Column header="Email">
                         <template #body="{ data }">
                             {{ data.email }}
+                        </template>
+                    </Column>
+                    <Column header="Store" class="hidden sm:table-cell">
+                        <template #body="{ data }">
+                            <Tag
+                                v-if="data.store_name"
+                                :value="`${data.store_name} (${data.store_code})`"
+                                severity="info"
+                                class="!text-xs"
+                            />
                         </template>
                     </Column>
                     <Column header="Status" :style="{ width: '6rem' }">
@@ -267,7 +292,7 @@ function confirmDelete(recipient: NotificationRecipient) {
                 v-model:visible="addDialogVisible"
                 header="Add Notification Recipient"
                 modal
-                :style="{ width: '24rem' }"
+                :style="{ width: '28rem' }"
             >
                 <div class="space-y-4">
                     <div>
@@ -294,6 +319,30 @@ function confirmDelete(recipient: NotificationRecipient) {
                             {{ addForm.errors.name }}
                         </small>
                     </div>
+                    <div>
+                        <label class="mb-2 block text-sm font-medium">Stores</label>
+                        <div class="rounded border border-border p-2">
+                            <div class="mb-2 flex items-center gap-2 border-b border-border pb-2">
+                                <Checkbox v-model="selectAllStores" :binary="true" inputId="select-all" />
+                                <label for="select-all" class="text-sm font-medium cursor-pointer">Select All</label>
+                            </div>
+                            <div class="max-h-48 space-y-1 overflow-y-auto">
+                                <div v-for="store in stores" :key="store.id" class="flex items-center gap-2">
+                                    <Checkbox
+                                        v-model="selectedStoreIds"
+                                        :value="store.id"
+                                        :inputId="`store-${store.id}`"
+                                    />
+                                    <label :for="`store-${store.id}`" class="text-sm cursor-pointer">
+                                        {{ store.store_name }} ({{ store.store_code }})
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <small v-if="addForm.errors.store_ids" class="text-red-500">
+                            {{ addForm.errors.store_ids }}
+                        </small>
+                    </div>
                 </div>
                 <template #footer>
                     <Button
@@ -307,6 +356,7 @@ function confirmDelete(recipient: NotificationRecipient) {
                         icon="pi pi-plus"
                         size="small"
                         :loading="addForm.processing"
+                        :disabled="selectedStoreIds.length === 0"
                         @click="submitAdd"
                     />
                 </template>

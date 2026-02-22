@@ -117,6 +117,9 @@ class NavigationService
             || $this->permissionService->canAccessPage($user, 'quotations.manage')) {
             $salesItems[] = ['title' => 'Quotations', 'href' => '/quotations', 'icon' => 'FileText'];
         }
+        if ($this->permissionService->canAccessPage($user, 'analytics.view')) {
+            $salesItems[] = ['title' => 'Analytics', 'href' => '/analytics', 'icon' => 'BarChart3'];
+        }
         if ($user->isAdmin() || $this->permissionService->canAccessPage($user, 'payment_modes.manage')) {
             $salesItems[] = ['title' => 'Payment Modes', 'href' => '/payment-modes', 'icon' => 'CreditCard'];
         }

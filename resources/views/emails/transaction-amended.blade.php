@@ -15,9 +15,33 @@ A completed transaction has been modified:
 
 **Currency:** {{ $currency->code }}
 
-## Change Summary
+## Change Details
 
+@if($changeDetails)
+@if($changeDetails['type'] === 'item_added')
+**Items Added:**
+@foreach($changeDetails['items'] as $item)
+- {{ $item['product_name'] }}{{ !empty($item['variant_name']) ? ' - ' . $item['variant_name'] : '' }} x{{ $item['quantity'] }}
+@endforeach
+
+@elseif($changeDetails['type'] === 'item_removed')
+**Items Removed:**
+@foreach($changeDetails['items'] as $item)
+- {{ $item['product_name'] }}{{ !empty($item['variant_name']) ? ' - ' . $item['variant_name'] : '' }} x{{ $item['quantity'] }}
+@endforeach
+
+@elseif($changeDetails['type'] === 'item_modified')
+**Item Modified:** {{ $changeDetails['product_name'] }}
+@foreach($changeDetails['changes'] as $change)
+- {{ $change }}
+@endforeach
+
+@elseif($changeDetails['type'] === 'payment_added')
+**Payment Added:** {{ $changeDetails['method'] }} — {{ number_format((float)$changeDetails['amount'], 2) }}
+@endif
+@else
 {{ $changeSummary }}
+@endif
 
 ## Current Items
 
@@ -54,6 +78,25 @@ A completed transaction has been modified:
 @if($transaction->balance_due > 0)
 | **Balance Due** | **{{ number_format($transaction->balance_due, 2) }}** |
 @endif
+@endcomponent
+
+@if(isset($versionHistory) && $versionHistory->count() > 0)
+## Change History
+
+@component('mail::table')
+| Version | Change | By | Date |
+|:--------|:-------|:---|:-----|
+@foreach($versionHistory as $index => $version)
+@if($showVersionEllipsis && $index === 3)
+| | ··· | | |
+@endif
+| v{{ $version->version_number }} | {{ $version->change_summary }} | {{ $version->changedByUser?->name ?? 'System' }} | {{ $version->created_at->format('d M Y, H:i') }} |
+@endforeach
+@endcomponent
+@endif
+
+@component('mail::button', ['url' => url("/transactions/{$transaction->id}")])
+View Transaction
 @endcomponent
 
 Thanks,<br>

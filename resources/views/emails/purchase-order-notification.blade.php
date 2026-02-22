@@ -47,6 +47,10 @@
 **Notes:** {{ $order->notes }}
 @endif
 
+@component('mail::button', ['url' => url("/purchase-orders/{$order->id}")])
+View Purchase Order
+@endcomponent
+
 Thanks,<br>
 {{ config('app.name') }}
 @endcomponent

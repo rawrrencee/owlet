@@ -16,7 +16,8 @@ class TransactionAmendedMail extends Mailable implements ShouldQueue
 
     public function __construct(
         public Transaction $transaction,
-        public string $changeSummary
+        public string $changeSummary,
+        public ?array $changeDetails = null
     ) {}
 
     public function envelope(): Envelope
@@ -31,6 +32,19 @@ class TransactionAmendedMail extends Mailable implements ShouldQueue
 
     public function content(): Content
     {
+        // Build version history: first 3 + ellipsis + last 3 (or all if <= 6)
+        $totalVersions = $this->transaction->versions()->count();
+        $showVersionEllipsis = false;
+
+        if ($totalVersions <= 6) {
+            $versionHistory = $this->transaction->versions()->with('changedByUser')->orderBy('version_number')->get();
+        } else {
+            $firstThree = $this->transaction->versions()->with('changedByUser')->orderBy('version_number')->limit(3)->get();
+            $lastThree = $this->transaction->versions()->with('changedByUser')->reorder()->orderByDesc('version_number')->limit(3)->get();
+            $versionHistory = $firstThree->concat($lastThree->sortBy('version_number')->values());
+            $showVersionEllipsis = true;
+        }
+
         return new Content(
             markdown: 'emails.transaction-amended',
             with: [
@@ -42,6 +56,9 @@ class TransactionAmendedMail extends Mailable implements ShouldQueue
                 'items' => $this->transaction->items,
                 'payments' => $this->transaction->payments,
                 'changeSummary' => $this->changeSummary,
+                'changeDetails' => $this->changeDetails,
+                'versionHistory' => $versionHistory,
+                'showVersionEllipsis' => $showVersionEllipsis,
             ],
         );
     }

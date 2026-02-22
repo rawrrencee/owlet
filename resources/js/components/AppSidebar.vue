@@ -16,6 +16,7 @@ import { Link, usePage } from '@inertiajs/vue3';
 import {
     ArrowLeftRight,
     BadgeCheck,
+    BarChart3,
     BellRing,
     Building2,
     CalendarCheck,
@@ -53,6 +54,7 @@ import AppLogo from './AppLogo.vue';
 const iconMap: Record<string, LucideIcon> = {
     ArrowLeftRight,
     BadgeCheck,
+    BarChart3,
     BellRing,
     Building2,
     CalendarCheck,

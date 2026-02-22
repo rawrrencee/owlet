@@ -86,10 +86,23 @@ class TransactionHistoryController extends Controller
         $canVoid = $this->canVoidTransaction($request, $transaction);
         $paymentModes = PaymentMode::where('is_active', true)->orderBy('name')->get(['id', 'name']);
 
+        // Compute eligible offers for completed transactions with void permission
+        $eligibleOffers = null;
+        if ($canVoid && $transaction->status === TransactionStatus::COMPLETED) {
+            $eligibleOffers = $this->transactionService->getEligibleOffers($transaction);
+        }
+
+        // Check if transaction has any applied offers (product-level or cart-level)
+        $hasAppliedOffers = $transaction->items->contains(fn ($item) => $item->offer_id !== null && ! $item->is_refunded)
+            || $transaction->bundle_offer_id !== null
+            || $transaction->minimum_spend_offer_id !== null;
+
         return Inertia::render('Transactions/View', [
             'transaction' => $data,
             'canVoid' => $canVoid,
             'paymentModes' => $paymentModes,
+            'eligibleOffers' => $eligibleOffers,
+            'hasAppliedOffers' => $hasAppliedOffers,
         ]);
     }
 
@@ -158,14 +171,20 @@ class TransactionHistoryController extends Controller
         );
 
         if ($wasCompleted) {
+            $modifiedItem = $result->items->find($item);
             $changes = [];
             if ($request->has('quantity')) {
-                $changes[] = "quantity updated";
+                $changes[] = "Quantity updated to {$request->input('quantity')}";
             }
             if ($request->has('unit_price')) {
-                $changes[] = "price updated";
+                $changes[] = "Price updated to {$request->input('unit_price')}";
             }
-            $this->transactionService->sendAmendedNotification($result, 'Item modified: ' . implode(', ', $changes));
+            $changeDetails = [
+                'type' => 'item_modified',
+                'product_name' => $modifiedItem?->product_name ?? 'Unknown',
+                'changes' => $changes,
+            ];
+            $this->transactionService->sendAmendedNotification($result, 'Item modified: ' . implode(', ', $changes), $changeDetails);
         }
 
         return redirect()->back();
@@ -188,7 +207,15 @@ class TransactionHistoryController extends Controller
         );
 
         if ($wasCompleted && $itemModel) {
-            $this->transactionService->sendAmendedNotification($result, "Item removed: {$itemModel->product_name}");
+            $changeDetails = [
+                'type' => 'item_removed',
+                'items' => [[
+                    'product_name' => $itemModel->product_name,
+                    'variant_name' => $itemModel->variant_name,
+                    'quantity' => $itemModel->quantity,
+                ]],
+            ];
+            $this->transactionService->sendAmendedNotification($result, "Item removed: {$itemModel->product_name}", $changeDetails);
         }
 
         return redirect()->back();
@@ -212,11 +239,63 @@ class TransactionHistoryController extends Controller
             $transaction,
             $request->integer('product_id'),
             $request->integer('quantity'),
+            $request->user()->id,
+            applyOffers: ! $wasCompleted
+        );
+
+        if ($wasCompleted) {
+            $addedItem = $result->items->firstWhere('product_id', $request->integer('product_id'));
+            $changeDetails = [
+                'type' => 'item_added',
+                'items' => [[
+                    'product_name' => $addedItem?->product_name ?? 'Unknown',
+                    'variant_name' => $addedItem?->variant_name,
+                    'quantity' => $request->integer('quantity'),
+                ]],
+            ];
+            $this->transactionService->sendAmendedNotification($result, "Item added to completed transaction", $changeDetails);
+        }
+
+        return redirect()->back();
+    }
+
+    /**
+     * Apply/re-apply offers to a completed transaction.
+     */
+    public function applyOffers(Request $request, Transaction $transaction): RedirectResponse
+    {
+        $this->authorizeVoidPermission($request, $transaction);
+
+        $wasCompleted = $transaction->status === TransactionStatus::COMPLETED;
+
+        $result = $this->transactionService->applyOffersToTransaction(
+            $transaction,
             $request->user()->id
         );
 
         if ($wasCompleted) {
-            $this->transactionService->sendAmendedNotification($result, "Item added to completed transaction");
+            $this->transactionService->sendAmendedNotification($result, 'Offers applied to transaction');
+        }
+
+        return redirect()->back();
+    }
+
+    /**
+     * Clear all applied offers from a transaction.
+     */
+    public function clearOffers(Request $request, Transaction $transaction): RedirectResponse
+    {
+        $this->authorizeVoidPermission($request, $transaction);
+
+        $wasCompleted = $transaction->status === TransactionStatus::COMPLETED;
+
+        $result = $this->transactionService->clearOffersFromTransaction(
+            $transaction,
+            $request->user()->id
+        );
+
+        if ($wasCompleted) {
+            $this->transactionService->sendAmendedNotification($result, 'Offers removed from transaction');
         }
 
         return redirect()->back();
@@ -245,7 +324,13 @@ class TransactionHistoryController extends Controller
         );
 
         if ($wasCompleted) {
-            $this->transactionService->sendAmendedNotification($result, "Payment added: " . $request->input('amount'));
+            $paymentMode = \App\Models\PaymentMode::find($request->integer('payment_mode_id'));
+            $changeDetails = [
+                'type' => 'payment_added',
+                'method' => $paymentMode?->name ?? 'Unknown',
+                'amount' => $request->input('amount'),
+            ];
+            $this->transactionService->sendAmendedNotification($result, "Payment added: " . $request->input('amount'), $changeDetails);
         }
 
         return redirect()->back();
