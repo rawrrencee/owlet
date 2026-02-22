@@ -2,13 +2,17 @@
 
 namespace App\Services;
 
+use App\Enums\NotificationEventType;
 use App\Enums\QuotationStatus;
+use App\Mail\QuotationNotificationMail;
+use App\Models\NotificationRecipient;
 use App\Models\Product;
 use App\Models\Quotation;
 use App\Models\Store;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 class QuotationService
 {
@@ -18,7 +22,7 @@ class QuotationService
 
     public function create(array $data, User $user): Quotation
     {
-        return DB::transaction(function () use ($data, $user) {
+        $quotation = DB::transaction(function () use ($data, $user) {
             $quotation = Quotation::create([
                 'quotation_number' => Quotation::generateQuotationNumber(),
                 'company_id' => $data['company_id'],
@@ -45,6 +49,10 @@ class QuotationService
 
             return $quotation->load('items.product', 'items.currency', 'paymentModes');
         });
+
+        $this->sendNotification($quotation, 'Created');
+
+        return $quotation;
     }
 
     public function update(Quotation $quotation, array $data, User $user): Quotation
@@ -105,6 +113,8 @@ class QuotationService
             'sent_at' => now(),
         ]);
 
+        $this->sendNotification($quotation, 'Sent');
+
         return $quotation;
     }
 
@@ -121,6 +131,8 @@ class QuotationService
             'sent_at' => null,
         ]);
 
+        $this->sendNotification($quotation, 'Reverted to Draft');
+
         return $quotation;
     }
 
@@ -136,6 +148,8 @@ class QuotationService
             'status' => QuotationStatus::ACCEPTED,
         ]);
 
+        $this->sendNotification($quotation, 'Accepted');
+
         return $quotation;
     }
 
@@ -150,6 +164,8 @@ class QuotationService
         $quotation->update([
             'status' => QuotationStatus::PAID,
         ]);
+
+        $this->sendNotification($quotation, 'Paid');
 
         return $quotation;
     }
@@ -456,5 +472,25 @@ class QuotationService
     protected function syncPaymentModes(Quotation $quotation, array $paymentModeIds): void
     {
         $quotation->paymentModes()->sync($paymentModeIds);
+    }
+
+    protected function sendNotification(Quotation $quotation, string $action): void
+    {
+        // Quotations are company-wide, no direct store - notify all recipients for this event type
+        $recipients = NotificationRecipient::forEventType(NotificationEventType::Quotation)
+            ->active()
+            ->get();
+
+        if ($recipients->isEmpty()) {
+            return;
+        }
+
+        $quotation->loadMissing(['items.product', 'customer', 'company']);
+
+        $mailable = new QuotationNotificationMail($quotation, $action);
+
+        foreach ($recipients as $recipient) {
+            Mail::to($recipient->email)->queue(clone $mailable);
+        }
     }
 }

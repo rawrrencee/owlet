@@ -73,7 +73,7 @@ function onBlur() {
                     optionLabel="full_name"
                     placeholder="Search customer..."
                     size="small"
-                    class="w-40"
+                    class="w-40 mr-4"
                     @complete="searchCustomers"
                     @item-select="onSelect"
                     @blur="onBlur"

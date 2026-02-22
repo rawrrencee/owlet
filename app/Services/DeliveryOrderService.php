@@ -4,17 +4,21 @@ namespace App\Services;
 
 use App\Constants\InventoryActivityCodes;
 use App\Enums\DeliveryOrderStatus;
+use App\Enums\NotificationEventType;
+use App\Mail\DeliveryOrderNotificationMail;
 use App\Models\DeliveryOrder;
 use App\Models\InventoryLog;
+use App\Models\NotificationRecipient;
 use App\Models\ProductStore;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class DeliveryOrderService
 {
     public function create(array $data, User $user): DeliveryOrder
     {
-        return DB::transaction(function () use ($data, $user) {
+        $order = DB::transaction(function () use ($data, $user) {
             $order = DeliveryOrder::create([
                 'order_number' => DeliveryOrder::generateOrderNumber(),
                 'store_id_from' => $data['store_id_from'],
@@ -32,6 +36,10 @@ class DeliveryOrderService
 
             return $order->load('items.product');
         });
+
+        $this->sendNotification($order, 'Created');
+
+        return $order;
     }
 
     public function update(DeliveryOrder $order, array $data, User $user): DeliveryOrder
@@ -70,6 +78,8 @@ class DeliveryOrderService
             'submitted_by' => $user->id,
         ]);
 
+        $this->sendNotification($order, 'Submitted');
+
         return $order;
     }
 
@@ -77,7 +87,7 @@ class DeliveryOrderService
     {
         abort_unless($order->status === DeliveryOrderStatus::SUBMITTED, 422, 'Only submitted orders can be approved.');
 
-        return DB::transaction(function () use ($order, $receivedItems, $user) {
+        $result = DB::transaction(function () use ($order, $receivedItems, $user) {
             // Index received items by item ID
             $receivedMap = collect($receivedItems)->keyBy('id');
 
@@ -126,6 +136,10 @@ class DeliveryOrderService
 
             return $order;
         });
+
+        $this->sendNotification($result, 'Approved');
+
+        return $result;
     }
 
     public function reject(DeliveryOrder $order, string $reason, User $user): DeliveryOrder
@@ -139,6 +153,8 @@ class DeliveryOrderService
             'resolved_by' => $user->id,
         ]);
 
+        $this->sendNotification($order, 'Rejected');
+
         return $order;
     }
 
@@ -146,7 +162,7 @@ class DeliveryOrderService
     {
         abort_unless($order->status === DeliveryOrderStatus::APPROVED, 422, 'Only approved orders can be reverted.');
 
-        return DB::transaction(function () use ($order, $user) {
+        $result = DB::transaction(function () use ($order, $user) {
             foreach ($order->items as $item) {
                 if ($item->received_quantity && $item->received_quantity > 0) {
                     // Add back to source store
@@ -186,6 +202,10 @@ class DeliveryOrderService
 
             return $order;
         });
+
+        $this->sendNotification($result, 'Reverted');
+
+        return $result;
     }
 
     public function delete(DeliveryOrder $order): void
@@ -234,5 +254,26 @@ class DeliveryOrderService
             'notes' => null,
             'created_by' => $user->id,
         ]);
+    }
+
+    protected function sendNotification(DeliveryOrder $order, string $action): void
+    {
+        // Delivery orders involve two stores - notify recipients of both
+        $recipients = NotificationRecipient::forEventType(NotificationEventType::DeliveryOrder)
+            ->whereIn('store_id', [$order->store_id_from, $order->store_id_to])
+            ->active()
+            ->get();
+
+        if ($recipients->isEmpty()) {
+            return;
+        }
+
+        $order->loadMissing(['items.product', 'storeFrom', 'storeTo', 'submittedByUser', 'resolvedByUser']);
+
+        $mailable = new DeliveryOrderNotificationMail($order, $action);
+
+        foreach ($recipients as $recipient) {
+            Mail::to($recipient->email)->queue(clone $mailable);
+        }
     }
 }

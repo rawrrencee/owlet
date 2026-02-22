@@ -2,7 +2,10 @@
 
 namespace App\Services;
 
+use App\Enums\NotificationEventType;
+use App\Mail\TimecardNotificationMail;
 use App\Models\Employee;
+use App\Models\NotificationRecipient;
 use App\Models\Store;
 use App\Models\Timecard;
 use App\Models\TimecardDetail;
@@ -10,6 +13,7 @@ use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class TimecardService
 {
@@ -18,7 +22,7 @@ class TimecardService
      */
     public function clockIn(Employee $employee, Store $store, ?Employee $createdBy = null): Timecard
     {
-        return DB::transaction(function () use ($employee, $store, $createdBy) {
+        $timecard = DB::transaction(function () use ($employee, $store, $createdBy) {
             $now = now();
 
             $timecard = Timecard::create([
@@ -37,6 +41,10 @@ class TimecardService
 
             return $timecard->load('details', 'store', 'employee');
         });
+
+        $this->sendNotification($timecard, 'Clock In');
+
+        return $timecard;
     }
 
     /**
@@ -44,7 +52,7 @@ class TimecardService
      */
     public function clockOut(Timecard $timecard, ?Employee $updatedBy = null): Timecard
     {
-        return DB::transaction(function () use ($timecard, $updatedBy) {
+        $result = DB::transaction(function () use ($timecard, $updatedBy) {
             $now = now();
 
             // End all open details
@@ -62,6 +70,10 @@ class TimecardService
 
             return $timecard->fresh(['details', 'store', 'employee']);
         });
+
+        $this->sendNotification($result, 'Clock Out');
+
+        return $result;
     }
 
     /**
@@ -527,7 +539,7 @@ class TimecardService
      */
     public function resolveIncompleteTimecard(Timecard $timecard, string $endTime, ?Employee $updatedBy = null): Timecard
     {
-        return DB::transaction(function () use ($timecard, $endTime, $updatedBy) {
+        $result = DB::transaction(function () use ($timecard, $endTime, $updatedBy) {
             $endDate = Carbon::parse($endTime);
 
             // Close all open details
@@ -547,5 +559,29 @@ class TimecardService
 
             return $timecard->fresh(['details', 'store', 'employee']);
         });
+
+        $this->sendNotification($result, 'Incomplete Resolved');
+
+        return $result;
+    }
+
+    protected function sendNotification(Timecard $timecard, string $action): void
+    {
+        $recipients = NotificationRecipient::forEventType(NotificationEventType::Timecard)
+            ->where('store_id', $timecard->store_id)
+            ->active()
+            ->get();
+
+        if ($recipients->isEmpty()) {
+            return;
+        }
+
+        $timecard->loadMissing(['details', 'employee', 'store']);
+
+        $mailable = new TimecardNotificationMail($timecard, $action);
+
+        foreach ($recipients as $recipient) {
+            Mail::to($recipient->email)->queue(clone $mailable);
+        }
     }
 }

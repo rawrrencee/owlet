@@ -3,18 +3,22 @@
 namespace App\Services;
 
 use App\Constants\InventoryActivityCodes;
+use App\Enums\NotificationEventType;
 use App\Enums\PurchaseOrderStatus;
+use App\Mail\PurchaseOrderNotificationMail;
 use App\Models\InventoryLog;
+use App\Models\NotificationRecipient;
 use App\Models\ProductStore;
 use App\Models\PurchaseOrder;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class PurchaseOrderService
 {
     public function create(array $data, User $user): PurchaseOrder
     {
-        return DB::transaction(function () use ($data) {
+        $order = DB::transaction(function () use ($data) {
             $order = PurchaseOrder::create([
                 'order_number' => PurchaseOrder::generateOrderNumber(),
                 'supplier_id' => $data['supplier_id'],
@@ -33,6 +37,10 @@ class PurchaseOrderService
 
             return $order->load('items.product', 'items.currency');
         });
+
+        $this->sendNotification($order, 'Created');
+
+        return $order;
     }
 
     public function update(PurchaseOrder $order, array $data, User $user): PurchaseOrder
@@ -72,6 +80,8 @@ class PurchaseOrderService
             'submitted_by' => $user->id,
         ]);
 
+        $this->sendNotification($order, 'Submitted');
+
         return $order;
     }
 
@@ -79,7 +89,7 @@ class PurchaseOrderService
     {
         abort_unless($order->status === PurchaseOrderStatus::SUBMITTED, 422, 'Only submitted orders can be accepted.');
 
-        return DB::transaction(function () use ($order, $storeId, $receivedItems, $user) {
+        $result = DB::transaction(function () use ($order, $storeId, $receivedItems, $user) {
             $order->update(['store_id' => $storeId]);
 
             $receivedMap = collect($receivedItems)->keyBy('id');
@@ -117,6 +127,10 @@ class PurchaseOrderService
 
             return $order;
         });
+
+        $this->sendNotification($result, 'Accepted');
+
+        return $result;
     }
 
     public function reject(PurchaseOrder $order, string $reason, User $user): PurchaseOrder
@@ -130,6 +144,8 @@ class PurchaseOrderService
             'resolved_by' => $user->id,
         ]);
 
+        $this->sendNotification($order, 'Rejected');
+
         return $order;
     }
 
@@ -137,9 +153,9 @@ class PurchaseOrderService
     {
         abort_unless($order->status === PurchaseOrderStatus::ACCEPTED, 422, 'Only accepted orders can be reverted.');
 
-        return DB::transaction(function () use ($order, $user) {
-            $storeId = $order->store_id;
+        $storeId = $order->store_id;
 
+        $result = DB::transaction(function () use ($order, $user, $storeId) {
             foreach ($order->items as $item) {
                 if ($item->received_quantity && $item->received_quantity > 0 && $storeId) {
                     // Subtract from destination store
@@ -168,6 +184,10 @@ class PurchaseOrderService
 
             return $order;
         });
+
+        $this->sendNotification($result, 'Reverted');
+
+        return $result;
     }
 
     public function delete(PurchaseOrder $order): void
@@ -214,5 +234,30 @@ class PurchaseOrderService
             'notes' => null,
             'created_by' => $user->id,
         ]);
+    }
+
+    protected function sendNotification(PurchaseOrder $order, string $action): void
+    {
+        $query = NotificationRecipient::forEventType(NotificationEventType::PurchaseOrder)
+            ->active();
+
+        // Filter by store when available, otherwise notify all recipients
+        if ($order->store_id) {
+            $query->where('store_id', $order->store_id);
+        }
+
+        $recipients = $query->get();
+
+        if ($recipients->isEmpty()) {
+            return;
+        }
+
+        $order->loadMissing(['items.product', 'supplier', 'store', 'submittedByUser', 'resolvedByUser']);
+
+        $mailable = new PurchaseOrderNotificationMail($order, $action);
+
+        foreach ($recipients as $recipient) {
+            Mail::to($recipient->email)->queue(clone $mailable);
+        }
     }
 }

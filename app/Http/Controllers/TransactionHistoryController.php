@@ -148,12 +148,25 @@ class TransactionHistoryController extends Controller
 
         $this->authorizeVoidPermission($request, $transaction);
 
-        $this->transactionService->updateItem(
+        $wasCompleted = $transaction->status === TransactionStatus::COMPLETED;
+
+        $result = $this->transactionService->updateItem(
             $transaction,
             $item,
             $request->only(['quantity', 'unit_price']),
             $request->user()->id
         );
+
+        if ($wasCompleted) {
+            $changes = [];
+            if ($request->has('quantity')) {
+                $changes[] = "quantity updated";
+            }
+            if ($request->has('unit_price')) {
+                $changes[] = "price updated";
+            }
+            $this->transactionService->sendAmendedNotification($result, 'Item modified: ' . implode(', ', $changes));
+        }
 
         return redirect()->back();
     }
@@ -165,11 +178,18 @@ class TransactionHistoryController extends Controller
     {
         $this->authorizeVoidPermission($request, $transaction);
 
-        $this->transactionService->removeItem(
+        $wasCompleted = $transaction->status === TransactionStatus::COMPLETED;
+        $itemModel = $wasCompleted ? $transaction->items()->find($item) : null;
+
+        $result = $this->transactionService->removeItem(
             $transaction,
             $item,
             $request->user()->id
         );
+
+        if ($wasCompleted && $itemModel) {
+            $this->transactionService->sendAmendedNotification($result, "Item removed: {$itemModel->product_name}");
+        }
 
         return redirect()->back();
     }
@@ -186,12 +206,18 @@ class TransactionHistoryController extends Controller
 
         $this->authorizeVoidPermission($request, $transaction);
 
-        $this->transactionService->addItem(
+        $wasCompleted = $transaction->status === TransactionStatus::COMPLETED;
+
+        $result = $this->transactionService->addItem(
             $transaction,
             $request->integer('product_id'),
             $request->integer('quantity'),
             $request->user()->id
         );
+
+        if ($wasCompleted) {
+            $this->transactionService->sendAmendedNotification($result, "Item added to completed transaction");
+        }
 
         return redirect()->back();
     }
@@ -208,13 +234,19 @@ class TransactionHistoryController extends Controller
 
         $this->authorizeVoidPermission($request, $transaction);
 
-        $this->transactionService->addPayment(
+        $wasCompleted = $transaction->status === TransactionStatus::COMPLETED;
+
+        $result = $this->transactionService->addPayment(
             $transaction,
             $request->integer('payment_mode_id'),
             (string) $request->input('amount'),
             null,
             $request->user()->id
         );
+
+        if ($wasCompleted) {
+            $this->transactionService->sendAmendedNotification($result, "Payment added: " . $request->input('amount'));
+        }
 
         return redirect()->back();
     }

@@ -3,10 +3,15 @@
 namespace App\Services;
 
 use App\Constants\InventoryActivityCodes;
+use App\Enums\NotificationEventType;
 use App\Enums\TransactionChangeType;
 use App\Enums\TransactionStatus;
+use App\Mail\TransactionAmendedMail;
+use App\Mail\TransactionCompletedMail;
+use App\Mail\TransactionRefundMail;
 use App\Models\Customer;
 use App\Models\InventoryLog;
+use App\Models\NotificationRecipient;
 use App\Models\PaymentMode;
 use App\Models\Product;
 use App\Models\ProductStore;
@@ -14,7 +19,9 @@ use App\Models\Store;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
 use App\Models\TransactionPayment;
+use Illuminate\Mail\Mailable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class TransactionService
 {
@@ -571,7 +578,7 @@ class TransactionService
             'Cannot complete transaction with outstanding balance.'
         );
 
-        return DB::transaction(function () use ($transaction, $userId) {
+        $result = DB::transaction(function () use ($transaction, $userId) {
             $transaction->update([
                 'status' => TransactionStatus::COMPLETED,
                 'checkout_date' => now(),
@@ -593,6 +600,10 @@ class TransactionService
 
             return $transaction->load('items.product', 'payments', 'customer', 'currency', 'store', 'employee');
         });
+
+        $this->sendTransactionNotification($result, NotificationEventType::Transaction, new TransactionCompletedMail($result));
+
+        return $result;
     }
 
     /**
@@ -656,9 +667,9 @@ class TransactionService
             'This transaction cannot be voided.'
         );
 
-        return DB::transaction(function () use ($transaction, $userId, $reason) {
-            $wasCompleted = $transaction->status === TransactionStatus::COMPLETED;
+        $wasCompleted = $transaction->status === TransactionStatus::COMPLETED;
 
+        $result = DB::transaction(function () use ($transaction, $userId, $reason, $wasCompleted) {
             $transaction->update([
                 'status' => TransactionStatus::VOIDED,
                 'comments' => $reason ? ($transaction->comments ? $transaction->comments . "\n" . $reason : $reason) : $transaction->comments,
@@ -684,6 +695,13 @@ class TransactionService
 
             return $transaction->load('items.product', 'payments', 'customer', 'currency', 'store', 'employee');
         });
+
+        if ($wasCompleted) {
+            $changeSummary = 'Transaction voided' . ($reason ? ": {$reason}" : '');
+            $this->sendTransactionNotification($result, NotificationEventType::AmendedTransaction, new TransactionAmendedMail($result, $changeSummary));
+        }
+
+        return $result;
     }
 
     /**
@@ -699,7 +717,9 @@ class TransactionService
             'Only completed transactions can be refunded.'
         );
 
-        return DB::transaction(function () use ($transaction, $refundItems, $userId) {
+        $refundSummaryText = '';
+
+        $result = DB::transaction(function () use ($transaction, $refundItems, $userId, &$refundSummaryText) {
             $refundSummary = [];
 
             foreach ($refundItems as $refundData) {
@@ -750,6 +770,8 @@ class TransactionService
                 $refundSummary[] = "{$item->product_name} x{$refundQty}";
             }
 
+            $refundSummaryText = 'Refund: ' . implode(', ', $refundSummary);
+
             // Recalculate totals
             $transaction->refresh();
             $oldTotal = (string) $transaction->total;
@@ -772,11 +794,15 @@ class TransactionService
                 $transaction,
                 TransactionChangeType::REFUND,
                 $userId,
-                'Refund: ' . implode(', ', $refundSummary)
+                $refundSummaryText
             );
 
             return $transaction->load('items.product', 'payments', 'customer', 'currency', 'store', 'employee');
         });
+
+        $this->sendTransactionNotification($result, NotificationEventType::Refund, new TransactionRefundMail($result, $refundSummaryText));
+
+        return $result;
     }
 
     /**
@@ -1228,5 +1254,39 @@ class TransactionService
                 'change_amount' => (string) $transaction->change_amount,
             ],
         ]);
+    }
+
+    /**
+     * Send notification emails to registered recipients for a transaction event.
+     */
+    protected function sendTransactionNotification(Transaction $transaction, NotificationEventType $eventType, Mailable $mailable): void
+    {
+        $recipients = NotificationRecipient::forEventType($eventType)
+            ->where('store_id', $transaction->store_id)
+            ->active()
+            ->get();
+
+        if ($recipients->isEmpty()) {
+            return;
+        }
+
+        $transaction->loadMissing(['items.product', 'payments', 'employee', 'store', 'customer', 'currency']);
+
+        foreach ($recipients as $recipient) {
+            Mail::to($recipient->email)->queue(clone $mailable);
+        }
+    }
+
+    /**
+     * Send amended transaction notification (for use by controllers on post-completion modifications).
+     */
+    public function sendAmendedNotification(Transaction $transaction, string $changeSummary): void
+    {
+        $transaction->loadMissing(['items.product', 'payments', 'employee', 'store', 'customer', 'currency']);
+        $this->sendTransactionNotification(
+            $transaction,
+            NotificationEventType::AmendedTransaction,
+            new TransactionAmendedMail($transaction, $changeSummary)
+        );
     }
 }
