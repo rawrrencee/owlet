@@ -11,6 +11,8 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EmployeeRequestController;
+use App\Http\Controllers\EmployeeRequestManagementController;
 use App\Http\Controllers\DesignationController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EmployeeCompanyController;
@@ -51,6 +53,11 @@ Route::get('/', fn () => Inertia::render('Welcome'));
 // Public quotation view (no auth required)
 Route::get('q/{shareToken}', [PublicQuotationController::class, 'show'])->name('quotations.public');
 Route::post('q/{shareToken}', [PublicQuotationController::class, 'verifyPassword'])->name('quotations.public.verify');
+
+// Public employee application (no auth required)
+Route::get('apply', [EmployeeRequestController::class, 'show'])->name('employee-requests.apply');
+Route::post('apply/verify', [EmployeeRequestController::class, 'verifyCode'])->name('employee-requests.verify');
+Route::post('apply', [EmployeeRequestController::class, 'store'])->name('employee-requests.store');
 
 Route::middleware([
     'auth',
@@ -542,6 +549,16 @@ Route::middleware([
         Route::post('users/{employee}/hierarchy', [OrganisationChartController::class, 'addSubordinate'])->name('users.hierarchy.store');
         Route::delete('users/{employee}/hierarchy/{subordinate}', [OrganisationChartController::class, 'removeSubordinate'])->name('users.hierarchy.destroy');
         Route::put('users/{employee}/hierarchy/visibility', [OrganisationChartController::class, 'updateVisibility'])->name('users.hierarchy.visibility');
+
+        // Management - Employee Requests (admin only)
+        Route::prefix('management')->name('management.')->group(function () {
+            Route::get('employee-requests', [EmployeeRequestManagementController::class, 'index'])->name('employee-requests.index');
+            Route::get('employee-requests/settings', [EmployeeRequestManagementController::class, 'settings'])->name('employee-requests.settings');
+            Route::put('employee-requests/settings', [EmployeeRequestManagementController::class, 'updateSettings'])->name('employee-requests.settings.update');
+            Route::get('employee-requests/{employeeRequest}', [EmployeeRequestManagementController::class, 'show'])->name('employee-requests.show');
+            Route::post('employee-requests/{employeeRequest}/approve', [EmployeeRequestManagementController::class, 'approve'])->name('employee-requests.approve');
+            Route::post('employee-requests/{employeeRequest}/reject', [EmployeeRequestManagementController::class, 'reject'])->name('employee-requests.reject');
+        });
 
         // Management - Leave Types (admin only)
         Route::prefix('management')->name('management.')->group(function () {

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\TimecardResource;
+use App\Services\DashboardService;
 use App\Services\TimecardService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -11,7 +12,8 @@ use Inertia\Response as InertiaResponse;
 class DashboardController extends Controller
 {
     public function __construct(
-        private readonly TimecardService $timecardService
+        private readonly TimecardService $timecardService,
+        private readonly DashboardService $dashboardService,
     ) {}
 
     public function index(Request $request): InertiaResponse
@@ -40,6 +42,10 @@ class DashboardController extends Controller
                     'code' => $store->store_code,
                 ]);
         }
+
+        // Get all dashboard widget data
+        $widgetData = $this->dashboardService->getWidgetData($user);
+        $data = array_merge($data, $widgetData);
 
         return Inertia::render('Dashboard', $data);
     }

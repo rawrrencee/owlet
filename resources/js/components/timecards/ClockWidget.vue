@@ -153,9 +153,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div class="space-y-3">
+    <div class="flex h-full flex-col gap-3">
         <!-- Clocked In State -->
-        <div v-if="currentTimecard" class="rounded-lg border border-primary/30 bg-primary/5 p-3">
+        <div v-if="currentTimecard" class="flex-1 rounded-lg border border-primary/30 bg-primary/5 p-3">
             <div class="mb-2 flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <component
@@ -221,7 +221,7 @@ onUnmounted(() => {
         </div>
 
         <!-- Clock In Form -->
-        <div v-else class="space-y-2">
+        <div v-else class="flex-1 space-y-2">
             <Select
                 v-model="selectedStore"
                 :options="stores"

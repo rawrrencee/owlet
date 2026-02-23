@@ -14,6 +14,7 @@ const ADMIN_ONLY_ROUTES = [
     '/documents',
     '/organisation-chart',
     '/management/timecards',
+    '/management/employee-requests',
 ];
 
 /**

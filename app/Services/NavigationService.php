@@ -142,6 +142,7 @@ class NavigationService
             $organisationItems[] = ['title' => 'Documents', 'href' => '/documents', 'icon' => 'Folder'];
             $organisationItems[] = ['title' => 'Timecards', 'href' => '/management/timecards', 'icon' => 'CalendarClock'];
             $organisationItems[] = ['title' => 'Leave Requests', 'href' => '/management/leave', 'icon' => 'CalendarCheck'];
+            $organisationItems[] = ['title' => 'Employee Requests', 'href' => '/management/employee-requests', 'icon' => 'UserPlus'];
         }
 
         if (! empty($organisationItems)) {

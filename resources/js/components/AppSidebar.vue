@@ -44,6 +44,7 @@ import {
     Store,
     Tag,
     Truck,
+    UserPlus,
     Users,
     UsersRound,
     type LucideIcon,
@@ -82,6 +83,7 @@ const iconMap: Record<string, LucideIcon> = {
     Store,
     Tag,
     Truck,
+    UserPlus,
     Users,
     UsersRound,
 };
