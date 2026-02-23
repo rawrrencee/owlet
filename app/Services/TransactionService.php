@@ -60,6 +60,40 @@ class TransactionService
     }
 
     /**
+     * Find an existing draft transaction for this employee+store, or create a new one.
+     * Auto-voids any duplicate drafts (keeps only the most recent).
+     */
+    public function findOrCreateDraft(int $storeId, int $employeeId, int $currencyId, int $userId): Transaction
+    {
+        return DB::transaction(function () use ($storeId, $employeeId, $currencyId, $userId) {
+            $drafts = Transaction::forStore($storeId)
+                ->forEmployee($employeeId)
+                ->draft()
+                ->orderByDesc('updated_at')
+                ->get();
+
+            if ($drafts->isNotEmpty()) {
+                $primary = $drafts->first();
+
+                // Void any duplicate drafts beyond the first
+                foreach ($drafts->skip(1) as $duplicate) {
+                    $duplicate->update(['status' => TransactionStatus::VOIDED]);
+                    $this->createVersion(
+                        $duplicate,
+                        TransactionChangeType::VOIDED,
+                        $userId,
+                        'Auto-voided duplicate draft'
+                    );
+                }
+
+                return $primary->load('store', 'employee', 'customer', 'currency', 'items.product', 'payments.paymentMode');
+            }
+
+            return $this->create($storeId, $employeeId, $currencyId, $userId);
+        });
+    }
+
+    /**
      * Add an item to the transaction.
      */
     public function addItem(Transaction $transaction, int $productId, int $quantity, int $userId, bool $applyOffers = true): Transaction

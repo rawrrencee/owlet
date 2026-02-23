@@ -223,7 +223,7 @@ class TransactionController extends Controller
             abort(403, 'You do not have permission to process sales for this store.');
         }
 
-        $transaction = $this->transactionService->create(
+        $transaction = $this->transactionService->findOrCreateDraft(
             $request->integer('store_id'),
             $employee->id,
             $request->integer('currency_id'),
@@ -231,6 +231,39 @@ class TransactionController extends Controller
         );
 
         return response()->json($transaction, 201);
+    }
+
+    /**
+     * Get the current employee's draft transaction for a store.
+     */
+    public function currentDraft(Request $request): JsonResponse|\Illuminate\Http\Response
+    {
+        $request->validate([
+            'store_id' => 'required|exists:stores,id',
+        ]);
+
+        $employee = $request->user()->employee;
+
+        if (! $employee) {
+            return response()->noContent();
+        }
+
+        $draft = Transaction::forStore($request->integer('store_id'))
+            ->forEmployee($employee->id)
+            ->draft()
+            ->orderByDesc('updated_at')
+            ->first();
+
+        if (! $draft) {
+            return response()->noContent();
+        }
+
+        $draft->load([
+            'store', 'employee', 'customer', 'currency',
+            'items.product', 'payments.paymentMode',
+        ]);
+
+        return response()->json($draft);
     }
 
     /**

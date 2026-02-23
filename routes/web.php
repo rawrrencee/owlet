@@ -338,6 +338,7 @@ Route::middleware([
         Route::get('pos/filters', [TransactionController::class, 'filters'])->name('pos.filters');
         Route::get('pos/search-products', [TransactionController::class, 'searchProducts'])->name('pos.search-products');
         Route::get('pos/search-customers', [TransactionController::class, 'searchCustomers'])->name('pos.search-customers');
+        Route::get('pos/current-draft', [TransactionController::class, 'currentDraft'])->name('pos.current-draft');
         Route::get('pos/suspended', [TransactionController::class, 'suspendedList'])->name('pos.suspended');
         Route::get('pos/offers', [TransactionController::class, 'offers'])->name('pos.offers');
         Route::get('pos/offers/{offer}', [OfferController::class, 'showJson'])->name('pos.offers.show');

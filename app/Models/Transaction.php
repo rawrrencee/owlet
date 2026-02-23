@@ -153,6 +153,11 @@ class Transaction extends Model
         return $query->where('status', TransactionStatus::DRAFT);
     }
 
+    public function scopeForEmployee(Builder $query, int $employeeId): Builder
+    {
+        return $query->where('employee_id', $employeeId);
+    }
+
     public function scopeSearch(Builder $query, ?string $search): Builder
     {
         if (! $search) {

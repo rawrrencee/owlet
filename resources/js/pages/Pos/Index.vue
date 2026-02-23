@@ -83,7 +83,7 @@ const totalQuantity = computed(() => {
 });
 
 // Store selection with localStorage persistence
-function onStoreSelected(store: StoreOption) {
+async function onStoreSelected(store: StoreOption) {
     selectedStore.value = store;
     localStorage.setItem('pos_selected_store_id', store.id.toString());
     if (store.currencies.length > 0) {
@@ -96,7 +96,10 @@ function onStoreSelected(store: StoreOption) {
         localStorage.setItem('pos_selected_currency_id', selectedCurrency.value.id.toString());
     }
     currentTransaction.value = null;
-    loadFavourites();
+    await Promise.all([
+        restoreDraftFromServer(store.id),
+        loadFavourites(),
+    ]);
 }
 
 function onCurrencyChanged(currency: { id: number; code: string; symbol: string; name: string }) {
@@ -112,28 +115,61 @@ function onBackToStoreSelection() {
     localStorage.removeItem('pos_current_transaction_id');
 }
 
+// Restore draft from server by querying for existing drafts
+async function restoreDraftFromServer(storeId: number) {
+    try {
+        const response = await fetch(`/pos/current-draft?store_id=${storeId}`, {
+            headers: {
+                'Accept': 'application/json',
+                'X-XSRF-TOKEN': decodeURIComponent(
+                    document.cookie.match(/XSRF-TOKEN=([^;]+)/)?.[1] ?? ''
+                ),
+            },
+        });
+        if (response.status === 204) {
+            localStorage.removeItem('pos_current_transaction_id');
+            return;
+        }
+        if (!response.ok) {
+            localStorage.removeItem('pos_current_transaction_id');
+            return;
+        }
+        const data = await response.json();
+        currentTransaction.value = data;
+        localStorage.setItem('pos_current_transaction_id', data.id.toString());
+        if (data.items?.length > 0) {
+            toast.add({
+                severity: 'info',
+                summary: 'Draft restored',
+                detail: `${data.transaction_number} with ${data.items.length} item(s)`,
+                life: 3000,
+            });
+        }
+    } catch {
+        localStorage.removeItem('pos_current_transaction_id');
+    }
+}
+
 // Restore saved store and transaction on mount
 onMounted(async () => {
     const savedStoreId = localStorage.getItem('pos_selected_store_id');
     if (savedStoreId) {
         const store = props.stores.find(s => s.id === parseInt(savedStoreId));
         if (store) {
-            onStoreSelected(store);
-
-            // Restore draft transaction if one was active
-            const savedTxnId = localStorage.getItem('pos_current_transaction_id');
-            if (savedTxnId) {
-                try {
-                    const data = await apiCall(`/pos/transactions/${savedTxnId}`);
-                    if (data.status === 'draft' && data.store_id === store.id) {
-                        currentTransaction.value = data;
-                    } else {
-                        localStorage.removeItem('pos_current_transaction_id');
-                    }
-                } catch {
-                    localStorage.removeItem('pos_current_transaction_id');
-                }
+            // Set up store and currency without calling onStoreSelected (avoids redundant server call)
+            selectedStore.value = store;
+            if (store.currencies.length > 0) {
+                const savedCurrencyId = localStorage.getItem('pos_selected_currency_id');
+                const savedCurrency = savedCurrencyId
+                    ? store.currencies.find(c => c.id === parseInt(savedCurrencyId))
+                    : null;
+                selectedCurrency.value = savedCurrency ?? store.currencies[0];
             }
+
+            // Restore any existing draft for the current employee via server
+            await restoreDraftFromServer(store.id);
+
+            loadFavourites();
         }
     }
     window.addEventListener('resize', onWindowResize);
