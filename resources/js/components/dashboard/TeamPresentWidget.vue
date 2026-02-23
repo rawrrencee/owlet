@@ -36,7 +36,7 @@ const timedInCount = computed(
                     :key="member.id"
                     class="flex items-center gap-2"
                 >
-                    <div class="relative">
+                    <div class="relative size-8 flex-shrink-0">
                         <Avatar
                             v-if="member.profile_picture_url"
                             :image="member.profile_picture_url"

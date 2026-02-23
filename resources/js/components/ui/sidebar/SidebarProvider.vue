@@ -58,7 +58,7 @@ useEventListener("touchstart", (event: TouchEvent) => {
   if (!isMobile.value) return
   const x = event.touches[0].clientX
   touchStartX = x
-  touchLocked = x > 70
+  touchLocked = x > 150
 }, { passive: true })
 
 useEventListener("touchmove", (event: TouchEvent) => {

@@ -1,16 +1,24 @@
 <script setup lang="ts">
-import ClockWidget from '@/components/timecards/ClockWidget.vue';
+import ActiveOffersWidget from '@/components/dashboard/ActiveOffersWidget.vue';
+import LowStockWidget from '@/components/dashboard/LowStockWidget.vue';
+import PendingOrdersWidget from '@/components/dashboard/PendingOrdersWidget.vue';
+import QuotationPipelineWidget from '@/components/dashboard/QuotationPipelineWidget.vue';
 import QuickLinksWidget from '@/components/dashboard/QuickLinksWidget.vue';
 import RecentActivityWidget from '@/components/dashboard/RecentActivityWidget.vue';
 import SalesPerformanceWidget from '@/components/dashboard/SalesPerformanceWidget.vue';
 import TeamPresentWidget from '@/components/dashboard/TeamPresentWidget.vue';
 import UpcomingLeaveWidget from '@/components/dashboard/UpcomingLeaveWidget.vue';
 import WeeklyTimecardWidget from '@/components/dashboard/WeeklyTimecardWidget.vue';
+import ClockWidget from '@/components/timecards/ClockWidget.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
 import type {
+    ActiveOffersData,
     BreadcrumbItem,
+    LowStockItem,
+    PendingOrdersData,
     QuickLink,
+    QuotationPipelineData,
     RecentActivityItem,
     SalesPerformanceData,
     TeamMember,
@@ -28,6 +36,10 @@ interface Props {
     weeklyTimecard?: WeeklyTimecardData | null;
     teamPresence?: TeamMember[] | null;
     salesPerformance?: SalesPerformanceData | null;
+    quotationPipeline?: QuotationPipelineData | null;
+    activeOffers?: ActiveOffersData | null;
+    lowStockAlerts?: LowStockItem[] | null;
+    pendingOrders?: PendingOrdersData | null;
     upcomingLeave?: UpcomingLeaveItem[] | null;
     recentActivity?: RecentActivityItem[] | null;
     quickLinks?: QuickLink[] | null;
@@ -40,6 +52,10 @@ withDefaults(defineProps<Props>(), {
     weeklyTimecard: null,
     teamPresence: null,
     salesPerformance: null,
+    quotationPipeline: null,
+    activeOffers: null,
+    lowStockAlerts: null,
+    pendingOrders: null,
     upcomingLeave: null,
     recentActivity: null,
     quickLinks: null,
@@ -88,7 +104,33 @@ const breadcrumbs: BreadcrumbItem[] = [
                 </div>
             </div>
 
-            <!-- Row 3: Upcoming Leave + Recent Activity -->
+            <!-- Row 3: Quotation Pipeline + Active Offers -->
+            <div
+                v-if="quotationPipeline || activeOffers"
+                class="grid gap-4 md:grid-cols-2"
+            >
+                <div v-if="quotationPipeline">
+                    <QuotationPipelineWidget :data="quotationPipeline" />
+                </div>
+                <div v-if="activeOffers">
+                    <ActiveOffersWidget :data="activeOffers" />
+                </div>
+            </div>
+
+            <!-- Row 4: Low Stock Alerts + Pending Orders -->
+            <div
+                v-if="(lowStockAlerts && lowStockAlerts.length > 0) || pendingOrders"
+                class="grid gap-4 md:grid-cols-2"
+            >
+                <div v-if="lowStockAlerts && lowStockAlerts.length > 0">
+                    <LowStockWidget :data="lowStockAlerts" />
+                </div>
+                <div v-if="pendingOrders">
+                    <PendingOrdersWidget :data="pendingOrders" />
+                </div>
+            </div>
+
+            <!-- Row 5: Upcoming Leave + Recent Activity -->
             <div
                 v-if="(upcomingLeave && upcomingLeave.length > 0) || (recentActivity && recentActivity.length > 0)"
                 class="grid gap-4 xl:grid-cols-2"

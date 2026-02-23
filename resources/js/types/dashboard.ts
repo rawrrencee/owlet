@@ -50,3 +50,37 @@ export interface QuickLink {
     href: string;
     icon: string;
 }
+
+export interface QuotationPipelineStatus {
+    status: string;
+    label: string;
+    count: number;
+}
+
+export interface QuotationPipelineData {
+    total: number;
+    by_status: QuotationPipelineStatus[];
+}
+
+export interface LowStockItem {
+    product_id: number;
+    product_name: string;
+    store_name: string;
+    quantity: number;
+}
+
+export interface ActiveOfferType {
+    type: string;
+    label: string;
+    count: number;
+}
+
+export interface ActiveOffersData {
+    total: number;
+    by_type: ActiveOfferType[];
+}
+
+export interface PendingOrdersData {
+    delivery_orders: number;
+    purchase_orders: number;
+}

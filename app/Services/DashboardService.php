@@ -2,9 +2,17 @@
 
 namespace App\Services;
 
+use App\Constants\StorePermissions;
+use App\Enums\DeliveryOrderStatus;
 use App\Enums\LeaveRequestStatus;
+use App\Enums\OfferStatus;
+use App\Enums\PurchaseOrderStatus;
+use App\Enums\QuotationStatus;
 use App\Models\DeliveryOrder;
 use App\Models\Employee;
+use App\Models\Offer;
+use App\Models\Product;
+use App\Models\ProductStore;
 use App\Models\PurchaseOrder;
 use App\Models\Quotation;
 use App\Models\Stocktake;
@@ -35,7 +43,15 @@ class DashboardService
 
         if ($this->permissionService->canAccessPage($user, 'pos.access')) {
             $data['salesPerformance'] = $this->getSalesPerformance($user);
+            $data['quotationPipeline'] = $this->getQuotationPipeline($user);
+            $data['activeOffers'] = $this->getActiveOffers($user);
         }
+
+        if ($this->permissionService->canAccessPage($user, 'products.view')) {
+            $data['lowStockAlerts'] = $this->getLowStockAlerts($user);
+        }
+
+        $data['pendingOrders'] = $this->getPendingOrders($user);
 
         if ($employee) {
             $data['recentActivity'] = $this->getRecentActivity($employee);
@@ -242,6 +258,164 @@ class DashboardService
         );
 
         return $activities->sortByDesc('date')->take(8)->values()->toArray();
+    }
+
+    private function getQuotationPipeline(User $user): array
+    {
+        $storeIds = $this->permissionService->getAccessibleStoreIds($user);
+
+        $from = Carbon::now()->startOfMonth();
+        $to = Carbon::now();
+
+        $query = Quotation::whereBetween('created_at', [$from, $to]);
+
+        if (! $user->isAdmin() && ! empty($storeIds)) {
+            $query->whereIn('tax_store_id', $storeIds);
+        } elseif (! $user->isAdmin()) {
+            return ['total' => 0, 'by_status' => []];
+        }
+
+        $statusMap = [
+            QuotationStatus::DRAFT->value => 'Draft',
+            QuotationStatus::SENT->value => 'Sent',
+            QuotationStatus::ACCEPTED->value => 'Accepted',
+            QuotationStatus::PAID->value => 'Paid',
+        ];
+
+        $counts = $query->selectRaw('status, count(*) as count')
+            ->whereIn('status', array_keys($statusMap))
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray();
+
+        $byStatus = [];
+        foreach ($statusMap as $statusValue => $label) {
+            $byStatus[] = [
+                'status' => $statusValue,
+                'label' => $label,
+                'count' => (int) ($counts[$statusValue] ?? 0),
+            ];
+        }
+
+        return [
+            'total' => array_sum(array_column($byStatus, 'count')),
+            'by_status' => $byStatus,
+        ];
+    }
+
+    private function getLowStockAlerts(User $user): array
+    {
+        $storeIds = $this->permissionService->getAccessibleStoreIds($user);
+
+        if (empty($storeIds) && ! $user->isAdmin()) {
+            return [];
+        }
+
+        $query = ProductStore::with(['product:id,product_name', 'store:id,store_name'])
+            ->where('quantity', '<=', 5)
+            ->where('is_active', true);
+
+        if (! $user->isAdmin() && ! empty($storeIds)) {
+            $query->whereIn('store_id', $storeIds);
+        }
+
+        return $query
+            ->whereHas('product', fn ($q) => $q->whereNull('deleted_at'))
+            ->orderBy('quantity')
+            ->limit(8)
+            ->get()
+            ->map(fn ($ps) => [
+                'product_id' => $ps->product_id,
+                'product_name' => $ps->product?->product_name ?? 'Unknown',
+                'store_name' => $ps->store?->store_name ?? 'Unknown',
+                'quantity' => $ps->quantity,
+            ])
+            ->toArray();
+    }
+
+    private function getActiveOffers(User $user): array
+    {
+        $storeIds = $this->permissionService->getAccessibleStoreIds($user);
+
+        $query = Offer::where('status', OfferStatus::ACTIVE);
+
+        if (! $user->isAdmin() && ! empty($storeIds)) {
+            $query->where(function ($q) use ($storeIds) {
+                $q->where('apply_to_all_stores', true)
+                    ->orWhereHas('stores', fn ($sq) => $sq->whereIn('store_id', $storeIds));
+            });
+        } elseif (! $user->isAdmin()) {
+            return ['total' => 0, 'by_type' => []];
+        }
+
+        $counts = $query->selectRaw('type, count(*) as count')
+            ->groupBy('type')
+            ->pluck('count', 'type')
+            ->toArray();
+
+        $typeLabels = [
+            'product' => 'Product',
+            'bundle' => 'Bundle',
+            'minimum_spend' => 'Min. Spend',
+            'category' => 'Category',
+            'brand' => 'Brand',
+        ];
+
+        $byType = [];
+        foreach ($counts as $type => $count) {
+            $byType[] = [
+                'type' => $type,
+                'label' => $typeLabels[$type] ?? ucfirst($type),
+                'count' => (int) $count,
+            ];
+        }
+
+        return [
+            'total' => array_sum(array_column($byType, 'count')),
+            'by_type' => $byType,
+        ];
+    }
+
+    private function getPendingOrders(User $user): ?array
+    {
+        // Determine which stores this user can manage orders for
+        if ($user->isAdmin()) {
+            $storeIds = \App\Models\Store::pluck('id')->toArray();
+        } else {
+            if (! $user->isStaff() || ! $user->employee_id || ! $user->employee) {
+                return null;
+            }
+
+            $storeIds = $user->employee->employeeStores()
+                ->where('active', true)
+                ->get()
+                ->filter(fn ($es) => $es->hasAnyPermission([
+                    StorePermissions::ADD_DELIVERY_ORDER,
+                    StorePermissions::VIEW_INVENTORY,
+                ]))
+                ->pluck('store_id')
+                ->toArray();
+
+            if (empty($storeIds)) {
+                return null;
+            }
+        }
+
+        $deliveryOrders = DeliveryOrder::where('status', DeliveryOrderStatus::SUBMITTED)
+            ->where(function ($q) use ($storeIds) {
+                $q->whereIn('store_id_from', $storeIds)
+                    ->orWhereIn('store_id_to', $storeIds);
+            })
+            ->count();
+
+        $purchaseOrders = PurchaseOrder::where('status', PurchaseOrderStatus::SUBMITTED)
+            ->whereIn('store_id', $storeIds)
+            ->count();
+
+        return [
+            'delivery_orders' => $deliveryOrders,
+            'purchase_orders' => $purchaseOrders,
+        ];
     }
 
     private function getQuickLinks(User $user): array
